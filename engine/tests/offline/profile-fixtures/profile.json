@@ -1,0 +1,33 @@
+{
+  "profile": "default",
+  "version": 2,
+  "exportedAt": "2026-11-22T10:00:00",
+  "config": {
+    "roles": {
+      "planner": { "gate": 1, "readOnly": true, "auto": false, "promptFile": "plan.md", "chain": [ { "adapter": "mock", "model": "profile-planner", "family": "glm" } ] },
+      "plan-reviewer": { "gate": 2, "readOnly": true, "auto": false, "promptFile": "check-plan.md", "chain": [ { "adapter": "mock", "model": "profile-reviewer", "family": "deepseek" } ] }
+    },
+    "adapters": {
+      "mock": { "enabled": true, "transport": "cli" }
+    },
+    "tiers": {
+      "free": { "maxConcurrent": 1, "minGapSec": 0, "rateLimitRetries": 1, "rateLimitBackoffSec": 0, "whenBusy": "wait", "queueWaitSec": 60 },
+      "paid": { "maxConcurrent": 1, "minGapSec": 0, "rateLimitRetries": 1, "rateLimitBackoffSec": 0, "whenBusy": "wait", "queueWaitSec": 60 }
+    },
+    "modelRates": {
+      "note": "profile rates",
+      "mock-model": { "input": 1, "output": 2 }
+    },
+    "workflow": {
+      "steps": {
+        "understanding": { "enabled": true },
+        "preview": { "enabled": false },
+        "plan": { "enabled": true },
+        "review": { "enabled": true },
+        "approve": { "enabled": true },
+        "implement": { "enabled": true },
+        "verify": { "enabled": true }
+      }
+    }
+  }
+}

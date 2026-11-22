@@ -3,6 +3,7 @@ import { costMessages } from '@/features/cost';
 import { importsMessages } from '@/features/imports';
 import { libraryMessages } from '@/features/library';
 import { poolsMessages } from '@/features/pools';
+import { profilesMessages } from '@/features/profiles';
 import { projectsMessages } from '@/features/projects';
 import { qualityMessages } from '@/features/quality';
 import { runsMessages } from '@/features/runs';
@@ -20,6 +21,7 @@ export const messages = {
     quality: qualityMessages.en,
     imports: importsMessages.en,
     projects: projectsMessages.en,
+    profiles: profilesMessages.en,
   },
   fa: {
     common: commonFa,
@@ -31,6 +33,7 @@ export const messages = {
     quality: qualityMessages.fa,
     imports: importsMessages.fa,
     projects: projectsMessages.fa,
+    profiles: profilesMessages.fa,
   },
 } as const;
 

@@ -224,6 +224,59 @@ namespace Orchestra.Api.Data.Migrations
                     b.ToTable("LibraryItem", (string)null);
                 });
 
+            modelBuilder.Entity("Orchestra.Api.Modules.Profiles.ProfileEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CurrentVersion")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Profile", (string)null);
+                });
+
+            modelBuilder.Entity("Orchestra.Api.Modules.Profiles.ProfileVersionEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Json")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProfileId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("ProfileVersion", (string)null);
+                });
+
             modelBuilder.Entity("Orchestra.Api.Modules.Projects.ProjectEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -262,6 +315,9 @@ namespace Orchestra.Api.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EffectiveConfigJson")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PlanNumber")
@@ -560,6 +616,17 @@ namespace Orchestra.Api.Data.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Orchestra.Api.Modules.Profiles.ProfileVersionEntity", b =>
+                {
+                    b.HasOne("Orchestra.Api.Modules.Profiles.ProfileEntity", "Profile")
+                        .WithMany("Versions")
+                        .HasForeignKey("ProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Profile");
+                });
+
             modelBuilder.Entity("Orchestra.Api.Modules.Runs.Entities.RunEntity", b =>
                 {
                     b.HasOne("Orchestra.Api.Modules.Projects.ProjectEntity", "Project")
@@ -618,6 +685,11 @@ namespace Orchestra.Api.Data.Migrations
             modelBuilder.Entity("Orchestra.Api.Modules.Import.ImportLogEntity", b =>
                 {
                     b.Navigation("Errors");
+                });
+
+            modelBuilder.Entity("Orchestra.Api.Modules.Profiles.ProfileEntity", b =>
+                {
+                    b.Navigation("Versions");
                 });
 
             modelBuilder.Entity("Orchestra.Api.Modules.Projects.ProjectEntity", b =>

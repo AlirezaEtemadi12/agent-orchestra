@@ -35,19 +35,18 @@ The suite runs its whole set once per config in [`../engine/tests/offline/config
 
 | When | Tests |
 |---|---|
+| after plan 0006 — profiles merge in the engine (2026-11-22) | 133 per config, 266 across `number` and `slug`; ~19 min per config |
 | after the Project A gaps in the engine — `**Branch:**` line, `contractDoc`, planner phase name (2026-11-22) | 127 per config, 254 across `number` and `slug` |
 | after plan 0004 phase D — the reporter in the engine (2026-11-21) | 124 per config, 248 across `number` and `slug`; ~18 min per config |
 | after plan 0005 phase A+B — engine move, both filing styles (2026-11-20) | 121 per config, 242 across `number` and `slug`; ~18 min per config |
 
-## Baseline after plan 0004 phase A — events: the endpoint and the store (2026-11-20)
+## Baseline after plan 0006 — profiles (2026-11-22)
 
 | Side | Tests |
 |---|---|
-| `api` | 217 |
-| `ui` | 56 |
-| `engine` (offline suite, Windows only — its own section above) | 121 per config |
-
-Plan 0004 phase D moved the engine to 124 per config; `api` and `ui` are unchanged since phase C.
+| `api` | 246 |
+| `ui` | 64 |
+| `engine` (offline suite, Windows only — its own section above) | 133 per config |
 
 ### Earlier
 
@@ -55,6 +54,7 @@ Plan 0004 phase D moved the engine to 124 per config; `api` and `ui` are unchang
 |---|---|---|
 | after plan 0004 phase D — the reporter in the engine (2026-11-21) | 217 | 56 |
 | after plan 0004 phase C — the board and pools screens (2026-11-21) | 217 | 56 |
+| after plan 0004 phase A — events: the endpoint and the store (2026-11-20) | 217 | 56 |
 | after plan 0004 phase B — board and pools API (2026-11-21) | 217 | 49 |
 | after plan 0005 — engine move, no api/ui change (2026-11-20) | 176 | 49 |
 | after plan 0003 phase C — projects: the screens (2026-11-20) | 176 | 49 |

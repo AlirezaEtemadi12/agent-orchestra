@@ -4,8 +4,10 @@
 > orchestrator's own words (run, stage, hop, session) so the import is a mapping, not a translation.
 > Read from both orchestrators' real files on 2026-11-19 (Project A and Project B, read-only).
 > The database is a **read model** ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)):
-> it can be deleted and rebuilt from the files at any time — with one exception, the events the runner
-> reports, which are the dashboard's own record ([ADR 0006](../decisions/0006-events-are-the-dashboards-own-record.md)).
+> it can be deleted and rebuilt from the files at any time — with two exceptions, the dashboard's own
+> record: the events the runner reports ([ADR 0006](../decisions/0006-events-are-the-dashboards-own-record.md))
+> and the profiles edited here, which are exported to `<data>/profiles/<id>.json` for the engine
+> ([ADR 0007](../decisions/0007-profiles-exported-to-a-file.md)).
 
 ## Import sources (phase 0)
 
@@ -130,6 +132,8 @@ no token configured means the route answers 404). Schema 1:
 | `Project` | registered project (from configuration or the dashboard's `projects.json`) | `Id` (slug), `Name`, `RunsPath` |
 | `Run` | run | `Id`, `ProjectId`, `RunKey`, `TaskId`, `Repo`, `Task`, `Status`, `Branch`, `PlanVersion`, `PlanNumber`, `PlanTitle`, `Rounds`, `CreatedAt`, `UpdatedAt`, `ClosedAt`, `CostMicros`, `Source` (`Ledger` · `Live` · `Archive` · `Both` · `Events`), `SourceRef` |
 | `RunEvent` | event the runner reported (phase 1) | `Id` (the engine's GUID, unique), `ProjectId`, `TaskId`, `Branch`, `At` (UTC), `Seq`, `Kind`, `DataJson`, `ReceivedAt` |
+| `Profile` | a shared profile (plan 0006) | `Id` (slug), `Name`, `CurrentVersion` |
+| `ProfileVersion` | one immutable version of a profile | `Id`, `ProfileId` (FK → `Profile`, cascade), `Version`, `Json`, `Reason`, `CreatedAt` |
 | `StageText` | archived review / read-back / verify text | `Id`, `RunId`, `Stage`, `Round`, `Name`, `Text` (≤ 200 000 chars, cut with a note beyond) |
 | `StageResult` | review / read-back / phase / verify line, and each `history[]` entry | `Id`, `RunId`, `Stage` (`Review` · `ReadBack` · `Implement` · `Verify`), `Round`, `Phase`, `Adapter`, `Model`, `Verdict`, `Blockers`, `Should`, `Nits`, `Changed`, `OutsidePlan`, `Violations`, `GatesGreen`, `GatesNote`, `ModelVerdict`, `IsFinal`, `At` |
 | `SessionUsage` | session of a run | `Id`, `RunId`, `SessionId`, `FirstRole`, `Model`, `Calls`, `Requests`, `Input`, `Output`, `Reasoning`, `CacheRead`, `CostMicros` |
@@ -138,7 +142,8 @@ no token configured means the route answers 404). Schema 1:
 | `ImportError` | file or block that could not be read | `Id`, `ImportLogId`, `File`, `Location`, `Message` |
 | `LibraryItem` | indexed work product — plan, preview, idea, research note or evidence file | `Id`, `ProjectId` (FK → `Project`, cascade), `Category` (`Plan` · `Preview` · `Idea` · `Research` · `Evidence`), `RelPath`, `Title`, `Number`, `Slug`, `Repo`, `Status`, `CreatedOn`, `UpdatedOn`, `DoneOn`, `PlannedBy`, `PreviewRelPath`, `LinkedPlanNumber`, `RunKey`, `Group`, `SizeBytes`, `ModifiedAt` |
 
-Nine tables: the eight above plus `LibraryItem`.
+Twelve tables: the eleven above plus `LibraryItem`. `Run` also carries `EffectiveConfigJson` (plan 0006
+D10), the config a run started with, filled from its archive or from `runs/<id>/config.effective.json`.
 
 `IsFinal` is true for a ledger line and for the last `history[]` entry of each stage; queries over
 "the outcome" use only `IsFinal` rows, queries over "per round" use `history[]` rows.

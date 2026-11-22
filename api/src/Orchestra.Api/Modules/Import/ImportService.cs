@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
@@ -129,6 +130,19 @@ public sealed class ImportService
             }
             else
             {
+                // Plan 0006 D10: a live run records the config it started with beside task.json. A file
+                // that is unreadable is one import error, never a failed import.
+                var effectiveFile = Path.Combine(Path.GetDirectoryName(taskFile)!, "config.effective.json");
+
+                if (File.Exists(effectiveFile))
+                {
+                    filesRead++;
+                    result.Snapshot.EffectiveConfig = ReadEffectiveConfig(
+                        effectiveFile,
+                        Relative(runsPath, effectiveFile),
+                        errors);
+                }
+
                 tasks.Add(result.Snapshot);
             }
         }
@@ -316,6 +330,46 @@ public sealed class ImportService
         {
             _database.ImportLogs.RemoveRange(stale);
             await _database.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    /// <summary>Plan 0006 D10: a live run's `config.effective.json`, validated just enough to be a config.</summary>
+    private static string? ReadEffectiveConfig(
+        string file,
+        string relative,
+        List<(string File, string? Location, string Message)> errors)
+    {
+        try
+        {
+            var text = ReadText(file);
+
+            using var document = JsonDocument.Parse(text, new JsonDocumentOptions
+            {
+                AllowTrailingCommas = true,
+                CommentHandling = JsonCommentHandling.Skip,
+            });
+
+            var root = document.RootElement;
+
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("config", out var config)
+                || config.ValueKind != JsonValueKind.Object)
+            {
+                errors.Add((relative, null, "config.effective.json has no config object."));
+                return null;
+            }
+
+            return text;
+        }
+        catch (JsonException exception)
+        {
+            errors.Add((relative, null, $"config.effective.json: {exception.Message}"));
+            return null;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            errors.Add((relative, null, $"config.effective.json: {exception.Message}"));
+            return null;
         }
     }
 

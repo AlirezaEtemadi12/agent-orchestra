@@ -55,6 +55,9 @@ public static class ArchiveReader
                 Schema = schema,
                 ArchivedAt = archivedAt ?? DateTime.UtcNow,
                 Task = taskSnapshot,
+                EffectiveConfig = Property(root, "effectiveConfig") is { ValueKind: JsonValueKind.Object } effective
+                    ? effective.GetRawText()
+                    : null,
             };
 
             AddTexts(snapshot, Property(root, "reviews"), "Review");

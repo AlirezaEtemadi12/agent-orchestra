@@ -203,6 +203,7 @@ public static class RunAssembler
             target.PlanVersion ??= task.PlanVersion;
             target.PlanNumber ??= task.PlanNumber;
             target.PlanTitle ??= task.PlanTitle;
+            target.EffectiveConfigJson ??= task.EffectiveConfig;
 
             var created = task.CreatedAt ?? target.CreatedAt;
             var updated = task.UpdatedAt ?? target.UpdatedAt;
@@ -258,6 +259,7 @@ public static class RunAssembler
             target.PlanVersion ??= archive.Task.PlanVersion;
             target.PlanNumber ??= archive.Task.PlanNumber;
             target.PlanTitle ??= archive.Task.PlanTitle;
+            target.EffectiveConfigJson = archive.EffectiveConfig ?? target.EffectiveConfigJson;
 
             var (number, title) = PlanName.From(archive.Task.Task, archive.Task.Branch);
             target.PlanNumber ??= number;

@@ -109,4 +109,5 @@ public sealed record RunDetailDto(
     IReadOnlyList<StageTextDto> Texts,
     decimal? TotalCostUsd,
     RunPlanDto? Plan,
-    RunLiveDto? Live);
+    RunLiveDto? Live,
+    string? EffectiveConfig);

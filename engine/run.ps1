@@ -43,6 +43,9 @@ function Show-Usage {
             if ($d.Value.PSObject.Properties['repos'] -and $d.Value.repos) { $repos = [string]$d.Value.repos }
         }
     }
+    if ($Ctx -and $Ctx.Config -and $Ctx.PSObject.Properties['ProfileId'] -and $Ctx.ProfileId) {
+        Write-Host ("profile: {0} v{1}" -f $Ctx.ProfileId, $Ctx.ProfileVersion) -ForegroundColor DarkGray
+    }
     $usage = @'
 {0}
 
@@ -113,6 +116,9 @@ function Get-Timeout { param($Ctx) [int](Get-CfgValue $Ctx 'defaults' 'timeoutSe
 function Cmd-Agents {
     param($Ctx)
     Write-Host ("config: {0}" -f $Ctx.ConfigPath) -ForegroundColor DarkGray
+    if ($Ctx.PSObject.Properties['ProfileId'] -and $Ctx.ProfileId) {
+        Write-Host ("profile: {0} v{1}" -f $Ctx.ProfileId, $Ctx.ProfileVersion) -ForegroundColor DarkGray
+    }
     Write-Host ("engine: {0}" -f $OrchDir) -ForegroundColor DarkGray
     Write-Host ("root:   {0}" -f $Ctx.Root) -ForegroundColor DarkGray
     $rows = foreach ($role in $Ctx.Config.roles.PSObject.Properties.Name) {
@@ -702,7 +708,27 @@ function Get-RateSourceNote {
     param($Ctx)
     [void](Get-LiveModelRates $Ctx)
     if ($script:LiveRatesNote) { return $script:LiveRatesNote }
+    # Plan 0006 D9: with a profile loaded, the static rates are its `modelRates`. Without one the text is
+    # exactly as before, which is what T-L2 asserts.
+    if ($Ctx.PSObject.Properties['ProfileId'] -and $Ctx.ProfileId) { return ("profile {0} modelRates" -f $Ctx.ProfileId) }
     return 'orchestrator.json modelRates'
+}
+
+function Write-ProfileVersionLine {
+    # Plan 0006 D9: the run keeps the config it started on. When the profile has moved on since, say so in
+    # one line and go on with the current version.
+    param($Ctx, [string]$TaskId)
+    if (-not $TaskId) { return }
+    if (-not ($Ctx.PSObject.Properties['ProfileId']) -or -not $Ctx.ProfileId) { return }
+    if (-not $Ctx.PSObject.Properties['ProfileVersion'] -or $null -eq $Ctx.ProfileVersion) { return }
+    $file = Join-Path (Get-TaskDir $Ctx $TaskId) 'config.effective.json'
+    if (-not (Test-Path -LiteralPath $file)) { return }
+    try { $recorded = Get-Content -LiteralPath $file -Raw -Encoding UTF8 | ConvertFrom-Json } catch { return }
+    $start = $recorded.PSObject.Properties['profileVersion']
+    if (-not $start -or $null -eq $start.Value) { return }
+    if ([int]$start.Value -ne [int]$Ctx.ProfileVersion) {
+        Write-Host ("profile {0} is v{1} now; this run started on v{2}" -f $Ctx.ProfileId, $Ctx.ProfileVersion, [int]$start.Value) -ForegroundColor Yellow
+    }
 }
 
 function Get-ModelRate {
@@ -956,6 +982,17 @@ function Write-RunArchive {
             return , $out
         }
         $art = Join-Path $dir 'artifacts'
+        # Plan 0006 D10: the config the run started with travels with the archive, so the dashboard can show
+        # it for a closed run without the run folder.
+        $effective = $null
+        $effectiveFile = Join-Path $dir 'config.effective.json'
+        if (Test-Path -LiteralPath $effectiveFile) {
+            try {
+                $recorded = [IO.File]::ReadAllText($effectiveFile) | ConvertFrom-Json
+                if ($recorded.PSObject.Properties['config']) { $effective = $recorded.config }
+            }
+            catch { $effective = $null }
+        }
         $u = [ordered]@{}
         # Anything else a callee wrote to the pipeline rides along with the ledger's return value; keep the map.
         if ($Usage -and $Usage -isnot [System.Collections.IDictionary]) { $Usage = @(@($Usage) | Where-Object { $_ -is [System.Collections.IDictionary] }) | Select-Object -Last 1 }
@@ -969,6 +1006,7 @@ function Write-RunArchive {
             readbacks  = (& $texts $art 'plan.readback.v*.md')
             verify     = (& $texts (Join-Path (Join-Path $dir 'outbox') 'verifier') 'verify.md')
             usage      = [pscustomobject]$u
+            effectiveConfig = $effective
         }
         $archDir = Join-Path $Ctx.RunsDir '_archive'
         if (-not (Test-Path -LiteralPath $archDir -PathType Container)) { New-Item -ItemType Directory -Path $archDir -ErrorAction Stop | Out-Null }
@@ -1155,6 +1193,7 @@ function Cmd-Revise {
     param($Ctx, [string]$TaskId, [string]$Notes, [string]$PlanFile, [switch]$NoReadBack, [switch]$Retry)
     if (-not $TaskId) { throw 'usage: run.ps1 revise <taskId> ["notes"] [-PlanFile v2.md]' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+    Write-ProfileVersionLine $Ctx $TaskId
     if (@('AwaitingApproval', 'NeedsInput') -notcontains $state.status) { throw "run '$TaskId' is '$($state.status)'; revise works before approval only" }
     if ($PlanFile -and -not (Test-Path -LiteralPath $PlanFile)) { throw "plan file not found: $PlanFile" }
     $readBack = (-not $NoReadBack) -and [bool](Get-CfgValue $Ctx 'readback' 'enabled' $true)
@@ -1191,6 +1230,7 @@ function Cmd-ReadBack {
     param($Ctx, [string]$TaskId, [switch]$Retry)
     if (-not $TaskId) { throw 'usage: run.ps1 readback <taskId>' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+    Write-ProfileVersionLine $Ctx $TaskId
     if ($state.status -ne 'AwaitingApproval') { throw "run '$TaskId' is '$($state.status)'; read-back runs before approval" }
     $lock = Enter-TaskLock $Ctx $TaskId
     try {
@@ -1463,6 +1503,7 @@ function Cmd-Approve {
     param($Ctx, [string]$TaskId, [string]$Notes, [string]$Branch, [switch]$Force)
     if (-not $TaskId) { throw 'usage: run.ps1 approve <taskId> ["notes"] [-Branch name] [-Force]' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+    Write-ProfileVersionLine $Ctx $TaskId
     if ($state.status -ne 'AwaitingApproval') { throw "run '$TaskId' is '$($state.status)', not AwaitingApproval" }
     $plannerFamily = if ($state.plan.PSObject.Properties['family']) { $state.plan.family } else { Get-HopFamily ([pscustomobject]@{ adapter = $state.plan.adapter; model = $state.plan.model }) }
     $reviewerFamily = if ($state.review.PSObject.Properties['family']) { $state.review.family } else { Get-HopFamily ([pscustomobject]@{ adapter = $state.review.adapter; model = $state.review.model }) }
@@ -1518,6 +1559,7 @@ function Cmd-Close {
     $dir = Get-TaskDir $Ctx $TaskId
     if (-not (Test-Path -LiteralPath $dir)) { throw "no run '$TaskId' under $($Ctx.RunsDir)" }
     if (Test-Path -LiteralPath (Join-Path $dir '.lock')) { throw "run '$TaskId' is locked: a command is running on it" }
+    Write-ProfileVersionLine $Ctx $TaskId
     if (-not $Force) {
         $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
         $planText = if ($state.PSObject.Properties['approved'] -and $state.approved -and (Test-Path -LiteralPath $state.approved.artifact)) { Get-Content -LiteralPath $state.approved.artifact -Raw -Encoding UTF8 } else { '' }
@@ -1580,6 +1622,7 @@ function Cmd-Implement {
     if (-not $TaskId) { throw 'usage: run.ps1 implement <taskId> [phase]' }
     if (-not $Phase) { $Phase = '1' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+    Write-ProfileVersionLine $Ctx $TaskId
     $okStates = @('Approved', 'Implemented', 'Verified', 'VerifyFailed')
     if ($Force) { $okStates += 'Violation' }
     if ($okStates -notcontains $state.status) { throw "run '$TaskId' is '$($state.status)'; implement needs one of: $($okStates -join ', ')" }
@@ -1722,6 +1765,7 @@ function Cmd-Verify {
     param($Ctx, [string]$TaskId, [switch]$Retry)
     if (-not $TaskId) { throw 'usage: run.ps1 verify <taskId>' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+    Write-ProfileVersionLine $Ctx $TaskId
     if (@('Implemented', 'Verified', 'VerifyFailed', 'Violation') -notcontains $state.status) { throw "run '$TaskId' is '$($state.status)'; nothing to verify" }
     $repoPath = Get-RepoPath $Ctx $state.repo
     $planText = Get-ApprovedPlan $state

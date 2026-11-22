@@ -2709,6 +2709,115 @@ try {
 }
 catch { Fail-Scenario 'T-RP2' 'the reporter with the dashboard down' ("exception: " + $_.Exception.Message) }
 
+# ---------------------------------------------------------------- P: profiles (plan 0006)
+# The merge (D2), the export the engine reads (D5), the config a run records (D9) and the archive that
+# carries it (D10). Fixtures live in profile-fixtures/, outside configs/ so they add no third pass.
+try {
+    $fixtures = Join-Path $Here 'profile-fixtures'
+    $tmp = Join-Path $env:TEMP ('project-a-orch-profile-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    New-Item -ItemType Directory -Force -Path (Join-Path $tmp 'profiles') | Out-Null
+    Copy-Item -LiteralPath (Join-Path $fixtures 'profile.json') -Destination (Join-Path $tmp 'profiles\default.json')
+    Copy-Item -LiteralPath (Join-Path $fixtures 'project.orchestrator.json') -Destination (Join-Path $tmp 'orchestrator.json')
+    ([pscustomobject]@{ profilesPath = (Join-Path $tmp 'profiles') } | ConvertTo-Json) | Set-Content -LiteralPath (Join-Path $tmp 'orchestrator.local.json') -Encoding UTF8
+
+    $pctx = Import-OrchConfig (Join-Path $tmp 'orchestrator.json')
+    $plannerModel = [string]$pctx.Config.roles.planner.chain[0].model
+    $reviewerModel = [string]$pctx.Config.roles.'plan-reviewer'.chain[0].model
+    $okMerge = ($plannerModel -eq 'project-planner' -and $reviewerModel -eq 'profile-reviewer' `
+            -and [string]$pctx.Config.workflow.gatesPath -eq 'gates.md' `
+            -and [bool]$pctx.Config.workflow.steps.preview.enabled `
+            -and -not [bool]$pctx.Config.report.enabled `
+            -and [string]$pctx.Config.contractDoc -eq 'docs/api.md' `
+            -and $pctx.ProfileId -eq 'default' -and [int]$pctx.ProfileVersion -eq 2)
+    Check 'P1' 'the profile is the base and the project overrides in place; workflow paths and steps both survive' `
+        $okMerge ("planner=$plannerModel reviewer=$reviewerModel gates=$(if ($pctx.Config.workflow.PSObject.Properties['gatesPath']) { $pctx.Config.workflow.gatesPath }) preview=$(if ($pctx.Config.workflow.PSObject.Properties['steps']) { $pctx.Config.workflow.steps.preview.enabled }) profile=$($pctx.ProfileId) v$($pctx.ProfileVersion)")
+
+    $base = [pscustomobject]@{ a = 1; drop = 'x'; keep = [pscustomobject]@{ one = 1; two = 2 } }
+    $over = [pscustomobject]@{ a = 2; drop = $null; keep = [pscustomobject]@{ two = 3; three = 4 } }
+    $m = Merge-ConfigObject $base $over
+    $okDeep = ($m.a -eq 2 -and -not $m.PSObject.Properties['drop'] -and $m.keep.one -eq 1 -and $m.keep.two -eq 3 -and $m.keep.three -eq 4)
+    Check 'P2' 'Merge-ConfigObject merges objects, replaces scalars and removes a null key' `
+        $okDeep ("a=$($m.a) drop=$([bool]$m.PSObject.Properties['drop']) one=$($m.keep.one) two=$($m.keep.two) three=$($m.keep.three)")
+
+    # No orchestrator.local.json beside the config: the one-line error names the setting.
+    $bare = Join-Path $tmp 'bare'
+    New-Item -ItemType Directory -Force -Path $bare | Out-Null
+    Copy-Item -LiteralPath (Join-Path $fixtures 'project.orchestrator.json') -Destination (Join-Path $bare 'orchestrator.json')
+    $errLocal = ''
+    try { [void](Import-OrchConfig (Join-Path $bare 'orchestrator.json')) } catch { $errLocal = $_.Exception.Message }
+    # A local file that names a folder with no export: the error says which file is missing.
+    ([pscustomobject]@{ profilesPath = $bare } | ConvertTo-Json) | Set-Content -LiteralPath (Join-Path $bare 'orchestrator.local.json') -Encoding UTF8
+    $errMissing = ''
+    try { [void](Import-OrchConfig (Join-Path $bare 'orchestrator.json')) } catch { $errMissing = $_.Exception.Message }
+    $okErrors = ($errLocal -match 'profilesPath' -and $errMissing -match "not found at" -and $errMissing -match 'default\.json')
+    Check 'P3' 'a missing profilesPath or export is one clear line naming the file' `
+        $okErrors ("local='$errLocal' missing='$errMissing'")
+
+    # D6: a locked step turned off is rejected; preview is adjustable.
+    $locked = Get-Content -LiteralPath (Join-Path $fixtures 'profile.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $locked.version = 3
+    $locked.config.workflow.steps.review.enabled = $false
+    ($locked | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $tmp 'profiles\default.json') -Encoding UTF8
+    $errLocked = ''
+    try { [void](Import-OrchConfig (Join-Path $tmp 'orchestrator.json')) } catch { $errLocked = $_.Exception.Message }
+    $locked.config.workflow.steps.review.enabled = $true
+    $locked.config.workflow.steps.preview.enabled = $false
+    ($locked | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $tmp 'profiles\default.json') -Encoding UTF8
+    # A second project copy with no workflow.steps of its own, so the profile's preview=false decides.
+    $noSteps = Get-Content -LiteralPath (Join-Path $tmp 'orchestrator.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+    $noSteps.workflow.PSObject.Properties.Remove('steps')
+    ($noSteps | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $tmp 'preview.orchestrator.json') -Encoding UTF8
+    $previewCtx = $null
+    try { $previewCtx = Import-OrchConfig (Join-Path $tmp 'preview.orchestrator.json') } catch { $previewCtx = $null }
+    $okLocked = ($errLocked -match "'review' is always on" -and $previewCtx -and -not [bool]$previewCtx.Config.workflow.steps.preview.enabled)
+    Check 'P4' 'turning review off is rejected; turning preview off is accepted' `
+        $okLocked ("locked='$errLocked' preview=$(if ($previewCtx) { $previewCtx.Config.workflow.steps.preview.enabled } else { 'n/a' })")
+
+    if (-not $Keep) { Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue }
+}
+catch { Fail-Scenario 'P1' 'profile merge' ("exception: " + $_.Exception.Message) }
+
+try {
+    $ws = New-WorkSpace 'prof-run'
+    Edit-Config -Ws $ws -Change { param($cfg) Set-CfgProp $cfg 'profile' 'default' }
+    $profDir = Join-Path $ws 'profiles'
+    New-Item -ItemType Directory -Force -Path $profDir | Out-Null
+    $profileFile = Join-Path $profDir 'default.json'
+    Copy-Item -LiteralPath (Join-Path $Here 'profile-fixtures\profile.json') -Destination $profileFile
+    ([pscustomobject]@{ profilesPath = $profDir } | ConvertTo-Json) | Set-Content -LiteralPath (Join-Path $ws 'orchestrator.local.json') -Encoding UTF8
+
+    $plan = Write-Plan $ws 'plan-prof-v1.md'
+    $r = Run-Orch -Ws $ws -Argv @('new', 'P-RUN-001', 'Ui', 'mock profile task', '-PlanFile', $plan)
+    $effFile = Join-Path $ws 'runs\P-RUN-001\config.effective.json'
+    $eff = if (Test-Path -LiteralPath $effFile) { Get-Content -LiteralPath $effFile -Raw -Encoding UTF8 | ConvertFrom-Json } else { $null }
+    # The workspace config has its own plan-reviewer chain (D2: the project replaces the array), and the
+    # tier is the profile's; both prove the merge ran.
+    $okRecord = ($r.Code -eq 0 -and $eff -and $eff.profile -eq 'default' -and [int]$eff.profileVersion -eq 2 `
+            -and [string]$eff.config.tiers.free.maxConcurrent -eq '1' `
+            -and [string]$eff.config.roles.'plan-reviewer'.chain[0].model -eq 'mock-reviewer')
+    $hash1 = if (Test-Path -LiteralPath $effFile) { (Get-FileHash -LiteralPath $effFile -Algorithm SHA256).Hash } else { '' }
+
+    # The profile moves on to v3; a later command says so once and the run's own record never changes.
+    $p = Get-Content -LiteralPath $profileFile -Raw -Encoding UTF8 | ConvertFrom-Json
+    $p.version = 3
+    ($p | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $profileFile -Encoding UTF8
+    $plan2 = Write-Plan $ws 'plan-prof-v2.md'
+    $r2 = Run-Orch -Ws $ws -Argv @('revise', 'P-RUN-001', '-PlanFile', $plan2)
+    $hash2 = if (Test-Path -LiteralPath $effFile) { (Get-FileHash -LiteralPath $effFile -Algorithm SHA256).Hash } else { '' }
+    $oneLine = ($r2.Out -match 'profile default is v3 now; this run started on v2')
+    Check 'P5' 'a run records its effective config once, and a newer profile prints one line' `
+        ($okRecord -and $hash1 -eq $hash2 -and $oneLine) `
+        ("code=$($r.Code) record=$okRecord hashSame=$($hash1 -eq $hash2) line=$oneLine profile=$(if ($eff) { $eff.profile }) v$(if ($eff) { $eff.profileVersion }) tier=$(if ($eff) { $eff.config.tiers.free.maxConcurrent })")
+
+    $r3 = Run-Orch -Ws $ws -Argv @('close', 'P-RUN-001', '-Force')
+    $arch = @(Get-ChildItem -LiteralPath (Join-Path $ws 'runs\_archive') -Filter 'P-RUN-001.*.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1)
+    $archText = if ($arch.Count) { Get-Content -LiteralPath $arch[0].FullName -Raw -Encoding UTF8 } else { '' }
+    $okArchive = ($r3.Code -eq 0 -and $arch.Count -eq 1 -and $archText -match '"effectiveConfig"' -and $archText -match 'mock-reviewer' -and -not (Test-Path -LiteralPath (Join-Path $ws 'runs\P-RUN-001')))
+    Check 'P6' 'close writes effectiveConfig into the archive before deleting the run folder' `
+        $okArchive ("code=$($r3.Code) archives=$($arch.Count) hasEffective=$([bool]($archText -match '\"effectiveConfig\"'))")
+}
+catch { Fail-Scenario 'P5' 'a run with a profile' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------------------------------- report
 Write-Host ''
 $script:results | Format-Table -AutoSize | Out-String -Width 400 | Write-Host

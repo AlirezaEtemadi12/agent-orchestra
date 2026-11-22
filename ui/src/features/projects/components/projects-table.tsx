@@ -5,6 +5,7 @@ import { DateTimeText } from '@/components/app/data-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Link } from '@/i18n/navigation';
 import type { ProjectDto } from '@/lib/projects/queries';
 
 type ProjectsTableProps = {
@@ -23,6 +24,7 @@ export function ProjectsTable({ rows, onRemove }: ProjectsTableProps) {
           <TableHead>{t('fields.id')}</TableHead>
           <TableHead>{t('fields.rootPath')}</TableHead>
           <TableHead>{t('fields.runsPath')}</TableHead>
+          <TableHead />
           <TableHead />
           <TableHead />
           <TableHead />
@@ -58,6 +60,15 @@ export function ProjectsTable({ rows, onRemove }: ProjectsTableProps) {
                     {t('remove')}
                   </Button>
                 ) : null}
+              </TableCell>
+              <TableCell>
+                <Link
+                  className="text-xs underline underline-offset-4"
+                  data-ltr
+                  href={{ pathname: '/settings/projects/effective/', query: { id: project.id } } as never}
+                >
+                  effectiveConfig
+                </Link>
               </TableCell>
             </TableRow>
           );

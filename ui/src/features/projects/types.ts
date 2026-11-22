@@ -34,3 +34,17 @@ export type ProjectStoreState = {
   readable: boolean;
   error: string | null;
 };
+
+export type ConfigSourceDto = {
+  path: string;
+  from: 'profile' | 'project';
+};
+
+/** `GET api/projects/{id}/effective` (plan 0006 §6.2). */
+export type EffectiveConfigDto = {
+  effective: Record<string, unknown>;
+  sources: ConfigSourceDto[];
+  suggestedOrchestratorJson: string;
+  profile: string | null;
+  profileVersion: number | null;
+};

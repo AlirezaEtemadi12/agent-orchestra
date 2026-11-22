@@ -4,6 +4,7 @@ using Orchestra.Api.Common.Errors;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
 using Orchestra.Api.Modules.Projects.Features.CreateProject;
 using Orchestra.Api.Modules.Projects.Features.DeleteProject;
+using Orchestra.Api.Modules.Projects.Features.EffectiveConfig;
 using Orchestra.Api.Modules.Projects.Features.ListProjects;
 using Orchestra.Api.Modules.Projects.Features.ScaffoldPrompt;
 using Orchestra.Api.Modules.Projects.Features.StoreState;
@@ -63,6 +64,18 @@ public sealed class ProjectsController : ControllerBase
         return error is null ? NoContent() : Failure(error);
     }
 
+    /// <summary>Plan 0006 §6.2: the project's effective values, read-only.</summary>
+    [HttpGet("{id}/effective")]
+    public async Task<IActionResult> Effective(
+        [FromServices] EffectiveConfigHandler handler,
+        string id,
+        CancellationToken cancellationToken)
+    {
+        var (config, error, detail) = await handler.HandleAsync(id, cancellationToken);
+
+        return error is null ? Ok(config) : Failure(error, detail);
+    }
+
     [HttpPost("check")]
     public IActionResult Check(
         [FromServices] CheckFolderHandler handler,
@@ -81,9 +94,9 @@ public sealed class ProjectsController : ControllerBase
         return error is null ? Ok(prompt) : Failure(error);
     }
 
-    private IActionResult Failure(Error error)
+    private IActionResult Failure(Error error, string? detail = null)
     {
-        var problem = ProblemResults.From(error, HttpContext);
+        var problem = ProblemResults.From(error, HttpContext, detail);
 
         return new ObjectResult(problem) { StatusCode = problem.Status };
     }

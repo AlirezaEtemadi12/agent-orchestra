@@ -37,6 +37,14 @@ function stageLabel(t: RunsTranslator, stage: StageResult): string {
   return t('stage.verify');
 }
 
+function prettyJson(text: string): string {
+  try {
+    return JSON.stringify(JSON.parse(text), null, 2);
+  } catch {
+    return text;
+  }
+}
+
 export function RunDetail() {
   const t = useTranslations('runs');
   const common = useTranslations('common');
@@ -329,6 +337,24 @@ export function RunDetail() {
           </Table>
         </CardContent>
       </Card>
+
+      {detail.effectiveConfig ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">effectiveConfig</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <details>
+              <summary className="cursor-pointer text-sm text-muted-foreground" data-ltr>
+                effectiveConfig
+              </summary>
+              <pre data-ltr className="mt-3 max-h-96 overflow-auto rounded-md border bg-muted/30 p-3 text-xs">
+                {prettyJson(detail.effectiveConfig)}
+              </pre>
+            </details>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

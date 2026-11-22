@@ -103,4 +103,5 @@ export type RunDetail = RunListItem & {
   stageUsage: StageUsage[];
   texts: StageText[];
   totalCostUsd: number | null;
+  effectiveConfig: string | null;
 };

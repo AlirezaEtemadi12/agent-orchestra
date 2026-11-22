@@ -12,3 +12,4 @@ Consequences.
 | [0004](0004-persian-and-english.md) | Persian and English from day one; locale routing in a static export; browser time zone |
 | [0005](0005-ai-is-knowledge-orchestra-is-work.md) | `.ai/` is the knowledge, `.orchestra/` is the work; files are the truth; the dashboard never writes into a project |
 | [0006](0006-events-are-the-dashboards-own-record.md) | Events reported by the runner are the dashboard's own record: never derived, never deleted by an import |
+| [0007](0007-profiles-exported-to-a-file.md) | Profiles are the dashboard's own data, versioned and exported to `<data>/profiles/<id>.json`; the engine merges that file, never the API |

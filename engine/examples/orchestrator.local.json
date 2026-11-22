@@ -1,3 +1,4 @@
 {
-    "enginePath": "C:\\path\\to\\Project Orchestra"
+    "enginePath": "C:\\path\\to\\Project Orchestra",
+    "profilesPath": "C:\\path\\to\\Project Orchestra\\api\\src\\Orchestra.Api\\data\\profiles"
 }

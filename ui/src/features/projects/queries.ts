@@ -15,6 +15,16 @@ export function useStoreState() {
   });
 }
 
+export function useEffectiveConfig(id: string | null) {
+  const locale = useLocale() as Locale;
+
+  return useQuery({
+    queryKey: ['projects', id, 'effective', locale],
+    queryFn: () => projectsApi.effective(locale, id as string),
+    enabled: Boolean(id),
+  });
+}
+
 export function useCheckFolder() {
   const locale = useLocale() as Locale;
 

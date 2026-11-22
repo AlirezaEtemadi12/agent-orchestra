@@ -15,6 +15,18 @@ public sealed record Error(string Code, int Status)
 
     public static Error ProjectStoreUnreadable => new("Projects.Store.Unreadable", 409);
 
+    public static Error ProfileNotFound => new("Profiles.Profile.NotFound", 404);
+
+    public static Error ProfileInvalid => new("Profiles.Profile.Invalid", 400);
+
+    public static Error ProfileReasonRequired => new("Profiles.Reason.Required", 400);
+
+    public static Error ProfileStepLocked => new("Profiles.Step.Locked", 400);
+
+    public static Error ProfileRevertCurrent => new("Profiles.Revert.Current", 400);
+
+    public static Error ProfileProjectUnreadable => new("Profiles.Project.Unreadable", 422);
+
     public static Error InvalidGroupBy => new("Usage.Query.InvalidGroupBy", 400);
 
     public static Error InvalidRange => new("Usage.Query.InvalidRange", 400);

@@ -1,0 +1,298 @@
+{
+  "roles": {
+    "planner": {
+      "gate": 1,
+      "readOnly": true,
+      "auto": false,
+      "promptFile": "plan.md",
+      "chain": [
+        {
+          "adapter": "claude",
+          "model": "opus",
+          "family": "claude-opus"
+        },
+        {
+          "adapter": "claude",
+          "model": "sonnet",
+          "family": "claude-sonnet"
+        }
+      ]
+    },
+    "plan-reviewer": {
+      "gate": 2,
+      "readOnly": true,
+      "auto": false,
+      "promptFile": "check-plan.md",
+      "note": "Gate 2 skips any hop of the plan author's family.",
+      "chain": [
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "family": "deepseek",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/glm-5.3-flash",
+          "family": "glm",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/mimo-v2.6-flash",
+          "family": "mimo",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "claude",
+          "model": "sonnet",
+          "family": "claude-sonnet"
+        },
+        {
+          "adapter": "manual",
+          "model": "manual/any-agent",
+          "family": "manual"
+        }
+      ]
+    },
+    "implementer": {
+      "gate": 3,
+      "readOnly": false,
+      "auto": true,
+      "promptFile": "implement.md",
+      "chain": [
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "family": "deepseek",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "codebuddy",
+          "model": "deepseek-v4.1-flash",
+          "family": "deepseek"
+        },
+        {
+          "adapter": "manual",
+          "model": "manual/any-agent",
+          "family": "manual"
+        }
+      ]
+    },
+    "readback": {
+      "gate": 2.5,
+      "readOnly": true,
+      "auto": false,
+      "promptFile": "implement.md",
+      "note": "Gate 2.5, run by another family than the implementer. Remove this role to fall back to the implementer chain.",
+      "chain": [
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/glm-5.3-flash",
+          "family": "glm",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/mimo-v2.6-flash",
+          "family": "mimo",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "family": "deepseek",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "manual",
+          "model": "manual/any-agent",
+          "family": "manual"
+        }
+      ]
+    },
+    "verifier": {
+      "gate": 4,
+      "readOnly": true,
+      "auto": false,
+      "promptFile": "verify.md",
+      "chain": [
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/glm-5.3-flash",
+          "family": "glm",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "opencode",
+          "model": "opencode-go/mimo-v2.6-flash",
+          "family": "mimo",
+          "pool": "opencode-go",
+          "tier": "paid"
+        },
+        {
+          "adapter": "claude",
+          "model": "sonnet",
+          "family": "claude-sonnet"
+        },
+        {
+          "adapter": "manual",
+          "model": "manual/any-agent",
+          "family": "manual"
+        }
+      ]
+    }
+  },
+  "tiers": {
+    "note": "What `free` and `paid` mean. maxConcurrent - how many hops of this pool may run at once, 0 = unlimited. minGapSec - the least time between the starts of two hops. rateLimitRetries / rateLimitBackoffSec - attempts and wait after a 429. whenBusy - wait for a free slot or take the next hop. queueWaitSec - how long `wait` waits before queue-timeout.",
+    "free": {
+      "maxConcurrent": 1,
+      "minGapSec": 15,
+      "rateLimitRetries": 2,
+      "rateLimitBackoffSec": 60,
+      "whenBusy": "wait",
+      "queueWaitSec": 7200
+    },
+    "paid": {
+      "maxConcurrent": 1,
+      "minGapSec": 0,
+      "rateLimitRetries": 1,
+      "rateLimitBackoffSec": 30,
+      "whenBusy": "wait",
+      "queueWaitSec": 7200
+    }
+  },
+  "adapters": {
+    "opencode": {
+      "enabled": true,
+      "transport": "cli",
+      "command": "opencode",
+      "tier": "paid",
+      "maxConcurrent": 2,
+      "idleTimeoutSec": 600
+    },
+    "claude": {
+      "enabled": true,
+      "transport": "cli",
+      "command": "claude",
+      "tier": "paid",
+      "idleTimeoutSec": 0,
+      "note": "OAuth pro; the orchestrator strips ANTHROPIC_* before the call. -p --output-format text prints nothing until it ends, so the idle timeout is off."
+    },
+    "codebuddy": {
+      "enabled": true,
+      "transport": "cli",
+      "command": "codebuddy",
+      "tier": "free",
+      "idleTimeoutSec": 0
+    },
+    "manual": {
+      "enabled": true,
+      "transport": "inbox",
+      "command": null
+    }
+  },
+  "modelRatesSource": {
+    "enabled": true,
+    "url": "https://opencode.ai/data/index.json",
+    "maxAgeHours": 24,
+    "timeoutSec": 15,
+    "note": "Live prices, fetched at most once per maxAgeHours and cached in runs/_model-rates.json. No network: the cached copy; no cache: modelRates below."
+  },
+  "modelRates": {
+    "note": "Fallback prices, USD per 1,000,000 tokens, keyed by the exact model string the ledger writes.",
+    "opencode-go/deepseek-v4.1-flash": {
+      "input": 0.15,
+      "output": 0.6,
+      "cacheRead": 0.003,
+      "cacheWrite": 0
+    },
+    "opencode-go/glm-5.3-flash": {
+      "input": 0.11952,
+      "output": 0.41831,
+      "cacheRead": 0.03436,
+      "cacheWrite": 0
+    },
+    "opencode-go/mimo-v2.6-flash": {
+      "input": 0.14,
+      "output": 0.28,
+      "cacheRead": 0.0028,
+      "cacheWrite": 0
+    }
+  },
+  "quota": {
+    "patterns": [
+      "usage limit",
+      "limit reached",
+      "quota exceeded",
+      "exceeded your",
+      "insufficient balance",
+      "insufficient credit",
+      "free usage"
+    ],
+    "exhaustedSec": 1800,
+    "note": "A hop whose output matches one of these is out of quota for its whole pool: no retry, the pool is marked exhausted for exhaustedSec."
+  },
+  "sessions": {
+    "maxFollowUps": 10,
+    "note": "A role's later rounds continue the same agent session with a short follow-up prompt instead of re-sending the whole plan."
+  },
+  "revise": {
+    "maxAutoRounds": 3,
+    "note": "auto plan->review rounds after the first review while the verdict is FINDINGS"
+  },
+  "readback": {
+    "enabled": true,
+    "note": "gate 2.5: the readback role's chain (else the implementer chain), read-only, reports where it would have to guess"
+  },
+  "preflight": {
+    "enabled": true,
+    "pingPrompt": "Reply with exactly one word: PONG",
+    "timeoutSec": 120
+  },
+  "defaults": {
+    "timeoutSec": 3600,
+    "idleTimeoutSec": 300,
+    "agentCwd": "repo",
+    "retryDelaySec": 20,
+    "maxDiffChars": 60000,
+    "refreshGraph": true
+  },
+  "rules": {
+    "reviewerModelMustDifferFromPlanner": true,
+    "neverCommit": true
+  },
+  "workflow": {
+    "steps": {
+      "understanding": {
+        "enabled": true
+      },
+      "preview": {
+        "enabled": true
+      },
+      "plan": {
+        "enabled": true
+      },
+      "review": {
+        "enabled": true
+      },
+      "approve": {
+        "enabled": true
+      },
+      "implement": {
+        "enabled": true
+      },
+      "verify": {
+        "enabled": true
+      }
+    }
+  }
+}

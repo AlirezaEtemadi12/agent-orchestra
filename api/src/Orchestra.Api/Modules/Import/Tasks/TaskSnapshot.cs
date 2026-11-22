@@ -39,6 +39,9 @@ public sealed class TaskSnapshot
     public List<StageSnapshot> Phases { get; } = [];
 
     public List<StageSnapshot> History { get; } = [];
+
+    /// <summary>Plan 0006 D10: the sibling <c>config.effective.json</c>, when the run has one.</summary>
+    public string? EffectiveConfig { get; set; }
 }
 
 public sealed class StageSnapshot

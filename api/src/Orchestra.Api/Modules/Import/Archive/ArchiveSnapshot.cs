@@ -15,6 +15,9 @@ public sealed class ArchiveSnapshot
 
     public TaskSnapshot Task { get; init; } = new();
 
+    /// <summary>Plan 0006 D10: the archive's <c>effectiveConfig</c> object, as written at close.</summary>
+    public string? EffectiveConfig { get; init; }
+
     public List<StageTextEntity> Texts { get; } = [];
 }
 
