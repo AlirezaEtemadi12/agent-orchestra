@@ -23,6 +23,6 @@ without deciding anything. The process is [`../workflow.md`](../workflow.md); th
 | [0003](0003-new-project.md) | New project: form, folder check, scaffold prompt for the owner's agent | Done | 2026-11-19 | 2026-11-20 |
 | [0004](0004-live-events.md) | Live events from the runner; runs board, pools, latest line (§8 answered) | Done | 2026-11-19 | 2026-11-21 |
 | [0005](0005-engine-move.md) | One engine in `engine/`; projects call it through a shim (§8 answered) | Done | 2026-11-19 | 2026-11-22 |
-| [0006](0006-profiles.md) | Profiles and per-project overrides, exported to a file (§8 answered) | Running | 2026-11-19 | 2026-11-22 |
+| [0006](0006-profiles.md) | Profiles and per-project overrides, exported to a file (§8 answered) | Done | 2026-11-19 | 2026-11-22 |
 | [0007](0007-move-projects-to-orchestra-layout.md) | Move Project A and Project B to `.ai/` + `.orchestra/` (§8 answered; revised after 0005/0006) | Draft | 2026-11-19 | 2026-11-22 |
 | [0008](0008-hosting.md) | Server mode: sign-in, HTTPS, sync, profile pull, backups (§8 deferred) | Draft | 2026-11-19 | 2026-11-20 |

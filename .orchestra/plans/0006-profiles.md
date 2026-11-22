@@ -1,7 +1,7 @@
 # Plan 0006 — Profiles and per-project overrides
 
-**Status:** Running — approved 2026-11-22 after the third gate-2 review; phases A–C implemented, verified 2026-11-22 (API 246, UI 64, engine suite 133/133 on both configs); waiting only for the owner's real run in each project
-**Created:** 2026-11-19 · **Updated:** 2026-11-22 · **Done:** —
+**Status:** Done 2026-11-22 — commits a81f188, d5e9a65, merged into `main`. Verified: API 246, UI 64, engine suite 133/133 on both configs. Closed by the owner before the real runs; those are checked together with plan 0007 (owner, 2026-11-22)
+**Created:** 2026-11-19 · **Updated:** 2026-11-22 · **Done:** 2026-11-22
 **Preview:** [`../previews/0001-skeleton-and-import/`](../previews/0001-skeleton-and-import/index.html) §2 (the three layers), §3 (adjustable workflow) and the "Profiles" mock — approved 2026-11-19 (v3)
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-19. **Executor:** another agent, ideally a cheaper model.
