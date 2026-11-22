@@ -43,8 +43,8 @@ back-fill. Screens: a runs board with lanes *Running / Needs you / Done / Failed
 - The orchestrator (`run.ps1`, `lib/`, tests, prompts) moves into `engine/`; the offline suite moves
   with it.
 - **Profiles** in Orchestra hold the shared defaults (chains, tiers, pools, reviewer, read-back,
-  workflow steps, model catalogue with live prices); each project overrides them in
-  `.orchestra/project.json`. Profile changes are versioned with who, when and why, and exported to the
+  workflow steps, model catalogue with live prices); each project overrides them in its own
+  `orchestrator.json` (key `profile`; plan 0006). Profile changes are versioned with who, when and why, and exported to the
   file the engine reads — the engine never needs the network ([ADR 0002](../decisions/0002-runner-reports-dashboard-never-commands.md)).
 - Project A and Project B move from `orchestrator/` to `.ai/` + `.orchestra/` — a **companion plan
   in each of those repos** ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)).
