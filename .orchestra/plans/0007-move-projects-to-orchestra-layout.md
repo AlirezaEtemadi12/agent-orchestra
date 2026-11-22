@@ -1,14 +1,14 @@
 # Plan 0007 — Move Project A and Project B to `.ai/` + `.orchestra/`
 
-**Status:** Draft — revised 2026-11-22 after plans 0005 and 0006; waiting for the plan review (gate 2)
+**Status:** Draft — revised 2026-11-22 after plans 0005 and 0006; first gate-2 review applied; waiting for the second review pass
 **Created:** 2026-11-19 · **Updated:** 2026-11-22 · **Done:** —
 **Preview:** none of its own — preview 0001 §2 (approved 2026-11-19)
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-19; revised 2026-11-22. **Executor:** another agent, ideally a cheaper model.
-**Plan review:** — (a different model family than the planner's)
+**Plan review:** gate 2 by another model family (Freebuff), 2026-11-22: first pass B1–B3 + 12 smaller points — all applied in this version
 **Decided by:** — (gate 2)
 **Branch:** `alireza/orchestra-layout` here; each companion names its own
-**Base:** `main` after plan 0006 is merged
+**Base:** the commit that merges plan 0006 into `main` (phase A does not start before that merge)
 **Companion:** **two** — `Project B` and `Project A`, each run in a session opened in that workspace,
 from the brief in `.orchestra/prompts/move-to-orchestra-layout.md` (file 6).
 **Steps changed:** no preview of its own (owner, 2026-11-19)
@@ -51,6 +51,8 @@ from the brief in `.orchestra/prompts/move-to-orchestra-layout.md` (file 6).
    - موتور یاد می‌گیرد پلن‌ها را در `.orchestra/plans/{repo}/` پیدا کند و یک پلن را با سطر
      `**Status:** Done` «بسته» بداند، نه با پوشه‌ی `done/`. پروژه‌ای که هنوز جابه‌جا نشده مثل امروز کار می‌کند.
    - متن‌هایی که اسم `orchestrator/run.ps1` را می‌برند، اسم `.orchestra/run.ps1` را هم می‌برند.
+   - داشبورد `orchestrator.json` پروژه را اول در `.orchestra/` و بعد در `orchestrator/` می‌جوید.
+   - نقش‌ها و promptها برای هر repo جدا می‌مانند (`roles/Web/`)، چون نسخه‌های repoها با هم فرق دارند.
    - brief همراه (prompt) نوشته می‌شود.
 2. برای هر پروژه، در یک session داخل همان workspace، کار از روی brief انجام می‌شود:
    - تغییر نام پوشه‌ی `orchestrator/` به `.orchestra/` (خود پوشه ریشه‌ی repo است، پس git چیزی نمی‌بیند)،
@@ -70,8 +72,9 @@ from the brief in `.orchestra/prompts/move-to-orchestra-layout.md` (file 6).
 - در هر دو workspace، `orchestrator/` دیگر نیست و `.orchestra/` با همه‌ی دسته‌ها هست.
 - `powershell -File .orchestra/run.ps1 agents` و `health` کار می‌کنند.
 - در هر repo، `.ai/` دیگر `plans/`، `agents/` یا `prompts/` ندارد.
-- در داشبورد، تعداد runها و پلن‌های هر پروژه قبل و بعد از انتقال یکی است، و پلن 0032 هنوز به `T-WEB-002`
-  لینک است.
+- در داشبورد، تعداد runها و پلن‌های هر پروژه قبل و بعد از انتقال یکی است، و پلنی که شما انتخاب می‌کنید
+  هنوز به run خودش لینک است.
+- صفحه‌ی effective هر پروژه در داشبورد هنوز باز می‌شود (۴۲۲ نمی‌دهد).
 - skill هماهنگ‌کننده‌ی هر پروژه هنوز `CONDUCTOR.md` و چک‌لیست بستن پلن را پیدا می‌کند.
 - `close` یک run که پلنش `Status: Done` دارد کار می‌کند.
 - `git log` در هر repo: یک commit جابه‌جایی؛ `git diff -M --stat` همه را rename نشان می‌دهد.
@@ -81,7 +84,7 @@ from the brief in `.orchestra/prompts/move-to-orchestra-layout.md` (file 6).
 1. Phase A changes only this repo. Phases B–C are companions in their workspaces.
 2. **Moves only.** Files cross repos, so a move is copy + `git add` in `.orchestra/` and `git rm` in
    the product repo (§6.2); content edits only for links and paths a move broke,
-   and the one workflow merge (D7).
+   the one workflow merge (D7), and the `**Status:** Done` line D4 adds.
 3. Every repo of the project must be clean of code (workflow.md, "Dirty means code") and no run may be
    in flight (`run.ps1 queue` empty, no `runs/T-*/task.json` in `Implementing`) before its companion starts.
 
@@ -111,41 +114,51 @@ settings live in its own `orchestrator.json`); each project's own `workflow.md` 
 | # | Decision |
 |---|---|
 | D1 | The folder `orchestrator/` is renamed on disk to `.orchestra/`. It is the root of its own repo, so the rename changes nothing inside git; `orchestrator.json`, the git-ignored `orchestrator.local.json` and `runs/` move with it unchanged in name. The engine finds the workspace through `root` (relative to the config file), so it needs no change for the rename. There is **no** `project.json` (plan 0006) |
-| D2 | The new paths are overrides in the project's own `orchestrator.json` `workflow` block: `gatesPath: ".orchestra/workflow.md"`, `rolesPath: ".orchestra/roles"`, `rolesIndex: ".orchestra/roles/README.md"`, `promptsPath: ".orchestra/prompts"`, `planTemplate: ".orchestra/plans/TEMPLATE.md"`; `agentsDoc` and `indexDoc` stay `{repo}/AGENTS.md` and `{repo}/.ai/README.md`. The profile is not touched |
-| D3 | New config key `defaults.plansDir`, workspace-relative with the `{repo}` token (like the workflow paths): `.orchestra/plans/{repo}`. Folder names are the repo names as configured (`plans/Web/`), no lowercasing. When `plansDir` is set, `close` looks for the plan there (by number, or by slug for `planFiling: slug`, same matching as today) and accepts it only when its `**Status:**` line starts with `Done`. When it is not set, today's `plansDoneDir` behaviour is unchanged |
+| D2 | The new paths are overrides in the project's own `orchestrator.json` `workflow` block. **Roles and prompts stay per repo** (review B2, 2026-11-22: the repos' copies differ, and a merge would be a rule change nobody asked for): `rolesPath: ".orchestra/roles/{repo}"`, `rolesIndex: ".orchestra/roles/{repo}/README.md"`, `promptsPath: ".orchestra/prompts/{repo}"`. The gates are one file: `gatesPath: ".orchestra/workflow.md"` (D7). `planTemplate: ".orchestra/plans/TEMPLATE.md"`; `agentsDoc` and `indexDoc` stay `{repo}/AGENTS.md` and `{repo}/.ai/README.md`. The profile is not touched |
+| D3 | New **top-level** config key `plansDir` (next to `planFiling`; a project key, not a profile key — plan 0006 D1), workspace-relative with the `{repo}` token: `.orchestra/plans/{repo}`. Folder names are the repo names as configured (`plans/Web/`), no lowercasing. When `plansDir` is set, `close` looks for the plan there (by number, or by slug for `planFiling: slug`) and accepts only a file whose `**Status:**` line starts with `Done`. When it is not set, today's `plansDoneDir` behaviour is unchanged |
+| D3a | **Where a plan is written** (review B3): with `plansDir` set, gate 1 writes the plan to `<plansDir>/NNNN-topic.md` (a copy of `runs/_drafts/<id>.plan.md`; slug filing: `<slug>.md`) and the preview to `.orchestra/previews/NNNN-topic/index.html`. The plan stays there for its whole life; closing it changes only its `Status:` line. CONDUCTOR.md and each project's close-plan checklist say this |
 | D4 | Plan files keep their names. `done/` disappears: finished plans move next to open ones; a finished plan that has no `**Status:**` line gets `**Status:** Done` as its second line — no other content change |
+| D4a | The dashboard reads the project file from `<root>/.orchestra/orchestrator.json`, falling back to `<root>/orchestrator/orchestrator.json` (review B1: `EffectiveConfigHandler` hardcodes the old path) |
 | D5 | `cleanTree.ignore` in each project drops `.ai/plans/` and keeps `.ai/context/` |
 | D6 | The worker guard (`agents.ps1`, "never run orchestrator/run.ps1") and `run.ps1` help/footer texts name both `orchestrator/run.ps1` and `.orchestra/run.ps1`; the help line for `close` says "filed (Status: Done in plansDir, or in plansDoneDir)" |
-| D7 | Project B's three `workflow.md` copies: identical → one file; different → the companion STOPS, shows the owner the diff, and the merged text is a rule change the owner approves in that session |
+| D7 | Project B's three `workflow.md` copies (owner, 2026-11-20: one file): identical → one file; different → the companion STOPS, shows the owner the diff, and the merged text is a rule change the owner approves in that session. Roles and prompts are **not** merged (D2) |
 | D8 | No dashboard move-check endpoint or card: a one-time move of two projects does not earn an API, a UI card and tests. The companion's preconditions (rule 3) are checked by the session itself with `git status` and `run.ps1 queue` |
-| D9 | The dashboard needs no code change: `LibraryDefaults` already indexes `.orchestra/plans/*.md` and `.orchestra/plans/*/*.md`. Per project the owner changes `RunsPath` to `<root>/.orchestra/runs` and removes any `Library` globs (in `appsettings.Local.json` or `deploy/.env`) |
+| D9 | The dashboard needs one code change (D4a); the rest already works: `LibraryDefaults` indexes `.orchestra/plans/*.md` and `.orchestra/plans/*/*.md`, and `DeriveRootPath` accepts `<root>/.orchestra/runs`. Per project the owner changes `RunsPath` to `<root>/.orchestra/runs` and removes any `Library` globs (in `appsettings.Local.json` or `deploy/.env`) |
 
 ## 5. File manifest (this repo)
 
 | # | File | NEW/EDIT | Phase |
 |---|---|---|---|
-| 1 | `engine/run.ps1` — `close`: D3 (`plansDir` + Status check, both filing modes); help and footer text (D6) | EDIT | A |
-| 2 | `engine/lib/agents.ps1` — worker guard text (D6); `plansDir` recognised by the known-keys check if one exists | EDIT | A |
-| 3 | `engine/tests/offline/run-offline.ps1` — T-PD1–4 (§7) | EDIT | A |
-| 4 | `engine/README.md` — the project layout drawn as `.orchestra/` (old name noted), `plansDir` documented | EDIT | A |
-| 5 | `engine/docs/CONDUCTOR.md` — paths to `.orchestra/` and `plans/{repo}/`; "file the plan" = set `Status: Done` | EDIT | A |
-| 6 | `.orchestra/prompts/move-to-orchestra-layout.md` — the companion brief (§6.2), with no project path or name beyond "Project A/B" | NEW | A |
-| 7 | `.orchestra/plans/README.md` — row 0007 | EDIT | A |
+| 1 | `engine/run.ps1` — `close`: D3 (`plansDir` + Status check, both filing modes, one shared `$planDir` variable instead of the two `$doneDir` lines); help (`:72-73`) and footer (`:109`) text (D6) | EDIT | A |
+| 2 | `engine/lib/agents.ps1` — worker guard text at `:887` (D6). Nothing else: the engine has no known-keys check | EDIT | A |
+| 3 | `engine/tests/offline/run-offline.ps1` — T-PD1–6 (§7) | EDIT | A |
+| 4 | `engine/README.md` and `engine/examples/orchestrator.json` (`:3` "copy it to …") — the project layout drawn as `.orchestra/` (old name noted), `plansDir` documented | EDIT | A |
+| 5 | `engine/docs/CONDUCTOR.md` — paths to `.orchestra/`; D3a (gate 1 writes the plan into `plansDir` and the preview into `previews/`; close = set `Status: Done`), with the `plansDoneDir` text kept for a project without `plansDir` | EDIT | A |
+| 6 | `.orchestra/prompts/move-to-orchestra-layout.md` — the companion brief (§6.2), with no project path, run id or plan number | NEW | A |
+| 7 | `api/src/Orchestra.Api/Modules/Projects/Features/EffectiveConfig/EffectiveConfigHandler.cs` — D4a | EDIT | A |
+| 8 | `api/tests/Orchestra.Api.Tests/Profiles/EffectiveConfigTests.cs` — one test per location (new, old, neither → 422 as today) | EDIT | A |
+| 9 | `.orchestra/plans/README.md` — row 0007 | EDIT | A |
 
 ## 6. Per-file specification
 
 ### 6.1 `close` with `plansDir`
 
 ```
-$pd = Get-CfgValue $Ctx 'defaults' 'plansDir' $null
-if ($pd) { $dir = Resolve-WorkflowPath $Ctx $pd $state.repo; <find by number or slug in $dir>;
-           <read the first 15 lines; require a line matching '^\*\*Status:\*\*\s*Done'> }
-else     { <today's plansDoneDir code, unchanged> }
+$pd = top-level plansDir from $Ctx.Config, else $null
+if ($pd) {
+  if (-not $state.repo) { throw "run '<id>' has no repo in task.json, so its plan folder is unknown. close -Force to delete it anyway." }
+  $planDir = Resolve-WorkflowPath $Ctx $pd $state.repo
+  <collect every candidate by today's matching (number; or slug exact, -slug suffix, branch text)>
+  <keep only candidates whose first 15 lines match '^\*\*Status:\*\*\s*Done'; accept the first>
+} else { $planDir = <today's plansDoneDir>; <today's code, unchanged> }
 ```
 
-Found but not Done → `plan <n> is in <dir> but its Status is not Done yet. Close the plan first (the
-close-plan checklist), or close -Force to delete the run anyway.` Not found → the existing "not filed"
-message with `<dir>`.
+The Done filter runs **before** a candidate is chosen, so the run's own open plan (which also contains
+its branch) never hides a Done copy (review point 4). Messages in `plansDir` mode:
+- candidates found, none Done → `plan <n> is in <dir> but its Status is not Done yet. Close the plan
+  first (the close-plan checklist), or close -Force to delete the run anyway.`
+- no candidate → `plan <n> is not in <dir>. Write it there first (gate 1), or close -Force to delete
+  the run anyway.`
 
 ### 6.2 Companion brief (per workspace)
 
@@ -153,22 +166,31 @@ message with `<dir>`.
 2. Close the terminals/sessions that use `orchestrator/`; rename the folder to `.orchestra/` (D1).
 3. Inside `.orchestra/` (its own repo), with `git mv` from the product repos impossible across repos,
    **copy then `git add`** here and **`git rm`** there:
-   `workflow.md` (D7), `roles/` (from `<repo>/.ai/agents/*.md` except `workflow.md`; `README.md` kept as
-   `roles/README.md`), `prompts/` (from `<repo>/.ai/prompts/`), `plans/<Repo>/` (from
-   `<repo>/.ai/plans/` and `done/`, D4), `plans/TEMPLATE.md`, `previews/` (root `*.html` and
-   `runs/_drafts/*.html`), `ideas/` (root `ideas.md` as `ideas/README.md`), `research/`, `evidence/`
-   (root `screenshots/`, git-ignored).
-4. `orchestrator.json`: D2 overrides, `defaults.plansDir` (D3), D5.
+   - `workflow.md` (D7);
+   - `roles/<Repo>/` from `<repo>/.ai/agents/*.md` except `workflow.md` (its `README.md` stays
+     `roles/<Repo>/README.md`); `prompts/<Repo>/` from `<repo>/.ai/prompts/` (D2);
+   - `plans/<Repo>/` from `<repo>/.ai/plans/*.md` and `done/*.md` **except `README.md` and
+     `TEMPLATE.md`** (D4); one `plans/TEMPLATE.md` at the root (the gate-owning repo's copy);
+   - `previews/` (root `*.html` and `runs/_drafts/*.html`), `ideas/` (root `ideas.md` as
+     `ideas/README.md`), `research/`, `evidence/` (root `screenshots/`).
+   - `.orchestra/.gitignore` keeps what it has and lists `runs/` and `evidence/` (ADR 0005).
+4. `orchestrator.json`: D2 overrides, top-level `plansDir` (D3), D5.
 5. In each product repo: fix links in `AGENTS.md` and `.ai/README.md` (relative `../.orchestra/…`).
-6. Skills under `<root>/.claude/skills/` and the close-plan checklist: paths to `.orchestra/…`.
+6. Skills under `<root>/.claude/skills/` and the close-plan checklist: paths to `.orchestra/…`, and D3a
+   (where gate 1 writes a plan and a preview; close = `Status: Done`).
 7. `powershell -File .orchestra/run.ps1 agents` and `health` pass.
 8. Commit only on the owner's word, one commit per repo: `Move orchestrator docs to .orchestra/ (plan
    0007, no content change)`.
 9. The owner switches the dashboard setting (D9), re-imports and compares counts with step 1.
 
-Because files cross repos, "rename only" is checked per side: the product repos show only deletions
-plus link edits; `.orchestra/` shows only additions whose content equals the deleted files
-(`git diff --no-index` or a hash list in the session log).
+"Moves only" is checked per region, and the session log records each:
+- **tracked product-repo files** → the product repos show only deletions plus link edits;
+  `.orchestra/` shows additions whose content equals the deleted files (a hash list), except the D4
+  `Status` lines;
+- **untracked workspace-root files** (root `*.html`, `ideas.md`, `research/`, `screenshots/`) → a hash
+  list before and after; no deletion side exists;
+- **`<root>/.claude/skills/`** is outside every repo → a local edit, listed in the session log for the
+  owner to accept; no commit.
 
 ## 7. Tests
 
@@ -176,8 +198,10 @@ plus link edits; `.orchestra/` shows only additions whose content equals the del
 |---|---|
 | T-PD1 | `plansDir` set, plan `0042-x.md` in `plans/Web/` with `**Status:** Done` → close succeeds |
 | T-PD2 | same plan with `**Status:** Running` → close refuses with the "not Done" line |
-| T-PD3 | `planFiling: slug`, `plans/Web/<slug>.md` Done → close succeeds |
+| T-PD3 | `planFiling: slug`, folder holds the run's own open plan (Running, names the branch) **and** a Done copy → close succeeds on the Done one |
 | T-PD4 | no `plansDir` → today's `plansDoneDir` cases still pass (the existing tests unchanged) |
+| T-PD5 | `plansDir` set, no plan file in the folder → the "not in <dir>. Write it there first (gate 1)" line |
+| T-PD6 | `plansDir` set, run whose `task.json` has no `repo` → the "no repo" line, nothing read from `.orchestra/plans/` |
 | companions | their own: `agents`, `health`, the per-side diff check, the dashboard counts |
 
 ## 8. Stop and ask — open questions for the owner
@@ -188,8 +212,9 @@ plus link edits; `.orchestra/` shows only additions whose content equals the del
 
 ## 9. Phases
 
-- **A — engine support and brief.** Files 1–7. **Gate:** offline suite green on both configs (the
-  existing count + 4). Stop.
+- **A — engine and dashboard support, and the brief.** Files 1–9. **Gate:** `dotnet test` and the
+  offline suite green on both configs; the suite count is the base's count (133 at 0006) + 6 per config,
+  with T-PD1–6 listed in the log. Stop.
 - **B — Project B companion.** From file 6, in that workspace. **Owner checks:** the items of «نتیجه» for Project B.
 - **C — Project A companion.** The same. **Owner checks:** the same for Project A.
 
