@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Approved by the owner 2026-11-19 (artifact https://claude.ai/artifact/TvWCeEtmg57vypeZeFBTez, v3). Mock data is sample data. -->
+<title>Orchestra — شماتیک پلن 0001</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of numbered decision sections; diagrams and the mock app break out wider. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --sunken:#eef0f4; --fg:#161a22; --muted:#5b6474; --line:#dde1e8;
+  --accent:#3b5bdb; --accent-soft:#e7ecfd; --ok:#1f8a4c; --ok-soft:#e3f4ea; --warn:#b26a00; --warn-soft:#fbf0dc;
+  --bad:#c0392b; --bad-soft:#fbe6e3; --info:#0a7ea4; --info-soft:#dff2f8;
+  --rail:#1c2140; --rail-fg:#c9cff0; --rail-active:#3b5bdb; --on-accent:#ffffff;
+  --f-body:"Vazirmatn",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1218; --surface:#171b23; --sunken:#1e232d; --fg:#e7eaf0; --muted:#97a0b0; --line:#2a303c;
+  --accent:#7c94f5; --accent-soft:#232c4d; --ok:#4cc27e; --ok-soft:#17301f; --warn:#e0a23b; --warn-soft:#33270f;
+  --bad:#ef7a6c; --bad-soft:#3a1d19; --info:#4fc0e0; --info-soft:#12303a;
+  --rail:#0b0e1a; --rail-fg:#aab3dc; --rail-active:#5a74e8; --on-accent:#0b0e1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1218; --surface:#171b23; --sunken:#1e232d; --fg:#e7eaf0; --muted:#97a0b0; --line:#2a303c;
+  --accent:#7c94f5; --accent-soft:#232c4d; --ok:#4cc27e; --ok-soft:#17301f; --warn:#e0a23b; --warn-soft:#33270f;
+  --bad:#ef7a6c; --bad-soft:#3a1d19; --info:#4fc0e0; --info-soft:#12303a;
+  --rail:#0b0e1a; --rail-fg:#aab3dc; --rail-active:#5a74e8; --on-accent:#0b0e1a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.75;margin:0}
+.wrap{max-width:1000px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;flex-direction:column;gap:6px;margin-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--muted);font-family:var(--f-mono)}
+h1{font-size:28px;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-size:20px;margin:0 0 12px;text-wrap:balance;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+h2 .n{font-family:var(--f-mono);font-size:13px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:6px}
+h3{font-size:15px;margin:18px 0 8px}
+p{margin:0 0 10px;max-width:70ch}
+section{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px 22px 18px;margin-bottom:18px}
+code,.mono{font-family:var(--f-mono);font-size:12.5px;direction:ltr;unicode-bidi:isolate}
+code{background:var(--sunken);padding:1px 5px;border-radius:4px}
+ul{margin:0 0 10px;padding-inline-start:20px} li{margin:3px 0}
+.lede{color:var(--muted);max-width:72ch}
+.pill{display:inline-block;font-size:12px;padding:1px 9px;border-radius:999px;font-weight:500;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)} .p-info{background:var(--info-soft);color:var(--info)}
+.p-acc{background:var(--accent-soft);color:var(--accent)} .p-mut{background:var(--sunken);color:var(--muted)}
+.note{border-inline-start:3px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:6px;margin:12px 0}
+.note.disagree{border-color:var(--bad);background:var(--bad-soft)}
+.note.agree{border-color:var(--ok);background:var(--ok-soft)}
+.note b{display:block;margin-bottom:2px}
+.tbl{overflow-x:auto;margin:8px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:start;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:500;font-size:12.5px}
+td.num{font-variant-numeric:tabular-nums;direction:ltr;text-align:end}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:10px 0}
+.step{flex:1 1 120px;min-width:0;border:1px solid var(--line);background:var(--sunken);border-radius:10px;padding:10px 12px}
+.step .k{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.step b{display:block;font-size:14px}
+.step small{color:var(--muted);font-size:12px;line-height:1.5;display:block}
+.step.owner{border-style:dashed;border-color:var(--warn)}
+.toggles{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0;font-size:13.5px}
+.toggles label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.toggles input:disabled+span{color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.cols>*{min-width:0}
+pre.tree{font-family:var(--f-mono);font-size:12.5px;line-height:1.65;background:var(--sunken);border-radius:10px;padding:14px 16px;margin:0;overflow-x:auto;direction:ltr;text-align:left}
+.tree .c{color:var(--muted)} .tree .n{color:var(--accent);font-weight:500} .tree .o{color:var(--ok);font-weight:500} .tree .w{color:var(--warn)}
+.layers{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.layer{display:grid;grid-template-columns:170px 1fr;gap:12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--sunken)}
+@media (max-width:560px){.layer{grid-template-columns:1fr}}
+.layer b{font-size:14px}.layer small{color:var(--muted);display:block;line-height:1.55}
+.layer.l1{border-color:var(--accent)}.layer.l2{border-color:var(--ok)}
+.road{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+@media (max-width:760px){.road{grid-template-columns:1fr 1fr}}
+@media (max-width:460px){.road{grid-template-columns:1fr}}
+.road .box{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--sunken);min-width:0}
+.road .box.now{border-color:var(--accent);background:var(--accent-soft)}
+.road .box b{display:block}.road .box ul{font-size:12.5px;margin:4px 0 0;padding-inline-start:16px;color:var(--muted)}
+.mock-ctl{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;padding:5px 12px;border:0;background:var(--surface);color:var(--fg);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+button:focus-visible,.side a:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid;grid-template-columns:200px 1fr;min-height:460px;background:var(--bg)}
+@media (max-width:760px){.app{grid-template-columns:1fr}.side{display:flex;overflow-x:auto;align-items:center}.side .brand,.side .grp{display:none}}
+.side{background:var(--rail);color:var(--rail-fg);padding:12px 8px;font-size:13.5px}
+.side .brand{font-weight:700;color:#fff;padding:4px 10px 12px}
+.side .grp{font-size:11px;opacity:.6;padding:10px 10px 4px}
+.side a{display:flex;justify-content:space-between;gap:6px;padding:6px 10px;border-radius:7px;color:inherit;text-decoration:none;cursor:pointer;white-space:nowrap}
+.side a.on{background:var(--rail-active);color:#fff}
+.side a .tag{font-family:var(--f-mono);font-size:10px;opacity:.7}
+.main{min-width:0;display:flex;flex-direction:column}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);gap:8px;flex-wrap:wrap}
+.bar .t{font-weight:600}
+.bar .tools{display:flex;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 8px;color:var(--muted);background:var(--surface)}
+.content{padding:16px;min-width:0}
+.ptabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.ptabs button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:3px 12px;cursor:pointer}
+.ptabs button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi small{color:var(--muted);font-size:12px;display:block}
+.kpi b{font-size:20px;font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.sub{color:var(--muted);font-size:12px;display:block}
+.bars{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.brow{display:grid;grid-template-columns:170px 1fr 56px;gap:8px;align-items:center;font-size:12.5px}
+@media (max-width:520px){.brow{grid-template-columns:110px 1fr 48px}}
+.track{height:10px;background:var(--sunken);border-radius:5px;overflow:hidden}
+.fill{display:block;height:100%;background:var(--accent);border-radius:5px}
+.prompt{position:relative;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-family:var(--f-mono);font-size:12px;white-space:pre-wrap;direction:ltr;text-align:left;margin:8px 0 0;line-height:1.6}
+.btn{font:inherit;font-size:12.5px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);border-radius:7px;padding:4px 12px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.check{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px;margin:8px 0}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.form{grid-template-columns:1fr}}
+.form label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.form .inp{border:1px solid var(--line);border-radius:7px;padding:5px 9px;background:var(--surface);color:var(--fg);font-family:var(--f-mono);font-size:12.5px;direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mock-note{font-size:12px;color:var(--muted);margin-top:8px}
+ol.q{padding-inline-start:22px} ol.q li{margin:8px 0}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <span class="eyebrow">ORCHESTRA · PLAN 0001 · PREVIEW v2 · 2026-11-19</span>
+  <h1>شماتیک تصمیم‌ها، پیش از نوشتن پلن</h1>
+  <p class="lede">نسخه‌ی ۲. در این نسخه پوشه‌ی <code>.ai/</code> از <code>.orchestra/</code> جدا شده، پروفایل‌ها اضافه شده‌اند، workflow قابل تنظیم است، پلن‌ها در داشبورد پیگیری می‌شوند، و صفحه‌ی ساخت پروژه آمده است. تا امروز هیچ فایلی در repo تغییر نکرده، جز session log.</p>
+</header>
+
+<section>
+  <h2><span class="n">1</span>فهم من از درخواست</h2>
+  <p>Orchestra ابزاری است که بعداً <b>public</b> می‌شود. ارکستر چندعاملی را برای هر تعداد پروژه مدیریت می‌کند، به دو زبان فارسی و انگلیسی، با تم روشن و تاریک، روی <code>localhost:3500</code>.</p>
+  <p><b>دو پوشه در هر پروژه، هر دو در git خود پروژه:</b></p>
+  <ul>
+    <li><code>.ai/</code>: درخت دانش پروژه. مستقل از ایجنت است تا Claude، Cursor، Codex و بقیه هم بتوانند از آن استفاده کنند.</li>
+    <li><code>.orchestra/</code>: هر چیزی که به ارکستر مربوط است. یعنی workflow، نقش‌ها، پلن‌ها، پیش‌نمایش‌ها، ایده‌ها، تحقیق‌ها، شواهد تست، runها، و تنظیمات اختصاصی پروژه.</li>
+  </ul>
+  <p>پیش‌فرض‌ها در <b>پروفایل</b>ی داخل Orchestra هستند و هر پروژه می‌تواند آن‌ها را عوض کند، مثلاً مرورکننده را.</p>
+  <p>وقتی پروژه‌ی جدیدی می‌سازید، داشبورد مسیرها و تنظیمات را می‌پرسد. اگر <code>.ai/</code> نبود، پرامپتی نشان می‌دهد که آن را به ایجنت خودتان بدهید تا ساختار را از <code>.claude/</code>، <code>.cursor/</code>، <code>CLAUDE.md</code> یا <code>AGENTS.md</code> بسازد.</p>
+  <p>workflow پلنر به‌صورت پیش‌فرض «فهم، بعد پیش‌نمایش، بعد پلن» است، ولی قابل کم و زیاد شدن است. فهم را ایجنت به زبان خودش می‌نویسد، ابهام‌ها و برداشت‌های متفاوت را می‌گوید، و شما اصلاح می‌کنید.</p>
+  <p>دیتابیس فقط فهرست و لاگ نگه می‌دارد. اگر فایلی پاک شود، از داشبورد هم حذف می‌شود.</p>
+  <div class="note"><b>چیزی که در این پلن نیست</b>همه‌ی موارد بالا با هم ساخته نمی‌شوند. ترتیب ساختنشان در بخش ۷ آمده است. پلن 0001 فقط ساختار امروزِ دو پروژه را می‌خواند.</div>
+</section>
+
+<section>
+  <h2><span class="n">2</span>دو پوشه در هر پروژه، و پروفایل در Orchestra</h2>
+  <div class="cols">
+    <div>
+<pre class="tree"><span class="c">&lt;any project&gt;/</span>
+├── AGENTS.md              <span class="c">pointer for every agent</span>
+├── <span class="n">.ai/</span>                   <span class="c">KNOWLEDGE — any agent</span>
+│   ├── README.md          <span class="c">index</span>
+│   ├── architecture/
+│   ├── decisions/         <span class="c">ADRs</span>
+│   ├── &lt;area&gt;/            <span class="c">api/, ui/, … conventions</span>
+│   └── context/           <span class="c">session logs</span>
+└── <span class="o">.orchestra/</span>             <span class="c">ORCHESTRATOR — in git</span>
+    ├── project.json       <span class="c">overrides of the profile</span>
+    ├── workflow.md        <span class="c">gates of this project</span>
+    ├── roles/             <span class="c">only roles that differ</span>
+    ├── ideas/             <span class="c">one file per idea</span>
+    ├── research/
+    ├── previews/          <span class="c">NNNN-topic/index.html</span>
+    ├── plans/             <span class="c">NNNN-topic.md</span>
+    ├── evidence/          <span class="w">git-ignored · screenshots</span>
+    └── runs/              <span class="w">git-ignored · task.json, ledger</span></pre>
+    </div>
+    <div>
+      <h3 style="margin-top:0">هر تنظیم از کجا می‌آید</h3>
+      <div class="layers">
+        <div class="layer l1"><b>۱. پروفایل</b><small>داخل Orchestra. پیش‌فرض‌های مشترک: زنجیره‌ی مدل‌ها، مرورکننده، read-back، poolها، و مراحل workflow. می‌شود چند پروفایل داشت، مثلاً «ارزان» و «دقیق».</small></div>
+        <div class="layer l2"><b>۲. <code>.orchestra/project.json</code></b><small>داخل پروژه و در git. فقط چیزهایی که این پروژه عوض کرده: repoها، دستورهای gate، و مثلاً «مرورکننده: deepseek».</small></div>
+        <div class="layer"><b>۳. شروع run</b><small>موتور هر دو را ادغام می‌کند. اولویت با پروژه است. نتیجه در <code>runs/&lt;id&gt;/</code> ثبت می‌شود تا معلوم باشد هر run با چه تنظیمی اجرا شده.</small></div>
+      </div>
+      <p class="lede">طبق ADR 0002، موتور پروفایل را از یک فایل export‌شده می‌خواند، نه از API. پس اگر داشبورد خاموش باشد هم run اجرا می‌شود.</p>
+    </div>
+  </div>
+  <div class="note"><b>خود repo ی Orchestra هم همین شکل را می‌گیرد</b>این بخش‌ها به <code>.orchestra/</code> منتقل می‌شوند: <code>.ai/plans</code>، <code>.ai/prompts</code>، <code>.ai/agents/workflow.md</code> و <code>.ai/vision/ideas.md</code> (که به <code>ideas/</code> تبدیل می‌شود). در <code>.ai/</code> فقط دانش می‌ماند: architecture، decisions، <code>api/</code>، <code>ui/</code>، roadmap و context. این جابه‌جایی یک تغییر جدا و فقط‌مستند است.</div>
+</section>
+
+<section>
+  <h2><span class="n">3</span>workflow قابل تنظیم</h2>
+  <p>مراحل در پروفایل تعریف می‌شوند و هر پروژه می‌تواند آن‌ها را تغییر دهد. بعضی مراحل قفل‌اند، یعنی هیچ تنظیمی نمی‌تواند حذفشان کند: «فهم از درخواست»، «تأیید شما» و «verify». در این ماکاپ مراحل را روشن و خاموش کنید:</p>
+  <div class="toggles" id="wf-toggles"></div>
+  <div class="flow" id="wf-flow"></div>
+  <p class="lede">پیش‌نمایش HTML بسته به کار، یکی از این‌ها یا ترکیبی از آن‌ها را دارد: نمودار جریان کار، شماتیک ساختار، و ماکاپ صفحه‌ها. پلنی که UI ندارد هم می‌تواند فقط نمودار جریان کار داشته باشد.</p>
+  <h3>قانون‌هایی که بازبینی می‌شوند</h3>
+  <ul>
+    <li>«فهم من از درخواست»: ایجنت آن را <b>به زبان خودش</b> می‌نویسد. هر جمله‌ای را که دو معنی دارد مشخص می‌کند و می‌گوید کدام برداشت را انتخاب کرده. شما اصلاح می‌کنید و نسخه‌ی نهایی وارد پلن می‌شود. قانون فعلی گیت ۲ («owner اول فهم را می‌خواند») <b>حذف</b> می‌شود، چون این کار به مرحله‌ی ۱ منتقل شده.</li>
+    <li>کارهای کوچک (یک فایل با شکل روشن) همچنان ۲ تا ۶ خط در چت هستند، بدون پیش‌نمایش.</li>
+    <li>پوشه‌ی <code>plans/done/</code> <b>حذف</b> می‌شود. به جای آن، سربرگ پلن تاریخ و وضعیت دارد (بخش ۴).</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">4</span>پیگیری پلن‌ها بدون <code>done/</code></h2>
+  <div class="cols">
+    <div>
+      <p>نگرانی‌تان درست است. پوشه‌ی <code>done/</code> یک دسته‌بندی آماده بود. این سه چیز جایش را می‌گیرند:</p>
+      <ul>
+        <li><b>شمارنده:</b> از قبل هست (<code>0001-…</code>). شماره موقع ساختن پیش‌نمایش رزرو می‌شود تا پیش‌نمایش و پلن یک شماره داشته باشند.</li>
+        <li><b>تاریخ:</b> سه خط <code>Created</code>، <code>Updated</code> و <code>Done</code> در سربرگ. داشبورد بر اساس هر کدام مرتب می‌کند.</li>
+        <li><b>وضعیت:</b> یکی از مقدارهای ثابت، که داشبورد بر اساسش فیلتر و شمارش می‌کند.</li>
+      </ul>
+      <p>وضعیت از داشبورد <b>دیده</b> می‌شود: کدام پلن پیش‌نویس است، کدام تأیید شده، کدام در run است. دکمه‌ی «کپی پرامپت برای ارکستر» هم دارد. run را خودش شروع نمی‌کند (ADR 0003)، شما پرامپت را به conductor می‌دهید.</p>
+    </div>
+<pre class="tree"><span class="c"># Plan 0001 — Skeleton and phase-0 import</span>
+
+<span class="n">**Status:**</span> Draft
+  <span class="c">Draft · Approved · Running · Done · Dropped</span>
+<span class="n">**Created:**</span> 2026-11-19
+<span class="n">**Updated:**</span> 2026-11-20
+<span class="n">**Done:**</span> —
+**Planned by:** Claude Opus 5.5, 2026-11-19
+<span class="n">**Preview:**</span> ../previews/0001-skeleton-and-import/
+<span class="n">**Run:**</span> —    <span class="c">filled by the conductor: T-ORC-001</span>
+**Branch:** alireza/skeleton-and-import</pre>
+  </div>
+  <div class="note agree"><b>run و پلن یک اسم دارند</b>داشبورد شماره و عنوان پلن را اسم اصلی run نشان می‌دهد. شماره‌ی تسک (<code>T-AGENT-028</code>) کوچک‌تر کنارش می‌آید. برای runهای قدیمی، شماره‌ی پلن از متن تسک (<code>Plan 0155: …</code>) یا اسم برنچ (<code>plan-0155-…</code>) خوانده می‌شود. اینکه اسم session هم یکی شود به adapterها بستگی دارد و تغییری در خود موتور لازم دارد. پس به‌عنوان ایده ثبت می‌شود.</div>
+</section>
+
+<section>
+  <h2><span class="n">5</span>ساخت پروژه در داشبورد</h2>
+  <div class="flow">
+    <div class="step owner"><span class="k">1</span><b>فرم</b><small>اسم، مسیر پروژه، repoها، پروفایل، دستورهای gate</small></div>
+    <div class="step"><span class="k">2</span><b>بررسی پوشه</b><small>آیا <code>.ai/</code>، <code>.orchestra/</code>، <code>AGENTS.md</code>، <code>.claude/</code> یا <code>.cursor/</code> وجود دارد؟</small></div>
+    <div class="step"><span class="k">3</span><b>پرامپت</b><small>برای چیزهایی که نیست، به‌اضافه‌ی محتوای آماده‌ی <code>project.json</code></small></div>
+    <div class="step owner"><span class="k">4</span><b>ایجنت شما می‌سازد</b><small>Claude، Cursor یا هر ایجنتی. فایل‌ها در git پروژه می‌مانند</small></div>
+    <div class="step"><span class="k">5</span><b>بررسی دوباره</b><small>داشبورد دوباره نگاه می‌کند و پروژه آماده است</small></div>
+  </div>
+  <div class="note disagree"><b>چرا داشبورد خودش فایل نمی‌نویسد</b>نوشتن در پوشه‌ی پروژه خلاف ADR 0003 است. وقتی Orchestra داخل Docker یا روی سرور اجرا شود، اصلاً به پوشه‌ی پروژه دسترسی نوشتن ندارد. در این روش داشبورد فقط فهرست پروژه‌های خودش را می‌نویسد. ساختن <code>.ai/</code> و <code>.orchestra/</code> را ایجنت انجام می‌دهد، که برای یک درخت دانش واقعی هم بهتر است: ایجنت کد را می‌خواند، نه یک قالب خالی.</div>
+</section>
+
+<section>
+  <h2><span class="n">6</span>ماکاپ داشبورد</h2>
+  <p class="lede">زبان، تم و صفحه را عوض کنید. برچسب کنار هر صفحه در منو نشان می‌دهد در کدام پلن ساخته می‌شود. داده‌ها نمونه‌اند و از ledger واقعی Project B برداشته شده‌اند.</p>
+  <div class="mock-ctl">
+    <div class="seg" role="group" aria-label="language"><button id="lang-fa" aria-pressed="true">فارسی</button><button id="lang-en" aria-pressed="false">English</button></div>
+    <div class="seg" role="group" aria-label="theme"><button id="th-light" aria-pressed="false" aria-label="light">☀</button><button id="th-dark" aria-pressed="false" aria-label="dark">☾</button><button id="th-sys" aria-pressed="true" aria-label="system">⚙</button></div>
+  </div>
+  <div class="app" id="app" dir="rtl" lang="fa">
+    <nav class="side" id="side"></nav>
+    <div class="main">
+      <div class="bar"><span class="t" id="title"></span><span class="tools"><span class="chip" id="chip-lang">fa</span><span class="chip" id="chip-reimport"></span></span></div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+  <p class="mock-note">آدرس‌ها: <code>/fa/projects/project-b/runs</code> و <code>/en/runs/T-AGENT-027</code>. آدرس <code>/</code> با زبان مرورگر باز می‌شود و اگر آن زبان نبود، با <code>en</code>.</p>
+</section>
+
+<section>
+  <h2><span class="n">7</span>ترتیب ساخت</h2>
+  <div class="road">
+    <div class="box now"><b>پلن 0001</b><span class="sub">فاز ۰ · امروز</span><ul><li>اسکلت api، ui و deploy</li><li>خواندن ساختار امروز (<code>orchestrator/runs</code>)</li><li>runها به تفکیک پروژه، با تعداد session و call</li><li>جزئیات run، هزینه، کیفیت مدل‌ها</li><li>fa/en، تم روشن و تاریک</li></ul></div>
+    <div class="box"><b>پلن 0002</b><span class="sub">فاز ۰</span><ul><li>کتابخانه: پلن‌ها با وضعیت و تاریخ</li><li>کپی پرامپت برای ارکستر</li><li>پیش‌نمایش‌ها، ایده‌ها، تحقیق‌ها، شواهد</li></ul></div>
+    <div class="box"><b>پلن 0003</b><span class="sub">فاز ۰</span><ul><li>ساخت پروژه (فرم)</li><li>بررسی پوشه‌ها</li><li>پرامپت ساخت <code>.ai/</code> و <code>.orchestra/</code></li></ul></div>
+    <div class="box"><b>فاز ۱ و ۲</b><span class="sub">بعداً</span><ul><li>گزارش زنده</li><li>موتور به <code>engine/</code> منتقل می‌شود</li><li>پروفایل‌ها و تنظیمات اختصاصی پروژه</li><li>انتقال Project A و Project B به <code>.orchestra/</code> با companion plan</li></ul></div>
+  </div>
+  <div class="note"><b>ایده‌ی تازه: کتابخانه‌ی skillها <span class="pill p-mut">idea only</span></b>skillهایی که ساخته‌اید یک جا در Orchestra نگهداری شوند و به هر پروژه یا پروفایل وصل شوند. نصبشان در پروژه، مثل بخش ۵، با پرامپت و ایجنت انجام می‌شود. یک نکته: هر ایجنت قالب خودش را دارد (<code>SKILL.md</code> در Claude، rules در Cursor). پس به یک قالب مستقل از ایجنت نیاز داریم که برای هر ایجنت به قالب خودش export شود. این مورد وارد <code>ideas/</code> می‌شود و در هیچ پلنی نیست.</div>
+  <p class="lede">importer از همان روز اول، مسیر runs هر پروژه را از تنظیمات می‌خواند. پس بعد از انتقال به <code>.orchestra/runs</code> فقط یک مسیر عوض می‌شود و کدی تغییر نمی‌کند.</p>
+</section>
+
+<section>
+  <h2><span class="n">8</span>تصمیم‌ها</h2>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>تصمیم</th></tr>
+    <tr><td>D10</td><td>اسم Orchestra. Namespace <code>Orchestra.Api</code>، پکیج <code>orchestra-ui</code>، image <code>orchestra</code></td></tr>
+    <tr><td>D11</td><td>پورت <code>3500</code>. در حالت dev، <code>next dev</code> روی <code>3501</code> است و <code>/api</code> را به 3500 می‌فرستد</td></tr>
+    <tr><td>D12</td><td>تم روشن، تاریک و سیستم. پیش‌فرض سیستم است</td></tr>
+    <tr><td>D13</td><td>بایگانی <code>close</code> وجود ندارد. importer فقط <code>_ledger.md</code> و <code>task.json</code> runهای باز را می‌خواند</td></tr>
+    <tr><td>D14</td><td>repo بعداً <b>public</b> می‌شود. فهرست پروژه‌ها در یک فایل git-ignored است و فقط نمونه‌اش commit می‌شود. fixtureهای تست ساختگی یا ناشناس‌شده هستند</td></tr>
+    <tr><td>D15</td><td>فارسی و انگلیسی با next-intl و مسیرهای <code>[locale]</code>. <code>dir</code> برای هر زبان جدا تعیین می‌شود. هر feature دو فایل <code>fa.ts</code> و <code>en.ts</code> دارد و یک تست یکسان بودن کلیدها را چک می‌کند. خطاهای API از روی <code>Accept-Language</code> ترجمه می‌شوند</td></tr>
+    <tr><td>D16</td><td>تاریخ در فارسی جلالی با رقم لاتین است و در انگلیسی میلادی. منطقه‌ی زمانی را مرورگر تعیین می‌کند</td></tr>
+    <tr><td>D17</td><td>قانون ۶ <code>AGENTS.md</code>: متن فارسی ماشینی ترجمه، بازنویسی یا دوباره تایپ نمی‌شود. متن انگلیسی در <code>en.ts</code> خودش است. یک ADR تازه برای i18n نوشته می‌شود</td></tr>
+    <tr><td>D18</td><td><b>جدید:</b> <code>.ai/</code> برای دانش و <code>.orchestra/</code> برای ارکستر، هر دو در repo پروژه. یک ADR تازه</td></tr>
+    <tr><td>D19</td><td><b>جدید:</b> پروفایل در Orchestra و تنظیمات اختصاصی در <code>.orchestra/project.json</code>. موتور فقط از فایل می‌خواند. فاز ۲، با ADR</td></tr>
+    <tr><td>D20</td><td><b>جدید:</b> فایل‌ها منبع اصلی‌اند و دیتابیس فقط فهرست و لاگ است. فایل پاک‌شده از داشبورد هم حذف می‌شود</td></tr>
+    <tr><td>D21</td><td><b>جدید:</b> داشبورد در پوشه‌ی پروژه نمی‌نویسد و ساختن ساختار با ایجنت است (پرامپت). فقط فهرست پروژه‌های خودش را می‌نویسد</td></tr>
+    <tr><td>D22</td><td><b>جدید:</b> run در داشبورد با شماره و عنوان پلن نام‌گذاری می‌شود. شماره‌ی تسک کنارش می‌آید</td></tr>
+  </table></div>
+  <h3>از داده‌ی واقعی</h3>
+  <ul>
+    <li>برای یک run ممکن است چند بلوک verify در ledger باشد. بلوک تازه‌تر عددهای session را <b>جایگزین</b> می‌کند و با قبلی جمع نمی‌شود، وگرنه هزینه دو بار حساب می‌شود.</li>
+    <li>فایل‌ها با BOM و قالب <code>ConvertTo-Json</code> پاورشل نوشته شده‌اند، و مسیرهای داخلشان مطلق و ویندوزی است. داشبورد آن‌ها را نسبت به ریشه‌ی پروژه ذخیره می‌کند.</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="n">9</span>برای تأیید شما</h2>
+  <ol class="q">
+    <li>آیا «فهم من از درخواست» (بخش ۱) درست است؟</li>
+    <li>آیا تقسیم <code>.ai/</code> و <code>.orchestra/</code> (بخش ۲)، و جابه‌جایی پوشه‌های خود Orchestra به همین شکل، را قبول دارید؟</li>
+    <li>workflow قابل تنظیم با سه مرحله‌ی قفل (بخش ۳)، و سربرگ تازه‌ی پلن (بخش ۴)؟</li>
+    <li>اینکه ساختن ساختار با پرامپت و ایجنت شما باشد، نه با نوشتن مستقیم داشبورد (بخش ۵)؟</li>
+    <li>ترتیب ساخت (بخش ۷) و D10 تا D22؟</li>
+  </ol>
+</section>
+</div>
+
+<script>
+/* workflow toggles */
+const WF={fa:[
+ ['understand','فهم از درخواست','ایجنت می‌نویسد، شما اصلاح می‌کنید',true,true],
+ ['preview','پیش‌نمایش HTML','شماتیک، جریان کار، ماکاپ',false,true],
+ ['approvePrev','تأیید پیش‌نمایش','',false,true,'preview'],
+ ['plan','نوشتن پلن','.orchestra/plans/NNNN-topic.md',false,true],
+ ['review','مرور با مدل دیگر','خانواده‌ی دیگر',false,true],
+ ['readback','read-back','',false,true],
+ ['approve','«پیاده‌سازی کن»','گیت ۲',true,true],
+ ['implement','پیاده‌سازی','مدل ارزان',true,true],
+ ['verify','verify','شواهد در evidence/',true,true]]};
+const wfState={};WF.fa.forEach(s=>wfState[s[0]]=s[4]);
+const OWNER=new Set(['understand','approvePrev','approve']);
+function renderWF(){
+ const tg=document.getElementById('wf-toggles'),fl=document.getElementById('wf-flow');
+ tg.innerHTML=WF.fa.filter(s=>!s[5]).map(s=>`<label><input type="checkbox" id="wf-${s[0]}" ${wfState[s[0]]?'checked':''} ${s[3]?'disabled':''}><span>${s[1]}${s[3]?' 🔒':''}</span></label>`).join('');
+ tg.querySelectorAll('input').forEach(i=>i.onchange=()=>{wfState[i.id.slice(3)]=i.checked;renderWF()});
+ let k=0;fl.innerHTML=WF.fa.filter(s=>s[5]?wfState[s[5]]:wfState[s[0]]).map(s=>`<div class="step ${OWNER.has(s[0])?'owner':''}"><span class="k">${++k}</span><b>${s[1]}</b>${s[2]?`<small>${s[2]}</small>`:''}</div>`).join('');
+}
+renderWF();
+
+/* mock app */
+const T={
+ fa:{nav:[['g','نمای کلی'],['runs','runها','0001'],['detail','جزئیات run','0001'],['cost','هزینه','0001'],['quality','کیفیت مدل‌ها','0001'],['g','کار'],['plans','پلن‌ها','0002'],['g','تنظیمات'],['newproj','پروژه‌ی جدید','0003'],['profile','پروفایل‌ها','فاز ۲']],
+  reimport:'خواندن دوباره',titles:{runs:'runها',detail:'0154 · واحدها و ترتیب ArvanCloud',cost:'هزینه',quality:'کیفیت مدل‌ها',plans:'پلن‌ها',newproj:'پروژه‌ی جدید',profile:'پروفایل‌ها'},
+  all:'همه',k:{runs:'runها',sessions:'session',calls:'call',cost:'هزینه‌ی ماه'},
+  cols:['پلن / تسک','repo','وضعیت','session','call','هزینه','به‌روز'],
+  st:{Verified:'تأییدشده',Implementing:'در پیاده‌سازی',Review:'در مرور',Draft:'پیش‌نویس',Approved:'تأییدشده',Running:'در run',Done:'انجام‌شده'},
+  stage:['مرحله','مدل','نتیجه','یافته‌ها / تغییرات'],stages:['مرور (دور ۴)','read-back (دور ۴)','فاز ۱','فاز ۲','فاز ۳','فاز ۴','verify'],
+  sess:['session','نقش اول','مدل','call','input','cache read'],
+  costBy:'هزینه به تفکیک مدل — نوامبر',costProj:'به تفکیک پروژه',
+  qRev:'میانگین blocker در هر مرور',qVer:'نرخ FAIL در verify، به تفکیک پیاده‌ساز',
+  pCols:['پلن','پروژه','وضعیت','ساخت','به‌روز','run'],copy:'کپی پرامپت',copied:'کپی شد',promptFor:'پرامپت برای conductor — پلن 0001',
+  np:{name:'اسم',path:'مسیر پروژه',repos:'repoها',profile:'پروفایل',found:'پیدا شد',missing:'نیست',check:'بررسی پوشه',prompt:'پرامپت برای ایجنت شما',recheck:'بررسی دوباره'},
+  prof:['تنظیم','پروفایل «پیش‌فرض»','Project B','Project A'],profRows:[['مرورکننده','glm-5.3-flash','—','deepseek-v4.1-flash'],['read-back','deepseek-v4.1-flash','—','—'],['پیاده‌ساز','deepseek-v4.1-flash','—','—'],['پیش‌نمایش HTML','روشن','—','خاموش']],profNote:'«—» یعنی همان پیش‌فرض. خانه‌های رنگی از .orchestra/project.json خوانده شده‌اند.',
+  dates:['1405/08/24','1405/08/26','1405/08/28','1405/08/28']},
+ en:{nav:[['g','Overview'],['runs','Runs','0001'],['detail','Run detail','0001'],['cost','Cost','0001'],['quality','Model quality','0001'],['g','Work'],['plans','Plans','0002'],['g','Settings'],['newproj','New project','0003'],['profile','Profiles','phase 2']],
+  reimport:'Re-import',titles:{runs:'Runs',detail:'0154 · ArvanCloud units and sequence',cost:'Cost',quality:'Model quality',plans:'Plans',newproj:'New project',profile:'Profiles'},
+  all:'All',k:{runs:'Runs',sessions:'Sessions',calls:'Calls',cost:'Cost this month'},
+  cols:['Plan / task','Repo','Status','Sessions','Calls','Cost','Updated'],
+  st:{Verified:'Verified',Implementing:'Implementing',Review:'In review',Draft:'Draft',Approved:'Approved',Running:'Running',Done:'Done'},
+  stage:['Stage','Model','Result','Findings / changes'],stages:['Review (round 4)','Read-back (round 4)','Phase 1','Phase 2','Phase 3','Phase 4','Verify'],
+  sess:['Session','First role','Model','Calls','Input','Cache read'],
+  costBy:'Cost by model — November',costProj:'By project',
+  qRev:'Average blockers per review',qVer:'Verify FAIL rate by implementer',
+  pCols:['Plan','Project','Status','Created','Updated','Run'],copy:'Copy prompt',copied:'Copied',promptFor:'Prompt for the conductor — plan 0001',
+  np:{name:'Name',path:'Project path',repos:'Repos',profile:'Profile',found:'found',missing:'missing',check:'Folder check',prompt:'Prompt for your agent',recheck:'Check again'},
+  prof:['Setting','Profile "default"','Project B','Project A'],profRows:[['Reviewer','glm-5.3-flash','—','deepseek-v4.1-flash'],['Read-back','deepseek-v4.1-flash','—','—'],['Implementer','deepseek-v4.1-flash','—','—'],['HTML preview','on','—','off']],profNote:'"—" means the default applies. Highlighted cells come from .orchestra/project.json.',
+  dates:['Nov 15, 2026','Nov 17, 2026','Nov 19, 2026','Nov 19, 2026']}
+};
+const RUNS=[
+ ['0155','Android icon, Mofid phone polish','T-AGENT-028','Project B','Agent','Verified',5,19,'$1.84',1],
+ ['0154','ArvanCloud units and sequence','T-AGENT-027','Project B','Agent','Verified',4,15,'$2.31',0],
+ ['0032','PSU study watch permission','T-WEB-001','Project B','Web','Implementing',3,9,'$0.92',2],
+ ['0041','Listing filters','T-UI-001','Project A','Ui','Review',1,3,'$0.18',3]];
+const PILL={Verified:'p-ok',Implementing:'p-info',Review:'p-warn',Draft:'p-mut',Approved:'p-acc',Running:'p-info',Done:'p-ok'};
+let lang='fa',page='runs',proj='all';
+const $=id=>document.getElementById(id);
+function render(){
+ const t=T[lang],app=$('app');
+ app.dir=lang==='fa'?'rtl':'ltr';app.lang=lang;$('chip-lang').textContent=lang;$('chip-reimport').textContent='↻ '+t.reimport;
+ $('side').innerHTML='<div class="brand">Orchestra</div>'+t.nav.map(([k,l,tag])=>k==='g'?`<div class="grp">${l}</div>`:`<a tabindex="0" data-p="${k}" class="${k===page?'on':''}"><span>${l}</span><span class="tag">${tag}</span></a>`).join('');
+ $('side').querySelectorAll('a').forEach(a=>{const go=()=>{page=a.dataset.p;render()};a.onclick=go;a.onkeydown=e=>{if(e.key==='Enter')go()}});
+ $('title').textContent=t.titles[page];
+ const c=$('content');
+ if(page==='runs'){
+  const list=RUNS.filter(r=>proj==='all'||r[3]===proj);
+  const sum=(i)=>list.reduce((a,r)=>a+r[i],0);
+  c.innerHTML=`<div class="ptabs">${[['all',t.all],['Project B','Project B'],['Project A','Project A']].map(([k,l])=>`<button data-k="${k}" aria-pressed="${proj===k}">${l}</button>`).join('')}</div>
+  <div class="kpis">${[[t.k.runs,list.length],[t.k.sessions,sum(6)],[t.k.calls,sum(7)],[t.k.cost,'$'+list.reduce((a,r)=>a+parseFloat(r[8].slice(1)),0).toFixed(2)]].map(([a,b])=>`<div class="kpi"><small>${a}</small><b class="mono">${b}</b></div>`).join('')}</div>
+  <div class="card tbl"><table><tr>${t.cols.map(x=>`<th>${x}</th>`).join('')}</tr>${list.map(r=>`<tr><td><b class="mono">${r[0]}</b> ${r[1]}<span class="sub mono">${r[2]} · ${r[3]}</span></td><td>${r[4]}</td><td><span class="pill ${PILL[r[5]]}">${t.st[r[5]]}</span></td><td class="num">${r[6]}</td><td class="num">${r[7]}</td><td class="num">${r[8]}</td><td class="num">${t.dates[r[9]]}</td></tr>`).join('')}</table></div>`;
+  c.querySelectorAll('.ptabs button').forEach(b=>b.onclick=()=>{proj=b.dataset.k;render()});
+ } else if(page==='detail'){
+  const rows=[[t.stages[0],'glm-5.3-flash','PASS','0 · 0 · 0'],[t.stages[1],'deepseek-v4.1-flash','PASS','0 · 0 · 0'],[t.stages[2],'deepseek-v4.1-flash','PASS','4 / 0 / 0'],[t.stages[3],'deepseek-v4.1-flash','PASS','8 / 0 / 0'],[t.stages[4],'deepseek-v4.1-flash','NEED_INPUT','16 / 0 / 0'],[t.stages[5],'deepseek-v4.1-flash','PASS','18 / 0 / 0'],[t.stages[6],'glm-5.3-flash','PASS','gates green']];
+  const vp=v=>v==='PASS'?'p-ok':v==='NEED_INPUT'?'p-warn':'p-bad';
+  c.innerHTML=`<p style="margin:0 0 10px"><span class="pill p-ok">${t.st.Verified}</span> <span class="mono">T-AGENT-027 · Project B / Agent · plan v4 · plan-0154-units-seq-arvan</span></p>
+  <div class="card tbl" style="margin-bottom:10px"><table><tr>${t.stage.map(x=>`<th>${x}</th>`).join('')}</tr>${rows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td><td><span class="pill ${vp(r[2])}">${r[2]}</span></td><td class="mono">${r[3]}</td></tr>`).join('')}</table></div>
+  <div class="card tbl"><table><tr>${t.sess.map(x=>`<th>${x}</th>`).join('')}</tr>
+  <tr><td class="mono">ses_e2278a…</td><td>plan-reviewer</td><td class="mono">glm-5.3-flash</td><td class="num">6</td><td class="num">529.9k</td><td class="num">2.2m</td></tr>
+  <tr><td class="mono">ses_e22729…</td><td>readback</td><td class="mono">deepseek-v4.1-flash</td><td class="num">6</td><td class="num">325.1k</td><td class="num">35.5m</td></tr>
+  <tr><td class="mono">ses_e222fc…</td><td>verifier</td><td class="mono">glm-5.3-flash</td><td class="num">2</td><td class="num">178.6k</td><td class="num">229.1k</td></tr>
+  <tr><td class="mono">ses_e222dd…</td><td>implementer</td><td class="mono">deepseek-v4.1-flash</td><td class="num">1</td><td class="num">84.6k</td><td class="num">1.4m</td></tr></table></div>`;
+ } else if(page==='cost'){
+  const m=[['deepseek-v4.1-flash',21.4],['glm-5.3-flash',12.9],['claude (conductor)',4.3]];
+  const p=[['Project B',29.1],['Project A',9.5]];
+  const bar=(arr,max,cls='')=>arr.map(([n,v])=>`<div class="brow"><span class="mono">${n}</span><span class="track"><span class="fill" style="width:${v/max*100}%;${cls}"></span></span><span class="num mono">$${v.toFixed(2)}</span></div>`).join('');
+  c.innerHTML=`<div class="card" style="margin-bottom:10px"><b style="font-size:13.5px">${t.costBy}</b><div class="bars">${bar(m,21.4)}</div></div>
+  <div class="card"><b style="font-size:13.5px">${t.costProj}</b><div class="bars">${bar(p,29.1,'background:var(--info)')}</div></div>`;
+ } else if(page==='quality'){
+  c.innerHTML=`<div class="card" style="margin-bottom:10px"><b style="font-size:13.5px">${t.qRev}</b><div class="bars">
+  <div class="brow"><span class="mono">glm-5.3-flash</span><span class="track"><span class="fill" style="width:62%"></span></span><span class="num mono">1.24</span></div>
+  <div class="brow"><span class="mono">deepseek-v4.1-flash</span><span class="track"><span class="fill" style="width:44%;background:var(--info)"></span></span><span class="num mono">0.88</span></div></div></div>
+  <div class="card"><b style="font-size:13.5px">${t.qVer}</b><div class="bars">
+  <div class="brow"><span class="mono">deepseek-v4.1-flash</span><span class="track"><span class="fill" style="width:12%;background:var(--bad)"></span></span><span class="num mono">6%</span></div>
+  <div class="brow"><span class="mono">codebuddy</span><span class="track"><span class="fill" style="width:28%;background:var(--bad)"></span></span><span class="num mono">14%</span></div></div></div>`;
+ } else if(page==='plans'){
+  const P=[['0003','New project and scaffold prompt','Orchestra','Draft',2,2,'—'],['0002','Library','Orchestra','Draft',2,2,'—'],['0001','Skeleton and phase-0 import','Orchestra','Approved',0,3,'—'],['0155','Android icon, Mofid phone polish','Project B','Done',1,1,'T-AGENT-028'],['0154','ArvanCloud units and sequence','Project B','Done',0,0,'T-AGENT-027']];
+  const prompt='Run plan .orchestra/plans/0001-skeleton-and-import.md\nthrough the orchestrator (repo: Orchestra).\nStatus: Approved. Preview: .orchestra/previews/0001-skeleton-and-import/\nRead the plan header first; decide nothing new.';
+  c.innerHTML=`<div class="card tbl" style="margin-bottom:10px"><table><tr>${t.pCols.map(x=>`<th>${x}</th>`).join('')}</tr>${P.map(r=>`<tr><td><b class="mono">${r[0]}</b> ${r[1]}</td><td>${r[2]}</td><td><span class="pill ${PILL[r[3]]}">${t.st[r[3]]}</span></td><td class="num">${t.dates[r[4]]}</td><td class="num">${t.dates[r[5]]}</td><td class="mono">${r[6]}</td></tr>`).join('')}</table></div>
+  <div class="card"><div class="row" style="justify-content:space-between"><b style="font-size:13.5px">${t.promptFor}</b><button class="btn" id="copy">${t.copy}</button></div><div class="prompt" id="ptext">${prompt}</div></div>`;
+  $('copy').onclick=()=>{const b=$('copy');const done=()=>{b.textContent=t.copied;setTimeout(()=>b.textContent=t.copy,1500)};
+   try{navigator.clipboard.writeText(prompt).then(done,()=>{getSelection().selectAllChildren($('ptext'))})}catch(e){getSelection().selectAllChildren($('ptext'))}};
+ } else if(page==='newproj'){
+  const n=t.np;
+  const items=[['AGENTS.md',true],['.claude/',true],['.ai/',false],['.orchestra/',false]];
+  const prompt='This repository is being added to Orchestra.\n1. Read AGENTS.md, .claude/ and the code.\n2. Create .ai/ — the project knowledge tree\n   (README index, architecture/, decisions/, context/).\n   Every rule in one doc; agent-neutral.\n3. Create .orchestra/ with project.json below,\n   workflow.md from the profile, empty ideas/ plans/ previews/.\n4. Show me the tree before writing any file.\n\nproject.json:\n{ "name": "MyShop", "profile": "default",\n  "repos": ["api", "web"], "overrides": {} }';
+  c.innerHTML=`<div class="card" style="margin-bottom:10px"><div class="form">
+   <label>${n.name}<span class="inp">MyShop</span></label><label>${n.path}<span class="inp">F:\\Projects\\MyShop</span></label>
+   <label>${n.repos}<span class="inp">api, web</span></label><label>${n.profile}<span class="inp">default</span></label></div></div>
+  <div class="card" style="margin-bottom:10px"><b style="font-size:13.5px">${n.check}</b><div class="check">${items.map(([f,ok])=>`<span class="pill ${ok?'p-ok':'p-warn'}">${ok?n.found:n.missing}</span><span class="mono">${f}</span>`).join('')}</div></div>
+  <div class="card"><div class="row" style="justify-content:space-between"><b style="font-size:13.5px">${n.prompt}</b><span class="row"><button class="btn ghost">${n.recheck}</button><button class="btn" id="copy2">${t.copy}</button></span></div><div class="prompt" id="ptext2">${prompt}</div></div>`;
+  $('copy2').onclick=()=>{const b=$('copy2');try{navigator.clipboard.writeText(prompt).then(()=>{b.textContent=t.copied;setTimeout(()=>b.textContent=t.copy,1500)},()=>getSelection().selectAllChildren($('ptext2')))}catch(e){getSelection().selectAllChildren($('ptext2'))}};
+ } else {
+  c.innerHTML=`<div class="card tbl"><table><tr>${t.prof.map(x=>`<th>${x}</th>`).join('')}</tr>${t.profRows.map(r=>`<tr><td>${r[0]}</td><td class="mono">${r[1]}</td>${r.slice(2).map(v=>`<td class="mono" style="${v!=='—'?'background:var(--accent-soft);color:var(--accent)':'color:var(--muted)'}">${v}</td>`).join('')}</tr>`).join('')}</table></div><p class="mock-note">${t.profNote}</p>`;
+ }
+}
+$('lang-fa').onclick=()=>{lang='fa';$('lang-fa').setAttribute('aria-pressed','true');$('lang-en').setAttribute('aria-pressed','false');render()};
+$('lang-en').onclick=()=>{lang='en';$('lang-en').setAttribute('aria-pressed','true');$('lang-fa').setAttribute('aria-pressed','false');render()};
+function theme(v){const r=document.documentElement;if(v)r.setAttribute('data-theme',v);else r.removeAttribute('data-theme');
+ [['th-light','light'],['th-dark','dark'],['th-sys',null]].forEach(([id,x])=>$(id).setAttribute('aria-pressed',String(x===v)))}
+$('th-light').onclick=()=>theme('light');$('th-dark').onclick=()=>theme('dark');$('th-sys').onclick=()=>theme(null);
+document.documentElement.dir='rtl';document.documentElement.lang='fa';
+render();
+</script>

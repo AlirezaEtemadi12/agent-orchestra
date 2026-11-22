@@ -1,0 +1,33 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# Local data and secrets — never versioned. Root-anchored: an unanchored `data/` also matched
+# `api/src/Orchestra.Api/Data/`, which silently kept the DbContext, the entity configurations and every
+# migration out of the repository (found 2026-11-20).
+/data/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+appsettings.Local.json
+
+# Graph output
+graphify-out/
+
+# Orchestrator work products that never enter git
+.orchestra/evidence/
+.orchestra/runs/
+
+# Visual Studio
+.vs/

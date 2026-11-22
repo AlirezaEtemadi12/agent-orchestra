@@ -1,0 +1,37 @@
+# Orchestra — Agent Entry Point
+
+> Read this before touching anything. This file is a **pointer, not a rule book**: every rule lives in
+> exactly one doc under `.ai/` or `.orchestra/`, and this file only links to it. If the two ever
+> disagree, the linked doc wins — fix this one.
+>
+> Format: the vendor-neutral [agents.md](https://agents.md) convention. **Never create a `CLAUDE.md`.**
+
+| | |
+|---|---|
+| **What** | A dashboard and shared engine for a gated multi-agent orchestrator (plan → review → read-back → approval → implement → verify), across projects: runs, cost, model quality, plans, settings |
+| **Status** | Phases 0–1 done and merged: plans [0001](.orchestra/plans/0001-skeleton-and-import.md) (skeleton, import), [0002](.orchestra/plans/0002-library.md) (library), [0003](.orchestra/plans/0003-new-project.md) (new project) and [0004](.orchestra/plans/0004-live-events.md) (phase 1, live) and [0005](.orchestra/plans/0005-engine-move.md) (one engine; both projects call it through a shim); next is [0006](.orchestra/plans/0006-profiles.md) (profiles), waiting for its plan review — phases in [`.ai/vision/roadmap.md`](.ai/vision/roadmap.md), plan states in [`.orchestra/plans/README.md`](.orchestra/plans/README.md) |
+| **Shape** | One repository: `api/` (.NET 10, SQLite), `ui/` (Next.js 16, static export served by the API, fa + en), `engine/` (the orchestrator itself, PowerShell 5.1) — [ADR 0001](.ai/decisions/0001-one-repo-dotnet-nextjs-sqlite.md) |
+| **Folders** | `.ai/` = knowledge for any agent; `.orchestra/` = the orchestrated work (gates, ideas, previews, plans) — [ADR 0005](.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md) |
+| **Owner** | Alireza. Hosted locally in Docker or on a personal server; the repository will be public |
+
+## Start here
+
+1. [`.ai/README.md`](.ai/README.md) — the index: doing X → read Y.
+2. The newest [`.ai/context/session-*.md`](.ai/context/) — what the last session left open.
+3. [`.orchestra/workflow.md`](.orchestra/workflow.md) — the four gates every task passes.
+4. A plan handed to you: read that file in [`.orchestra/plans/`](.orchestra/plans/) first, and only the docs it lists.
+
+## The rules that bite first
+
+1. **Understanding, preview, plan; then ask, branch, hand over uncommitted** — [`workflow.md`](.orchestra/workflow.md).
+2. **The orchestrator never depends on the dashboard.** A run works the same with the dashboard down;
+   reporting to it is fire-and-forget — [ADR 0002](.ai/decisions/0002-runner-reports-dashboard-never-commands.md).
+3. **Read-only first, and never into a project.** The dashboard shows and compares; it does not
+   approve, implement or start runs, and it never writes into a project folder —
+   [ADR 0003](.ai/decisions/0003-read-only-dashboard-first.md), [ADR 0005](.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md).
+4. **A rule change reviews the old rules** — merge, simplify or delete what it overlaps, in the same
+   change ([`workflow.md`](.orchestra/workflow.md#rules-about-rules)).
+5. **No secret and no personal path enters source.** Tokens, passwords and project paths come from
+   environment variables or a git-ignored file; test fixtures are synthetic or anonymized.
+6. **Persian text is never machine-translated, reflowed or retyped**; English text is written in its
+   own catalogue — [ADR 0004](.ai/decisions/0004-persian-and-english.md).

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "archivedAt": "2026-11-18T18:00:00+03:30",
+  "project": "demo",
+  "task": {
+    "id": "T-DEMO-009",
+    "repo": "Agent",
+    "task": "Plan 0109: archived only",
+    "status": "Verified",
+    "createdAt": "2026-11-18T16:00:00",
+    "updatedAt": "2026-11-18T17:50:00",
+    "round": 1,
+    "branch": "plan-0109-archive-only",
+    "plan": { "version": 1, "number": "0109", "title": "Archived only" },
+    "review": { "verdict": "PASS", "model": "opencode-go/glm-5.3-flash", "round": 1 },
+    "readback": null,
+    "approved": true,
+    "implement": null,
+    "phases": [],
+    "verify": { "verdict": "PASS", "gatesGreen": true, "modelVerdict": "PASS", "model": "opencode-go/glm-5.3-flash" },
+    "history": []
+  },
+  "reviews": [{ "name": "review", "round": 1, "text": "PASS." }],
+  "readbacks": [],
+  "verify": [{ "name": "verify", "round": null, "text": "Gates green." }]
+}

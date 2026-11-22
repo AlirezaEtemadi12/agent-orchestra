@@ -1,0 +1,21 @@
+services:
+  orchestra:
+    image: orchestra
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - '127.0.0.1:3500:3500'
+    volumes:
+      - orchestra-data:/data
+      - ${PROJECT1_RUNS:?set PROJECT1_RUNS in deploy/.env}:/projects/p1:ro
+      - ${PROJECT2_RUNS:?set PROJECT2_RUNS in deploy/.env}:/projects/p2:ro
+      # The library reads the project root, not the runs folder. Uncomment with PROJECT1_ROOT /
+      # PROJECT2_ROOT in .env; without them the library stays empty in Docker.
+      # - ${PROJECT1_ROOT}:/projects/root1:ro
+      # - ${PROJECT2_ROOT}:/projects/root2:ro
+    env_file: .env
+    restart: unless-stopped
+
+volumes:
+  orchestra-data:

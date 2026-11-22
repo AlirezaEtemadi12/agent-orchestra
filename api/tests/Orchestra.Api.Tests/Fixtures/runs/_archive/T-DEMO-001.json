@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "archivedAt": "2026-11-16T13:05:00+03:30",
+  "project": "demo",
+  "task": {
+    "id": "T-DEMO-001",
+    "repo": "Agent",
+    "task": "Plan 0101: the reused task id",
+    "status": "Verified",
+    "createdAt": "2026-11-16T11:30:00",
+    "updatedAt": "2026-11-16T13:00:00",
+    "round": 1,
+    "branch": "plan-0101-reused",
+    "plan": { "version": 2, "number": "0101", "title": "The reused task id" },
+    "review": { "verdict": "PASS", "model": "opencode-go/deepseek-v4.1-flash", "round": 1, "blockers": 0, "should": 0, "nits": 0 },
+    "readback": { "verdict": "FINDINGS", "model": "opencode-go/deepseek-v4.1-flash", "round": 1, "blockers": 0, "should": 1, "nits": 0 },
+    "approved": true,
+    "implement": { "verdict": "PASS", "model": "opencode-go/deepseek-v4.1-flash", "changed": 6, "outsidePlan": 0, "violations": 0 },
+    "phases": [],
+    "verify": { "verdict": "PASS", "gatesGreen": true, "gatesNote": "", "modelVerdict": "PASS", "model": "opencode-go/deepseek-v4.1-flash" },
+    "history": [
+      { "stage": "review", "verdict": "FINDINGS", "round": 1, "model": "opencode-go/deepseek-v4.1-flash", "blockers": 2, "should": 0, "nits": 1 },
+      { "stage": "review", "verdict": "PASS", "round": 2, "model": "opencode-go/deepseek-v4.1-flash", "blockers": 0, "should": 0, "nits": 0 }
+    ]
+  },
+  "reviews": [
+    { "name": "review", "round": 1, "text": "Two blockers: the fixture is missing a branch check." },
+    { "name": "review", "round": 2, "text": "PASS. Nothing left." }
+  ],
+  "readbacks": [
+    { "name": "readback", "round": 1, "text": "One should: the note is unclear." }
+  ],
+  "verify": [
+    { "name": "verify", "round": null, "text": "Gates green, model said PASS." }
+  ],
+  "usage": {
+    "sessions": [{ "id": "s-1", "input": 15000, "output": 1500 }]
+  }
+}

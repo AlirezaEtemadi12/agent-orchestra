@@ -1,0 +1,203 @@
+{
+    "version": "0.7.0",
+    "note": "An example project config for the shared engine. Copy it to <project>/orchestrator/orchestrator.json and replace the placeholders: repos (folder names under root), verifyCommands (that project's gate commands), description (the two lines `run.ps1 help` prints), planFiling (number or slug), contractDoc (optional: the frontend contract doc relative to root; default Web/.ai/architecture/api-surface-v3.md). Everything else is the engine's behaviour and is the same in every project.",
+    "description": {
+        "title": "orchestrator / run.ps1 - multi-agent, four-gate driver for <Project>",
+        "repos": "  - Repos: <RepoA>, <RepoB> - separate git repos under one workspace root. The root is not a git repo."
+    },
+    "planFiling": "number",
+    "root": "..",
+    "workflow": {
+        "gatesPath": "{repo}/.ai/agents/workflow.md",
+        "rolesPath": "{repo}/.ai/agents",
+        "rolesIndex": "{repo}/.ai/agents/README.md",
+        "promptsPath": "{repo}/.ai/prompts",
+        "agentsDoc": "{repo}/AGENTS.md",
+        "indexDoc": "{repo}/.ai/README.md",
+        "planTemplate": "{repo}/.ai/plans/TEMPLATE.md"
+    },
+    "repos": {
+        "<RepoA>": "<RepoA>",
+        "<RepoB>": "<RepoB>"
+    },
+    "roles": {
+        "planner": {
+            "gate": 1,
+            "readOnly": true,
+            "auto": false,
+            "promptFile": "plan.md",
+            "chain": [
+                { "adapter": "claude", "model": "opus", "family": "claude-opus" },
+                { "adapter": "claude", "model": "sonnet", "family": "claude-sonnet" }
+            ]
+        },
+        "plan-reviewer": {
+            "gate": 2,
+            "readOnly": true,
+            "auto": false,
+            "promptFile": "check-plan.md",
+            "note": "Gate 2 skips any hop of the plan author's family.",
+            "chain": [
+                { "adapter": "opencode", "model": "opencode-go/deepseek-v4.1-flash", "family": "deepseek", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "opencode", "model": "opencode-go/glm-5.3-flash", "family": "glm", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "opencode", "model": "opencode-go/mimo-v2.6-flash", "family": "mimo", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "claude", "model": "sonnet", "family": "claude-sonnet" },
+                { "adapter": "manual", "model": "manual/any-agent", "family": "manual" }
+            ]
+        },
+        "implementer": {
+            "gate": 3,
+            "readOnly": false,
+            "auto": true,
+            "promptFile": "implement.md",
+            "chain": [
+                { "adapter": "opencode", "model": "opencode-go/deepseek-v4.1-flash", "family": "deepseek", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "codebuddy", "model": "deepseek-v4.1-flash", "family": "deepseek" },
+                { "adapter": "manual", "model": "manual/any-agent", "family": "manual" }
+            ]
+        },
+        "readback": {
+            "gate": 2.5,
+            "readOnly": true,
+            "auto": false,
+            "promptFile": "implement.md",
+            "note": "Gate 2.5, run by another family than the implementer. Remove this role to fall back to the implementer chain.",
+            "chain": [
+                { "adapter": "opencode", "model": "opencode-go/glm-5.3-flash", "family": "glm", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "opencode", "model": "opencode-go/mimo-v2.6-flash", "family": "mimo", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "opencode", "model": "opencode-go/deepseek-v4.1-flash", "family": "deepseek", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "manual", "model": "manual/any-agent", "family": "manual" }
+            ]
+        },
+        "verifier": {
+            "gate": 4,
+            "readOnly": true,
+            "auto": false,
+            "promptFile": "verify.md",
+            "chain": [
+                { "adapter": "opencode", "model": "opencode-go/glm-5.3-flash", "family": "glm", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "opencode", "model": "opencode-go/mimo-v2.6-flash", "family": "mimo", "pool": "opencode-go", "tier": "paid" },
+                { "adapter": "claude", "model": "sonnet", "family": "claude-sonnet" },
+                { "adapter": "manual", "model": "manual/any-agent", "family": "manual" }
+            ]
+        }
+    },
+    "adapterTransport": "How the orchestrator talks to each agent. \"cli\": it runs `command` itself and reads the answer from stdout. \"inbox\": it writes the prompt to runs/<id>/inbox/<key>.md, stops with exit 3, and a human pastes one line into the agent; the agent writes runs/<id>/answers/<key>.md and the same run.ps1 command picks it up. An inbox hop is only allowed in plan-reviewer, readback and verifier. Missing transport: manual = inbox, every other adapter = cli.",
+    "tiers": {
+        "note": "What `free` and `paid` mean. maxConcurrent - how many hops of this pool may run at once, 0 = unlimited. minGapSec - the least time between the starts of two hops. rateLimitRetries / rateLimitBackoffSec - attempts and wait after a 429. whenBusy - wait for a free slot or take the next hop. queueWaitSec - how long `wait` waits before queue-timeout.",
+        "free": {
+            "maxConcurrent": 1,
+            "minGapSec": 15,
+            "rateLimitRetries": 2,
+            "rateLimitBackoffSec": 60,
+            "whenBusy": "wait",
+            "queueWaitSec": 7200
+        },
+        "paid": {
+            "maxConcurrent": 1,
+            "minGapSec": 0,
+            "rateLimitRetries": 1,
+            "rateLimitBackoffSec": 30,
+            "whenBusy": "wait",
+            "queueWaitSec": 7200
+        }
+    },
+    "adapters": {
+        "opencode": {
+            "enabled": true,
+            "transport": "cli",
+            "command": "opencode",
+            "tier": "paid",
+            "maxConcurrent": 2,
+            "idleTimeoutSec": 600
+        },
+        "claude": {
+            "enabled": true,
+            "transport": "cli",
+            "command": "claude",
+            "tier": "paid",
+            "idleTimeoutSec": 0,
+            "note": "OAuth pro; the orchestrator strips ANTHROPIC_* before the call. -p --output-format text prints nothing until it ends, so the idle timeout is off."
+        },
+        "codebuddy": {
+            "enabled": true,
+            "transport": "cli",
+            "command": "codebuddy",
+            "tier": "free",
+            "idleTimeoutSec": 0
+        },
+        "manual": {
+            "enabled": true,
+            "transport": "inbox",
+            "command": null
+        }
+    },
+    "modelRatesSource": {
+        "enabled": true,
+        "url": "https://opencode.ai/data/index.json",
+        "maxAgeHours": 24,
+        "timeoutSec": 15,
+        "note": "Live prices, fetched at most once per maxAgeHours and cached in runs/_model-rates.json. No network: the cached copy; no cache: modelRates below."
+    },
+    "modelRates": {
+        "note": "Fallback prices, USD per 1,000,000 tokens, keyed by the exact model string the ledger writes.",
+        "opencode-go/deepseek-v4.1-flash": { "input": 0.15, "output": 0.60, "cacheRead": 0.003, "cacheWrite": 0 },
+        "opencode-go/glm-5.3-flash": { "input": 0.11952, "output": 0.41831, "cacheRead": 0.03436, "cacheWrite": 0 },
+        "opencode-go/mimo-v2.6-flash": { "input": 0.14, "output": 0.28, "cacheRead": 0.0028, "cacheWrite": 0 }
+    },
+    "rules": {
+        "reviewerModelMustDifferFromPlanner": true,
+        "neverCommit": true
+    },
+    "preflight": {
+        "enabled": true,
+        "pingPrompt": "Reply with exactly one word: PONG",
+        "timeoutSec": 120
+    },
+    "defaults": {
+        "timeoutSec": 3600,
+        "idleTimeoutSec": 300,
+        "agentCwd": "repo",
+        "retryDelaySec": 20,
+        "maxDiffChars": 60000,
+        "refreshGraph": true
+    },
+    "verifyCommands": {
+        "<RepoA>": ["<that repo's build command>", "<that repo's test command>"],
+        "<RepoB>": ["<that repo's build command>", "<that repo's test command>"]
+    },
+    "revise": {
+        "maxAutoRounds": 3,
+        "note": "auto plan->review rounds after the first review while the verdict is FINDINGS"
+    },
+    "readback": {
+        "enabled": true,
+        "note": "gate 2.5: the readback role's chain (else the implementer chain), read-only, reports where it would have to guess"
+    },
+    "quota": {
+        "patterns": ["usage limit", "limit reached", "quota exceeded", "exceeded your", "insufficient balance", "insufficient credit", "free usage"],
+        "exhaustedSec": 1800,
+        "note": "A hop whose output matches one of these is out of quota for its whole pool: no retry, the pool is marked exhausted for exhaustedSec."
+    },
+    "sessions": {
+        "maxFollowUps": 10,
+        "note": "A role's later rounds continue the same agent session with a short follow-up prompt instead of re-sending the whole plan."
+    },
+    "archive": {
+        "enabled": true,
+        "note": "close writes runs/_archive/<id>.<yyyyMMddHHmm>.json (task.json, review / read-back / verify texts, session usage) before deleting the run."
+    },
+    "cleanTree": {
+        "ignore": [".ai/plans/", ".ai/context/"],
+        "note": "Uncommitted paths under these prefixes never block gate 3: they are records (plans, session logs), not code."
+    },
+    "report": {
+        "enabled": false,
+        "url": "http://localhost:3500/api/events",
+        "project": "<the dashboard's project id>",
+        "tokenEnv": "ORCHESTRA_REPORT_TOKEN",
+        "timeoutSec": 2,
+        "progressEverySec": 10,
+        "note": "Fire-and-forget events to the dashboard (plan 0004). off by default: with enabled false or no block nothing is sent. The token is read from the named environment variable, never from this file. A run behaves the same with the dashboard down."
+    }
+}

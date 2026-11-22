@@ -1,0 +1,16 @@
+<Project>
+
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
+    <!-- EF 10.0.10 pulls 2.1.11, which NuGet audit reports as a high-severity advisory (GHSA-2m69-gcr7-jv3q) -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
+    <PackageVersion Include="SQLitePCLRaw.lib.e_sqlite3" Version="2.1.14" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- 8.x is under a commercial licence; 7.0.0 stays (D20) -->
+    <PackageVersion Include="FluentAssertions" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

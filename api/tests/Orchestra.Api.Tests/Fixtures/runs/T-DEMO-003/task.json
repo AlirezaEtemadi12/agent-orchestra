@@ -1,0 +1,18 @@
+{
+  "id": "T-DEMO-003",
+  "repo": "Ui",
+  "task": "Plan 0103: nothing has happened yet",
+  "status": "Planning",
+  "createdAt": "2026-11-17T09:00:00",
+  "updatedAt": "2026-11-17T09:00:00",
+  "round": 0,
+  "branch": "",
+  "plan": "Nothing yet",
+  "review": null,
+  "readback": null,
+  "approved": false,
+  "implement": null,
+  "phases": [],
+  "verify": null,
+  "history": []
+}

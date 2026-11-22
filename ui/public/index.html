@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Orchestra</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var locale = null;
+
+        try {
+          var stored = window.localStorage.getItem('orchestra.locale');
+          if (stored === 'fa' || stored === 'en') {
+            locale = stored;
+          }
+        } catch (error) {
+          // Storage is blocked; the browser language decides.
+        }
+
+        if (!locale) {
+          var languages = navigator.languages || [navigator.language || ''];
+          for (var index = 0; index < languages.length; index += 1) {
+            var tag = (languages[index] || '').toLowerCase();
+            if (tag.indexOf('fa') === 0) {
+              locale = 'fa';
+              break;
+            }
+            if (tag.indexOf('en') === 0) {
+              locale = 'en';
+              break;
+            }
+          }
+        }
+
+        if (!locale) {
+          locale = 'en';
+        }
+
+        location.replace('/' + locale + '/');
+      })();
+    </script>
+    <noscript>
+      <a href="/fa/">فارسی</a>
+      <a href="/en/">English</a>
+    </noscript>
+  </body>
+</html>

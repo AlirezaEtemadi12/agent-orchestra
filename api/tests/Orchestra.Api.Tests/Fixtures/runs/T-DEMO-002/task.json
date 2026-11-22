@@ -1,0 +1,26 @@
+{
+  "id": "T-DEMO-002",
+  "repo": "Agent",
+  "task": "Plan 0102: the open run",
+  "status": "Implementing",
+  "createdAt": "2026-11-16T14:30:00",
+  "updatedAt": "2026-11-16T15:10:00",
+  "round": 2,
+  "branch": "plan-0102-open",
+  "plan": { "version": 1, "number": "0102", "title": "The open run" },
+  "review": { "verdict": "PASS", "model": "opencode:opencode-go/glm-5.3-flash", "round": 2, "blockers": 0, "should": 0, "nits": 0 },
+  "readback": { "verdict": "PASS", "model": "opencode-go/deepseek-v4.1-flash", "round": 2, "blockers": 0, "should": 0, "nits": 0 },
+  "approved": true,
+  "implement": { "verdict": "PASS", "model": "opencode:opencode-go/glm-5.3-flash", "changed": 9, "outsidePlan": 0, "violations": 0 },
+  "phases": [
+    { "phase": 1, "verdict": "PASS", "model": "opencode:opencode-go/glm-5.3-flash", "changed": 5, "outsidePlan": 0, "violations": 0, "at": "2026-11-16T14:50:00" },
+    { "phase": 2, "verdict": "PASS", "model": "opencode:opencode-go/glm-5.3-flash", "changed": 4, "outsidePlan": 1, "violations": 0, "at": "2026-11-16T15:00:00" }
+  ],
+  "verify": { "verdict": "FAIL", "gatesGreen": true, "gatesNote": "", "modelVerdict": "FAIL", "model": "opencode:opencode-go/glm-5.3-flash", "at": "2026-11-16T15:10:00" },
+  "history": [
+    { "stage": "review", "verdict": "FINDINGS", "round": 1, "model": "opencode:opencode-go/glm-5.3-flash", "blockers": 1, "should": 2, "nits": 3, "at": "2026-11-16T14:40:00" },
+    { "stage": "review", "verdict": "PASS", "round": 2, "model": "opencode:opencode-go/glm-5.3-flash", "blockers": 0, "should": 0, "nits": 0, "at": "2026-11-16T14:45:00" },
+    { "stage": "read-back", "verdict": "FINDINGS", "round": 1, "model": "opencode-go/deepseek-v4.1-flash", "blockers": 0, "should": 1, "nits": 0, "at": "2026-11-16T14:42:00" },
+    { "stage": "read-back", "verdict": "PASS", "round": 2, "model": "opencode-go/deepseek-v4.1-flash", "blockers": 0, "should": 0, "nits": 0, "at": "2026-11-16T14:47:00" }
+  ]
+}

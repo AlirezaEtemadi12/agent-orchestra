@@ -1,0 +1,19 @@
+import type { Locale } from '@/lib/i18n/config';
+import { apiClient } from '@/lib/api/client';
+import type { FolderCheck, ProjectBody, ProjectStoreState, SavedProject } from './types';
+
+function encode(value: string): string {
+  return encodeURIComponent(value);
+}
+
+export const projectsApi = {
+  store: (locale: Locale) => apiClient.get<ProjectStoreState>('projects/store', locale),
+  create: (locale: Locale, body: ProjectBody) => apiClient.post<SavedProject>('projects', locale, body),
+  update: (locale: Locale, id: string, body: ProjectBody) =>
+    apiClient.put<SavedProject>(`projects/${encode(id)}`, locale, body),
+  remove: (locale: Locale, id: string) => apiClient.delete(`projects/${encode(id)}`, locale),
+  check: (locale: Locale, rootPath: string) =>
+    apiClient.post<FolderCheck>('projects/check', locale, { rootPath }),
+  prompt: (locale: Locale, body: { name: string; rootPath: string; repos: string[]; check: FolderCheck }) =>
+    apiClient.post<{ text: string }>('projects/scaffold-prompt', locale, body),
+};
