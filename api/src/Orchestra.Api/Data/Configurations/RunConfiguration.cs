@@ -23,6 +23,9 @@ public sealed class RunConfiguration : IEntityTypeConfiguration<RunEntity>
         builder.Property(run => run.Source).HasConversion<string>().HasMaxLength(20);
         builder.Property(run => run.SourceRef).HasMaxLength(500);
 
+        // The merged config is a whole profile plus overrides; TEXT, never truncated.
+        builder.Property(run => run.EffectiveConfigJson);
+
         builder.HasOne(run => run.Project)
             .WithMany(project => project.Runs)
             .HasForeignKey(run => run.ProjectId)

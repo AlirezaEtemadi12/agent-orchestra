@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Orchestra.Api.Modules.Events;
 using Orchestra.Api.Modules.Import;
 using Orchestra.Api.Modules.Library;
+using Orchestra.Api.Modules.Profiles;
 using Orchestra.Api.Modules.Projects;
 using Orchestra.Api.Modules.Runs.Entities;
 
@@ -29,6 +30,10 @@ public sealed class OrchestraDbContext(DbContextOptions<OrchestraDbContext> opti
     public DbSet<LibraryItemEntity> LibraryItems => Set<LibraryItemEntity>();
 
     public DbSet<RunEventEntity> RunEvents => Set<RunEventEntity>();
+
+    public DbSet<ProfileEntity> Profiles => Set<ProfileEntity>();
+
+    public DbSet<ProfileVersionEntity> ProfileVersions => Set<ProfileVersionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

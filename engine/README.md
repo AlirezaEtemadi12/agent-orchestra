@@ -23,7 +23,7 @@ Each project keeps:
 ```
 orchestrator/
 ├── orchestrator.json          ← the project's settings (this one is versioned)
-├── orchestrator.local.json    ← { "enginePath": "C:\\path\\to\\Project Orchestra" } (git-ignored)
+├── orchestrator.local.json    ← { "enginePath": …, "profilesPath": … } (git-ignored)
 ├── run.ps1                    ← a 10-line shim
 ├── CLOSE-PLAN.md              ← the project's close-plan checklist (its skill points at it)
 └── runs/                      ← run state (git-ignored)
@@ -43,7 +43,18 @@ line saying what to write, exit 1.
 
 `orchestrator.local.json` is per machine and per project, and is never committed — a machine path never
 enters a project's git. One function, `Get-EnginePath` in the shim, is the only place that knows how the
-path is found (plan 0005 D10).
+path is found (plan 0005 D10). It also holds `profilesPath`, the dashboard's profiles folder; the engine
+reads it only when the project's `orchestrator.json` names a `profile` (plan 0006 D5).
+
+## Profiles (plan 0006)
+
+A project opts in by adding `"profile": "default"` to its own `orchestrator.json`. At every command
+`Import-OrchConfig` reads `<profilesPath>/<profile>.json` (the dashboard's export), merges the profile's
+`config` under the project's whole file — key by key and recursively, arrays replace, null removes — and
+validates the result. A missing `profilesPath`, or a missing export, is one line naming what to add or
+copy. The effective config is recorded once per run in `runs/<id>/config.effective.json` and travels to
+the dashboard in the close archive; a profile that moved on since gets one line, and the run goes on with
+the current version. Only `workflow.steps.preview` is adjustable; the other six steps are always on.
 
 ## Updating the engine
 

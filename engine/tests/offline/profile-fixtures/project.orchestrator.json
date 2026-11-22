@@ -1,0 +1,20 @@
+{
+  "profile": "default",
+  "version": 1,
+  "note": "Plan 0006 fixture: a project that names a profile and keeps its own overrides in place (D2).",
+  "root": ".",
+  "repos": { "Ui": "Ui" },
+  "roles": {
+    "planner": { "gate": 1, "readOnly": true, "auto": false, "promptFile": "plan.md", "chain": [ { "adapter": "mock", "model": "project-planner", "family": "deepseek" } ] }
+  },
+  "adapters": {
+    "mock": { "enabled": true, "type": "exec", "command": "powershell", "args": [] }
+  },
+  "workflow": {
+    "gatesPath": "gates.md",
+    "steps": { "preview": { "enabled": true } }
+  },
+  "report": { "enabled": false },
+  "archive": { "enabled": false },
+  "contractDoc": "docs/api.md"
+}

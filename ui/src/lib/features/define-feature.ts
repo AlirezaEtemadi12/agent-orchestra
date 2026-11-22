@@ -9,6 +9,7 @@ export const FEATURE_KEYS = [
   'quality',
   'imports',
   'projects',
+  'profiles',
 ] as const;
 
 export type FeatureKey = (typeof FEATURE_KEYS)[number];

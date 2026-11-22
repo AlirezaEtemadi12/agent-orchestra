@@ -3,6 +3,7 @@ import { costFeature } from './cost';
 import { importsFeature } from './imports';
 import { libraryFeature } from './library';
 import { poolsFeature } from './pools';
+import { profilesFeature } from './profiles';
 import { projectsFeature } from './projects';
 import { qualityFeature } from './quality';
 import { runsFeature } from './runs';
@@ -16,6 +17,7 @@ export const FEATURES = [
   qualityFeature,
   importsFeature,
   projectsFeature,
+  profilesFeature,
 ] as const;
 
 export const MENU_ITEMS = FEATURES;

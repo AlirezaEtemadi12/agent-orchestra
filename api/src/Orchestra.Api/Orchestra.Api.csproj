@@ -14,4 +14,9 @@
     <InternalsVisibleTo Include="Orchestra.Api.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- D11: the seed profile travels with the assembly; engine/ is not in the Docker image. -->
+    <EmbeddedResource Include="Modules/Profiles/default-profile.json" />
+  </ItemGroup>
+
 </Project>

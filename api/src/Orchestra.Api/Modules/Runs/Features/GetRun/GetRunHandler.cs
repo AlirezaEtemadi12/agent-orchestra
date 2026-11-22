@@ -105,7 +105,8 @@ public sealed class GetRunHandler(OrchestraDbContext database, TimeProvider cloc
             texts,
             ListRunsHandler.ToUsd(run.CostMicros),
             await PlanOfAsync(run, cancellationToken),
-            await LiveOfAsync(run, cancellationToken));
+            await LiveOfAsync(run, cancellationToken),
+            run.EffectiveConfigJson);
 
         return (detail, null);
     }

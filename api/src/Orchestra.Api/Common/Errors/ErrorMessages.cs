@@ -12,6 +12,12 @@ public static class ErrorMessages
         ["Projects.Project.ReadOnly"] = "This project comes from the configuration file; change it there.",
         ["Projects.Project.Invalid"] = "Some fields are not valid.",
         ["Projects.Store.Unreadable"] = "projects.json cannot be read; fix or remove it first.",
+        ["Profiles.Profile.NotFound"] = "Profile not found.",
+        ["Profiles.Profile.Invalid"] = "The profile is not valid: {detail}",
+        ["Profiles.Reason.Required"] = "Say why you change it.",
+        ["Profiles.Step.Locked"] = "The step {step} is always on and cannot be turned off.",
+        ["Profiles.Revert.Current"] = "This is already the current version.",
+        ["Profiles.Project.Unreadable"] = "The project's orchestrator.json cannot be read here: {detail}",
         ["Usage.Query.InvalidGroupBy"] = "groupBy must be day, month, model or project.",
         ["Usage.Query.InvalidRange"] = "The date range is not valid.",
         ["Usage.Query.InvalidTimeZone"] = "Unknown time zone.",
@@ -33,6 +39,12 @@ public static class ErrorMessages
         ["Projects.Project.ReadOnly"] = "این پروژه از فایل تنظیمات می‌آید. آن را همان‌جا تغییر دهید.",
         ["Projects.Project.Invalid"] = "بعضی فیلدها معتبر نیستند.",
         ["Projects.Store.Unreadable"] = "فایل projects.json خوانده نمی‌شود. اول آن را درست یا حذف کنید.",
+        ["Profiles.Profile.NotFound"] = "پروفایل پیدا نشد.",
+        ["Profiles.Profile.Invalid"] = "پروفایل معتبر نیست: {detail}",
+        ["Profiles.Reason.Required"] = "دلیل تغییر را بنویسید.",
+        ["Profiles.Step.Locked"] = "مرحله‌ی {step} همیشه روشن است و نمی‌شود خاموشش کرد.",
+        ["Profiles.Revert.Current"] = "این همین الان نسخه‌ی فعلی است.",
+        ["Profiles.Project.Unreadable"] = "فایل orchestrator.json این پروژه اینجا خوانده نمی‌شود: {detail}",
         ["Usage.Query.InvalidGroupBy"] = "groupBy باید یکی از day، month، model یا project باشد.",
         ["Usage.Query.InvalidRange"] = "بازه‌ی تاریخ معتبر نیست.",
         ["Usage.Query.InvalidTimeZone"] = "منطقه‌ی زمانی ناشناخته است.",
@@ -47,19 +59,26 @@ public static class ErrorMessages
     };
 
     /// <summary>Persian only when the request prefers it; English in every other case.</summary>
-    public static string Get(string code, IReadOnlyList<CultureInfo> cultures)
+    public static string Get(string code, IReadOnlyList<CultureInfo> cultures, string? detail = null)
     {
         var wantsPersian = cultures.Count > 0
             && string.Equals(cultures[0].TwoLetterISOLanguageName, "fa", StringComparison.Ordinal);
 
         var messages = wantsPersian ? Fa : En;
 
-        if (messages.TryGetValue(code, out var text))
+        var text = messages.TryGetValue(code, out var found)
+            ? found
+            : En.TryGetValue(code, out var fallback) ? fallback : code;
+
+        if (string.IsNullOrEmpty(detail))
         {
             return text;
         }
 
-        return En.TryGetValue(code, out var fallback) ? fallback : code;
+        // The message names what is wrong; the detail says which file, step or path.
+        return text
+            .Replace("{detail}", detail, StringComparison.Ordinal)
+            .Replace("{step}", detail, StringComparison.Ordinal);
     }
 
     public static string Get(string code)

@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n/config';
 import { apiClient } from '@/lib/api/client';
-import type { FolderCheck, ProjectBody, ProjectStoreState, SavedProject } from './types';
+import type { EffectiveConfigDto, FolderCheck, ProjectBody, ProjectStoreState, SavedProject } from './types';
 
 function encode(value: string): string {
   return encodeURIComponent(value);
@@ -14,6 +14,8 @@ export const projectsApi = {
   remove: (locale: Locale, id: string) => apiClient.delete(`projects/${encode(id)}`, locale),
   check: (locale: Locale, rootPath: string) =>
     apiClient.post<FolderCheck>('projects/check', locale, { rootPath }),
+  effective: (locale: Locale, id: string) =>
+    apiClient.get<EffectiveConfigDto>(`projects/${encode(id)}/effective`, locale),
   prompt: (locale: Locale, body: { name: string; rootPath: string; repos: string[]; check: FolderCheck }) =>
     apiClient.post<{ text: string }>('projects/scaffold-prompt', locale, body),
 };

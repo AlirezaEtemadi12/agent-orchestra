@@ -40,6 +40,10 @@ public sealed class RunEntity
 
     public string? SourceRef { get; set; }
 
+    /// <summary>Plan 0006 D10: the profile-merged config the run started with, from its archive or its live
+    /// <c>config.effective.json</c>. Null when the run never recorded one.</summary>
+    public string? EffectiveConfigJson { get; set; }
+
     public ProjectEntity Project { get; set; } = null!;
 
     public List<StageResultEntity> Stages { get; set; } = [];

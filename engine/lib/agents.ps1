@@ -1,8 +1,93 @@
+function Merge-ConfigObject {
+    # Plan 0006 D2: the profile's config is the base, the project's whole file goes on top, key by key
+    # and recursively. Arrays replace (a project chain is used as it stands); null removes a key.
+    param($Base, $Over)
+    if ($null -eq $Base) { return $Over }
+    if ($null -eq $Over) { return $Base }
+    if ($Base -isnot [pscustomobject] -or $Over -isnot [pscustomobject]) { return $Over }
+    $result = [pscustomobject]@{}
+    foreach ($p in $Base.PSObject.Properties) {
+        $result | Add-Member -NotePropertyName $p.Name -NotePropertyValue $p.Value
+    }
+    foreach ($p in $Over.PSObject.Properties) {
+        if ($null -eq $p.Value) {
+            if ($result.PSObject.Properties[$p.Name]) { $result.PSObject.Properties.Remove($p.Name) }
+            continue
+        }
+        $existing = $result.PSObject.Properties[$p.Name]
+        if ($existing -and $existing.Value -is [pscustomobject] -and $p.Value -is [pscustomobject]) {
+            $merged = Merge-ConfigObject $existing.Value $p.Value
+            $result.PSObject.Properties.Remove($p.Name)
+            $result | Add-Member -NotePropertyName $p.Name -NotePropertyValue $merged
+        }
+        else {
+            if ($existing) { $result.PSObject.Properties.Remove($p.Name) }
+            $result | Add-Member -NotePropertyName $p.Name -NotePropertyValue $p.Value
+        }
+    }
+    return $result
+}
+
+function Get-ProfilesPath {
+    # Plan 0006 D5: the dashboard's profiles folder comes from the project's git-ignored
+    # orchestrator.local.json, beside the config - never from the config itself (a machine path never
+    # enters a project's git).
+    param([string]$ConfigPath)
+    $local = Join-Path (Split-Path -Parent $ConfigPath) 'orchestrator.local.json'
+    $missing = 'config: set "profilesPath" in orchestrator.local.json to the dashboard''s profiles folder'
+    if (-not (Test-Path -LiteralPath $local)) { throw $missing }
+    $settings = $null
+    try { $settings = Get-Content -LiteralPath $local -Raw -Encoding UTF8 | ConvertFrom-Json } catch { throw $missing }
+    $key = $settings.PSObject.Properties['profilesPath']
+    if (-not $key -or -not $key.Value) { throw $missing }
+    return [string]$key.Value
+}
+
+function Test-LockedStepOff {
+    # Plan 0006 D6: these steps are always on; only `preview` is adjustable.
+    param($Config, [string]$Step)
+    $w = $Config.PSObject.Properties['workflow']
+    if (-not $w -or -not $w.Value) { return $false }
+    $steps = $w.Value.PSObject.Properties['steps']
+    if (-not $steps -or -not $steps.Value) { return $false }
+    $one = $steps.Value.PSObject.Properties[$Step]
+    if (-not $one -or $one.Value -isnot [pscustomobject]) { return $false }
+    $enabled = $one.Value.PSObject.Properties['enabled']
+    if (-not $enabled) { return $false }
+    return (-not [bool]$enabled.Value)
+}
+
 function Import-OrchConfig {
     param([Parameter(Mandatory)][string]$Path)
     $full = (Resolve-Path -LiteralPath $Path).Path
     $cfg = Get-Content -LiteralPath $full -Raw -Encoding UTF8 | ConvertFrom-Json
     $orchDir = Split-Path -Parent $full
+    # Plan 0006 D9: the run records which profile and version it started on.
+    $profileId = $null
+    $profileVersion = $null
+    $profileProp = $cfg.PSObject.Properties['profile']
+    if ($profileProp -and $profileProp.Value) {
+        $profileId = [string]$profileProp.Value
+        $profilesPath = Get-ProfilesPath $full
+        $profileFile = Join-Path $profilesPath "$profileId.json"
+        if (-not (Test-Path -LiteralPath $profileFile)) {
+            throw ("config: profile '{0}' not found at {1}; open the dashboard once or copy the export there" -f $profileId, $profileFile)
+        }
+        $export = Get-Content -LiteralPath $profileFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        $versionProp = $export.PSObject.Properties['version']
+        if ($versionProp -and $null -ne $versionProp.Value) { $profileVersion = [int]$versionProp.Value }
+        $configProp = $export.PSObject.Properties['config']
+        if (-not $configProp -or $configProp.Value -isnot [pscustomobject]) {
+            throw ("config: profile '{0}' at {1} has no config object" -f $profileId, $profileFile)
+        }
+        # D2: profile base, the project's whole file on top (its own overrides stay in place).
+        $cfg = Merge-ConfigObject $configProp.Value $cfg
+        foreach ($step in @('understanding', 'plan', 'review', 'approve', 'implement', 'verify')) {
+            if (Test-LockedStepOff $cfg $step) {
+                throw ("config: step '{0}' is always on and cannot be turned off" -f $step)
+            }
+        }
+    }
     $root = [System.IO.Path]::GetFullPath((Join-Path $orchDir $cfg.root))
     $runs = if ($cfg.PSObject.Properties['runsDir'] -and $cfg.runsDir) { [System.IO.Path]::GetFullPath((Join-Path $orchDir $cfg.runsDir)) } else { Join-Path $orchDir 'runs' }
     # D8: a manual (human) hop is forbidden only in the planner chain - the plan's author must be a model.
@@ -31,11 +116,13 @@ function Import-OrchConfig {
         }
     }
     [pscustomobject]@{
-        Config     = $cfg
-        ConfigPath = $full
-        OrchDir    = $orchDir
-        Root       = $root
-        RunsDir    = $runs
+        Config         = $cfg
+        ConfigPath     = $full
+        OrchDir        = $orchDir
+        Root           = $root
+        RunsDir        = $runs
+        ProfileId      = $profileId
+        ProfileVersion = $profileVersion
     }
 }
 
@@ -923,6 +1010,24 @@ function New-RolePrompt {
         foreach ($d in $docs) { [void]$sb.AppendLine("- $d") }
     }
     [void]$sb.AppendLine()
+    if ($Role -eq 'planner') {
+        # Plan 0006 D6: only `preview` is adjustable, and the planner is the one who acts on it.
+        $preview = $true
+        $w = $Ctx.Config.PSObject.Properties['workflow']
+        if ($w -and $w.Value) {
+            $steps = $w.Value.PSObject.Properties['steps']
+            if ($steps -and $steps.Value) {
+                $one = $steps.Value.PSObject.Properties['preview']
+                if ($one -and $one.Value -is [pscustomobject]) {
+                    $enabled = $one.Value.PSObject.Properties['enabled']
+                    if ($enabled) { $preview = [bool]$enabled.Value }
+                }
+            }
+        }
+        $line = if ($preview) { 'Workflow: the preview step is on - write the HTML preview before the plan.' } else { 'Workflow: the preview step is off - skip the HTML preview and write the plan.' }
+        [void]$sb.AppendLine($line)
+        [void]$sb.AppendLine()
+    }
     [void]$sb.AppendLine("## Your task")
     [void]$sb.AppendLine($Task)
     if ($Extra) {

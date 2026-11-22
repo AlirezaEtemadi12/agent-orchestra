@@ -21,7 +21,8 @@
 ```
 
 - **api/** — one ASP.NET Core app, a small **modular monolith** after Project B's Web: modules
-  `Projects`, `Runs`, `Usage`, later `Settings`. EF Core with SQLite; migrations in the repo.
+  `Projects`, `Runs`, `Usage`, `Events`, `Profiles`, later `Settings`. EF Core with SQLite; migrations
+  in the repo.
 - **ui/** — Next.js 16, **static export** (`output: 'export'`), served by the API: one container, one
   port, no Node at runtime. Stack and rules follow Project B's Ui (shadcn/ui from the official
   registry, Tailwind v4, TanStack Query, vertical slices, tokens only), in **fa (RTL) and en (LTR)**
@@ -35,17 +36,18 @@
   retry, one warning line per run — so a run behaves the same with the dashboard down.
 - **engine/** — the orchestrator itself, once for every project: `run.ps1`, `lib/` (agents, bus,
   gates, pools), `refresh-graph.ps1`, the offline suite and the conductor docs. A project keeps its
-  `orchestrator.json`, its `runs/`, a git-ignored `orchestrator.local.json` with `enginePath`, and a
-  ten-line `run.ps1` shim that calls the engine with that config (plan 0005
+  `orchestrator.json`, its `runs/`, a git-ignored `orchestrator.local.json` with `enginePath` (and
+  `profilesPath`), and a ten-line `run.ps1` shim that calls the engine with that config (plan 0005
   [D10](../../.orchestra/plans/0005-engine-move.md)). The engine keeps no state: every setting comes
-  from the project's `orchestrator.json`, and it never reads the dashboard.
+  from the project's `orchestrator.json`, and it never reads the dashboard. A project that names a
+  `profile` gets the dashboard's export merged under its own file at every command (plan 0006).
 
 ## Data flow rules
 
 1. **Files are the source of truth for runs** until phase 2. The database is a read model built
    from them; it can always be dropped and re-imported.
-2. **The runner never reads from the dashboard** while a run is in flight. In phase 2 settings reach
-   it as an exported file, before the run starts.
+2. **The runner never reads from the dashboard** while a run is in flight. Settings reach it as an
+   exported file (`<profilesPath>/<id>.json`), before the run starts (plan 0006).
 3. **The dashboard never writes to a project folder**; mounts are read-only. What a project lacks is
    created by the owner's agent from a prompt the dashboard shows
    ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)). The database indexes files;

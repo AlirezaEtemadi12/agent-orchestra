@@ -6,6 +6,11 @@ public sealed class OrchestraOptions
 
     public string DatabasePath { get; init; } = "data/orchestra.db";
 
+    /// <summary>Where profile exports live (plan 0006 D5). A relative value sits beside the database —
+    /// <c>&lt;data&gt;/profiles</c> — which is what makes the Docker bind mount at <c>/data/profiles</c>
+    /// work without a second setting.</summary>
+    public string ProfilesPath { get; init; } = "profiles";
+
     public string UiPath { get; init; } = "wwwroot";
 
     public string? SourceTimeZone { get; init; }
@@ -26,6 +31,22 @@ public sealed class OrchestraOptions
     public string ResolveUiPath(string contentRootPath)
     {
         return Path.GetFullPath(Path.Combine(contentRootPath, UiPath));
+    }
+
+    /// <summary>A relative ProfilesPath resolves against the database file's folder, not the content root:
+    /// the image keeps the database at <c>/data/orchestra.db</c> but its content root is <c>/app</c>
+    /// (deploy/Dockerfile), so content-root resolution would write the export inside the image.</summary>
+    public string ResolveProfilesPath(string contentRootPath)
+    {
+        if (Path.IsPathRooted(ProfilesPath))
+        {
+            return Path.GetFullPath(ProfilesPath);
+        }
+
+        var database = ResolveDatabasePath(contentRootPath);
+        var folder = Path.GetDirectoryName(database) ?? contentRootPath;
+
+        return Path.GetFullPath(Path.Combine(folder, ProfilesPath));
     }
 }
 

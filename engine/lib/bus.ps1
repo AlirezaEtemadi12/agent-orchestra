@@ -30,6 +30,16 @@ function New-TaskRun {
         history   = @()
     }
     Save-TaskState -Ctx $Ctx -TaskId $TaskId -State ([pscustomobject]$state)
+    # Plan 0006 D9: the run records the config it started with, once. Later commands never rewrite it.
+    # `profile`/`profileVersion` are null for a project that uses no profile (D7).
+    $payload = [ordered]@{
+        profile        = $(if ($Ctx.PSObject.Properties['ProfileId']) { $Ctx.ProfileId } else { $null })
+        profileVersion = $(if ($Ctx.PSObject.Properties['ProfileVersion']) { $Ctx.ProfileVersion } else { $null })
+        writtenAt      = (Get-Date).ToString('s')
+        config         = $Ctx.Config
+    }
+    $effective = Join-Path $dir 'config.effective.json'
+    ([pscustomobject]$payload | ConvertTo-Json -Depth 30) | Set-Content -LiteralPath $effective -Encoding UTF8
     return (Get-TaskState -Ctx $Ctx -TaskId $TaskId)
 }
 

@@ -4,14 +4,14 @@ namespace Orchestra.Api.Common.Errors;
 
 public static class ProblemResults
 {
-    public static ProblemDetails From(Error error, HttpContext context)
+    public static ProblemDetails From(Error error, HttpContext context, string? detail = null)
     {
         var cultures = ErrorMessages.CulturesFrom(context.Request.Headers.AcceptLanguage.ToString());
 
         var problem = new ProblemDetails
         {
             Status = error.Status,
-            Title = ErrorMessages.Get(error.Code, cultures),
+            Title = ErrorMessages.Get(error.Code, cultures, detail),
         };
 
         problem.Extensions["code"] = error.Code;

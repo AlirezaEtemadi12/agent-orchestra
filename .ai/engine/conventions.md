@@ -42,6 +42,15 @@ folder: that separation is what lets one engine serve many projects.
 - Everything a project may differ in is a setting, not a branch on a project name. If code needs to know
   which project it runs in, the config is missing a key.
 
+## Profiles
+
+Plan 0006 adds one merge: when `orchestrator.json` names a `profile`, `Import-OrchConfig` reads
+`<profilesPath>/<profile>.json` from the project's git-ignored `orchestrator.local.json` and merges the
+export's `config` **under** the project's whole file — key by key and recursively, arrays replace, null
+removes (`Merge-ConfigObject`). Every validation then runs on the effective config, and the six locked
+workflow steps may not be turned off. The dashboard implements the same rule in `ConfigMerge.cs`; the
+two move together. A project without a `profile` key behaves exactly as before.
+
 ## The offline suite is the test
 
 ```powershell

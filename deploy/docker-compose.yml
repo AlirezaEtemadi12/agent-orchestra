@@ -8,6 +8,9 @@ services:
       - '127.0.0.1:3500:3500'
     volumes:
       - orchestra-data:/data
+      # Plan 0006 D5: profile exports, beside the database (a relative ProfilesPath resolves there).
+      # The host folder must be writable by the image's uid 10001: `chown -R 10001 <folder>` once.
+      - ${ORCHESTRA_PROFILES_DIR:?set ORCHESTRA_PROFILES_DIR in deploy/.env}:/data/profiles
       - ${PROJECT1_RUNS:?set PROJECT1_RUNS in deploy/.env}:/projects/p1:ro
       - ${PROJECT2_RUNS:?set PROJECT2_RUNS in deploy/.env}:/projects/p2:ro
       # The library reads the project root, not the runs folder. Uncomment with PROJECT1_ROOT /
