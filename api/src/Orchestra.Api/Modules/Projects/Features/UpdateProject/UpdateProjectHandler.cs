@@ -1,9 +1,10 @@
 using Orchestra.Api.Common.Errors;
+using Orchestra.Api.Common.Hosting;
 using Orchestra.Api.Modules.Import;
 
 namespace Orchestra.Api.Modules.Projects.Features.UpdateProject;
 
-public sealed class UpdateProjectHandler(ProjectRegistry registry, ImportService imports)
+public sealed class UpdateProjectHandler(ProjectRegistry registry, ImportService imports, PathMapper mapper)
 {
     public async Task<(ProjectSavedDto? Saved, Error? Error)> HandleAsync(
         string id,
@@ -22,7 +23,7 @@ public sealed class UpdateProjectHandler(ProjectRegistry registry, ImportService
             return (null, Error.ProjectReadOnly);
         }
 
-        var (valid, error) = ProjectValidation.Validate(input with { Id = id });
+        var (valid, error) = ProjectValidation.Validate(input with { Id = id }, mapper);
 
         if (valid is null)
         {
@@ -57,7 +58,7 @@ public sealed class UpdateProjectHandler(ProjectRegistry registry, ImportService
             return (null, Error.ProjectStoreUnreadable);
         }
 
-        await imports.ImportOneAsync(saved.ToOptions(), cancellationToken);
+        await imports.ImportOneAsync(saved.ToOptions(mapper), cancellationToken);
 
         return (new ProjectSavedDto(saved.Id, saved.Name, saved.RootPath, saved.RunsPath, saved.Repos, saved.Profile), null);
     }

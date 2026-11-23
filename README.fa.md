@@ -39,52 +39,139 @@ run دقیقاً مثل قبل کار می‌کند.
 
 <!-- Screenshots: add them under docs/images/ and link them here. -->
 
-## اجرای داشبورد
+## راهنمای استفاده
 
-.NET 10 و Node 22 لازم دارید، یا Docker.
+### ۱. راه‌اندازی داشبورد (Docker)
 
-فایل `api/src/Orchestra.Api/appsettings.Local.example.json` را به `appsettings.Local.json` کپی کنید
-(در git نادیده گرفته می‌شود) و پوشهٔ runهای پروژه‌هایتان را در آن بنویسید.
+Docker Desktop لازم است. یک بار `deploy/.env.example` را به `deploy/.env` کپی کنید و دو پوشه را در آن بنویسید:
+
+| کلید | توضیح |
+|---|---|
+| `ORCHESTRA_HOST_ROOT` | پوشه‌ای که پروژه‌هایتان در آن است، مثلاً `F:/Projects`. این پوشه فقط‌خواندنی روی `/host` وصل می‌شود. |
+| `ORCHESTRA_PROFILES_DIR` | جایی که داشبورد پروفایل‌ها را در آن می‌نویسد. مقدار پیش‌فرض `./profiles` کنار فایل compose است. |
+
+بعد در ریشهٔ همین مخزن این دستور را اجرا کنید:
 
 </div>
 
+```powershell
+docker compose -f deploy/docker-compose.yml up --build -d
 ```
-cd ui && npm ci && npm run build && cd ..
+
+<div dir="rtl" align="right">
+
+حالا `http://localhost:3500` را باز کنید. پورت فقط روی `127.0.0.1` باز است. دیدن لاگ‌ها و خاموش کردن:
+
+</div>
+
+```powershell
+docker compose -f deploy/docker-compose.yml logs -f
+```
+
+```powershell
+docker compose -f deploy/docker-compose.yml down
+```
+
+<div dir="rtl" align="right">
+
+برای به‌روزرسانی، بعد از `git pull` همان `up --build -d` را دوباره بزنید. پایگاه داده در volume
+`orchestra-data` است و با `down` یا ساخت دوباره پاک نمی‌شود.
+
+### ۲. اضافه کردن پروژه
+
+از منو «پروژه‌ها» و بعد «پروژه‌ی جدید» را باز کنید. مسیر پوشهٔ پروژه را همان‌طور که در ویندوز می‌بینید
+بنویسید (مثلاً `F:\Projects\MyApp`)، یا با دکمهٔ «انتخاب» پیدایش کنید. فرم شناسه، نام، پوشهٔ runها و ریپوها
+را خودش پر می‌کند و شما می‌توانید پیش از ذخیره هر کدام را عوض کنید. داشبورد مسیر ویندوزی را خودش به
+`/host/...` تبدیل می‌کند، و پوشهٔ پروژه را فقط می‌خواند، هیچ‌وقت در آن نمی‌نویسد.
+
+### ۳. وصل کردن موتور پروژه
+
+هر پروژه موتور را از طریق `.orchestra/run.ps1` صدا می‌زند که یک shim ده‌خطی است. کنارش فایل
+`.orchestra/orchestrator.local.json` قرار دارد. این فایل مخصوص همین کامپیوتر است و در git نمی‌رود:
+
+</div>
+
+```json
+{ "enginePath": "F:/Projects/Orchestra", "reportToken": "<از صفحهٔ اتصال>" }
+```
+
+<div dir="rtl" align="right">
+
+صفحهٔ «اتصال» پروژه را باز کنید. بلوک `report` آن را در `orchestrator.json` پروژه بگذارید، و `reportToken` را
+در فایل محلی بالا. برای امتحان:
+
+</div>
+
+```powershell
+powershell -File .orchestra/run.ps1 agents
+```
+
+<div dir="rtl" align="right">
+
+وقتی اولین رویداد به داشبورد برسد، صفحهٔ اتصال «وصل است» را نشان می‌دهد. گزارش دادن یک‌طرفه است: اگر
+داشبورد خاموش باشد، run دقیقاً مثل قبل کار می‌کند.
+
+### ۴. اجرای یک کار
+
+بعد از هر دستور یک خلاصه چاپ می‌شود. خط `next:` در آن می‌گوید دستور بعدی چیست.
+
+| مرحله | دستور | چه اتفاقی می‌افتد |
+|---|---|---|
+| پلن | `run.ps1 new T-APP-001 MyRepo "چه کاری"` | برنامه‌ریز پلن را می‌نویسد. یک مدل از خانوادهٔ دیگر آن را مرور می‌کند، و مدل پیاده‌ساز آن را بازگو می‌کند. |
+| تأیید | `run.ps1 approve T-APP-001` | شما تأیید می‌کنید و موتور شاخه را می‌سازد. |
+| پیاده‌سازی | `run.ps1 implement T-APP-001 1` | یک مدل ارزان‌تر فاز ۱ را پیاده می‌کند. هیچ‌چیز commit نمی‌شود. |
+| بررسی | `run.ps1 verify T-APP-001` | موتور gateهای پلن و یک مدل بررسی‌کننده را اجرا می‌کند. |
+| بستن | `run.ps1 close T-APP-001` | موتور پلن را بایگانی می‌کند. commit و merge با خود شماست. |
+
+هر وقت خواستید، `run.ps1 status T-APP-001` وضعیت را نشان می‌دهد. اگر یک hop منتظر آدم باشد (adapter دستی)،
+موتور درخواست را در پوشهٔ `inbox/` همان run می‌نویسد و شما با `run.ps1 answer` جواب می‌دهید. همهٔ
+دستورها، نقش‌ها و تنظیمات در [`engine/README.md`](engine/README.md) آمده است.
+
+### ۵. دنبال کردن کارها
+
+در «runها» فهرست runها را می‌بینید و در «تخته‌ی runها» همان‌ها را زنده. «هزینه» خرج را به تفکیک روز، ماه،
+مدل و پروژه نشان می‌دهد. «کیفیت مدل‌ها» تعداد دورِ رسیدن به PASS، ارزش read-back و نرخ FAIL در verify
+را نشان می‌دهد. صفحهٔ «شروع کار» در منو قدم‌های بالا را از روی چیزی که داشبورد واقعاً می‌بیند تیک می‌زند.
+
+### بدون Docker
+
+.NET 10 و Node 22 لازم است:
+
+</div>
+
+```powershell
+cd ui; npm ci; npm run build; cd ..
+```
+
+```powershell
 dotnet run --project api/src/Orchestra.Api
 ```
 
 <div dir="rtl" align="right">
 
-یا با Docker. اول `deploy/.env.example` را به `deploy/.env` کپی و پر کنید:
+هیچ متغیر محیطی لازم نیست. داشبورد توکن خودش را می‌سازد و در `<data>/report-token` نگه می‌دارد (پلن ۰۰۰۹).
+اگر زیر IIS اجرا می‌کنید: بستهٔ ASP.NET Core 10 Hosting Bundle را نصب کنید، به Application Pool اجازهٔ
+خواندن پوشهٔ پروژه‌ها را بدهید، و تا وقتی پلن ۰۰۰۸ ورود را اضافه نکرده، سایت را فقط روی `localhost` باز
+کنید.
+
+### تست‌ها
 
 </div>
 
-```
-docker compose -f deploy/docker-compose.yml up --build
-```
-
-<div dir="rtl" align="right">
-
-سپس `http://localhost:3500` را باز کنید. پوشه‌های پروژه‌ها فقط‌خواندنی mount می‌شوند.
-
-## استفاده از موتور
-
-هر پروژه یک `run.ps1` کوچک (shim) دارد و یک فایل `orchestrator.local.json` که در git نیست و در آن
-`enginePath` به پوشهٔ `engine/` همین مخزن اشاره می‌کند. دستورها، نقش‌ها و تنظیمات در
-[`engine/README.md`](engine/README.md) آمده است. اجرای تست‌های offline:
-
-</div>
-
-```
+```powershell
 powershell -NoProfile -File engine/tests/offline/run-offline.ps1
 ```
 
 <div dir="rtl" align="right">
 
+سوئیت offline موتور در چهار تکهٔ موازی اجرا می‌شود و حدود ۷ دقیقه طول می‌کشد. تست‌های API و UI در
+[`.ai/ci.md`](.ai/ci.md) آمده‌اند.
+
 ## وضعیت
 
-فاز ۰ (import، کتابخانه، پروژهٔ جدید)، فاز ۱ (رویداد زنده) و انتقال موتور تمام شده است. پروفایل‌ها با
-تنظیم اختصاصی هر پروژه مرحلهٔ بعدی است. فازها در [`.ai/vision/roadmap.md`](.ai/vision/roadmap.md) و وضعیت
+این‌ها تمام شده‌اند: فاز ۰ (import، کتابخانه، پروژهٔ جدید)، فاز ۱ (رویداد زنده)، انتقال موتور، پروفایل‌ها،
+و اضافه کردن پروژه با مسیر ویندوزی. کارهای بعدی جدول‌های سمت سرور (پلن ۰۰۱۰) و کمتر کردن فراخوانی‌های
+`git` در موتور (پلن ۰۰۱۱) است. فازها در [`.ai/vision/roadmap.md`](.ai/vision/roadmap.md) و وضعیت
 پلن‌ها در [`.orchestra/plans/`](.orchestra/plans/README.md) است. ایجنت‌ها از [`AGENTS.md`](AGENTS.md) شروع
 می‌کنند.
 

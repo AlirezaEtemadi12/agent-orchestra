@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
+using Orchestra.Api.Common.Hosting;
 using Orchestra.Api.Data;
 using Orchestra.Api.Modules.Import;
 using Orchestra.Api.Modules.Projects;
@@ -51,7 +52,7 @@ internal sealed class ProjectsFixture : IDisposable
             ],
         });
 
-        Registry = new ProjectRegistry(Settings, Store, NullLogger<ProjectRegistry>.Instance);
+        Registry = new ProjectRegistry(Settings, Store, Mapper, NullLogger<ProjectRegistry>.Instance);
 
         Imports = new ImportService(
             Database,
@@ -68,6 +69,9 @@ internal sealed class ProjectsFixture : IDisposable
     public string StorePath { get; }
 
     public ProjectStore Store { get; }
+
+    /// <summary>An empty map: on this machine the typed path is the server path (plan 0009 D2).</summary>
+    public PathMapper Mapper { get; } = PathMapper.Empty;
 
     public IOptions<OrchestraOptions> Settings { get; }
 

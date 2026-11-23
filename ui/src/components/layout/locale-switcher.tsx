@@ -2,6 +2,9 @@
 
 import { Languages } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+// Next's own hooks on purpose: next-intl's usePathname drops the locale and its router adds the current
+// one back, so swapping through them produced /en/fa/ (a 404).
+import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { usePathname, useRouter } from '@/i18n/navigation';
 import { LOCALE_STORAGE_KEY, LOCALES, type Locale } from '@/lib/i18n/config';
 import { swapLocale } from '@/lib/i18n/locale-path';
 

@@ -5,8 +5,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Orchestra.Api.Common;
+using Microsoft.Extensions.Logging.Abstractions;
 using Orchestra.Api.Modules.Events;
 
 namespace Orchestra.Api.Tests.Events;
@@ -14,6 +13,8 @@ namespace Orchestra.Api.Tests.Events;
 public sealed class ReportTokenFilterTests
 {
     private const string Token = "s3cret-report-token";
+
+    private readonly string _folder = Path.Combine(Path.GetTempPath(), $"orchestra-filter-{Guid.NewGuid():n}");
 
     [Fact]
     public async Task A_missing_header_is_401_with_an_empty_body()
@@ -60,23 +61,41 @@ public sealed class ReportTokenFilterTests
     }
 
     [Fact]
-    public async Task No_token_configured_means_the_feature_is_off_and_the_route_is_404()
+    public async Task With_no_token_configured_the_made_one_is_accepted()
     {
-        var (filter, context, ran) = Arrange($"Bearer {Token}", configured: null);
+        // Plan 0009 D6: the "feature off → 404" branch is gone; the dashboard makes its own token.
+        var store = new ReportTokenStore(
+            Path.Combine(_folder, "report-token"),
+            configured: null,
+            NullLogger<ReportTokenStore>.Instance);
+
+        var (filter, context, ran) = Arrange($"Bearer {store.Get()}", configured: null, store);
 
         await filter.OnActionExecutionAsync(context, Next(ran));
 
-        context.Result.Should().BeOfType<NotFoundResult>();
-        ran.Value.Should().BeFalse();
+        context.Result.Should().BeNull();
+        ran.Value.Should().BeTrue();
+
+        var (wrong, wrongContext, wrongRan) = Arrange("Bearer nope", configured: null, store);
+
+        await wrong.OnActionExecutionAsync(wrongContext, Next(wrongRan));
+
+        wrongContext.Result.Should().BeOfType<UnauthorizedResult>();
+        wrongRan.Value.Should().BeFalse();
     }
 
-    private static (ReportTokenFilter Filter, ActionExecutingContext Context, StrongBox<bool> Ran) Arrange(
+    private (ReportTokenFilter Filter, ActionExecutingContext Context, StrongBox<bool> Ran) Arrange(
         string? header,
-        string? configured)
+        string? configured,
+        ReportTokenStore? store = null)
     {
+        store ??= new ReportTokenStore(
+            Path.Combine(_folder, "report-token"),
+            configured,
+            NullLogger<ReportTokenStore>.Instance);
+
         var services = new ServiceCollection();
-        services.AddSingleton<IOptions<OrchestraOptions>>(
-            Options.Create(new OrchestraOptions { ReportToken = configured }));
+        services.AddSingleton(store);
 
         var http = new DefaultHttpContext { RequestServices = services.BuildServiceProvider() };
 

@@ -6,45 +6,102 @@
 #
 # Exit code 0 when every check passes, 1 otherwise.
 #
-# When to run it (owner's rule, 2026-11-14): a full run takes ~10 minutes, so
+# When to run it (owner's rule, 2026-11-14): a full run takes ~7 minutes (four shards), so
 #   - only when the orchestrator's own code or config changes (lib/, run.ps1, orchestrator.json, tests/);
 #     a real task run never runs this suite - it runs the target repo's gate commands instead;
 #   - once at the END of an orchestrator change (and once as a baseline before it), never after every
 #     phase or every edit; a doc-only change needs no run;
 #   - a red check that passes on an immediate rerun (e.g. a timing-sensitive pool test) is flaky, not a
-#     regression - rerun once, do not loop.
+#     regression - the runner reruns a failed section once, alone, and names it; do not loop.
 # Orchestrator plans must say "suite once at the end", not "green after each phase".
 [CmdletBinding()]
-param([switch]$Keep, [string]$Config)
+param([switch]$Keep, [string]$Config, [string]$Shard = '', [int]$Shards = 4)
 
 $ErrorActionPreference = 'Stop'
 $Here = $PSScriptRoot
 $Orch = Split-Path -Parent (Split-Path -Parent $Here)
 $RunPs1 = Join-Path $Orch 'run.ps1'
 
-# Plan 0005 file 5: the whole suite runs once per project config in configs/ (number and slug plan
-# filing). Each pass is a child process, so its workspaces, its results and its exit code stay its own.
+# Plan 0005 file 5: the suite runs once per project config in configs/, each pass in a child process with
+# its own workspaces, results and exit code. There is one config since 2026-11-23: the only setting the
+# two used to differ in, planFiling, is read by close alone, and the close checks set both styles
+# themselves (T-C1..T-C8, T-PD*). A second pass re-ran ~140 checks to test nothing new.
 $configsDir = Join-Path $Here 'configs'
 if (-not $Config) {
     $matrix = @(Get-ChildItem -LiteralPath $configsDir -Filter '*.orchestrator.json' -File | Sort-Object Name)
     if (-not $matrix.Count) { Write-Host "no config in $configsDir" -ForegroundColor Red; exit 1 }
+    # The scenario sections run in $Shards child processes at once, each a contiguous block (see the shard
+    # runner below). A section that fails runs once more, alone, after the others: the timing checks
+    # (pools, the reporter's overhead) can lose a race when four shards share the machine, and the rule
+    # above already says a check that passes on an immediate rerun is flaky, not a regression. Every
+    # rerun is named in the report. -Shards 1 runs everything in one child, in file order.
+    $n = [Math]::Max(1, $Shards)
     $failed = 0
-    $passes = @()
+    $clock = [System.Diagnostics.Stopwatch]::StartNew()
+
+    function Invoke-SuiteChild {
+        # Starts one child; Wait-SuiteChild reads its log back.
+        param([string]$ConfigPath, [string]$Select)
+        $log = Join-Path $env:TEMP ("orch-offline-" + [guid]::NewGuid().ToString('N').Substring(0, 8) + ".log")
+        $argLine = '-NoProfile -ExecutionPolicy Bypass -File "{0}" -Config "{1}" -Shard {2}' -f $PSCommandPath, $ConfigPath, $Select
+        if ($Keep) { $argLine += ' -Keep' }
+        $proc = Start-Process -FilePath 'powershell' -ArgumentList $argLine -NoNewWindow -PassThru `
+            -RedirectStandardOutput $log -RedirectStandardError "$log.err"
+        $null = $proc.Handle   # without this, ExitCode stays empty in Windows PowerShell 5.1
+        return [pscustomobject]@{ Proc = $proc; Log = $log; Select = $Select }
+    }
+
+    function Wait-SuiteChild {
+        # The child's RESULT|section|id|verdict lines; $null when it ended without a report (a crash).
+        param($Child)
+        $Child.Proc.WaitForExit()
+        $out = ''
+        foreach ($f in @($Child.Log, "$($Child.Log).err")) {
+            if (Test-Path -LiteralPath $f) {
+                $out += (Get-Content -LiteralPath $f -Raw -Encoding UTF8)
+                Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+            }
+        }
+        Write-Host ("--- shard {0}" -f $Child.Select) -ForegroundColor DarkGray
+        Write-Host $out
+        if ($out -notmatch '\d+/\d+ checks passed') { return $null }
+        return @([regex]::Matches($out, '(?m)^RESULT\|(-?\d+)\|([^|]+)\|(PASS|FAIL)') | ForEach-Object {
+                [pscustomobject]@{ Section = [int]$_.Groups[1].Value; Id = $_.Groups[2].Value; Result = $_.Groups[3].Value }
+            })
+    }
+
     foreach ($c in $matrix) {
         Write-Host ''
-        Write-Host ("=== offline suite with {0} ===" -f $c.Name) -ForegroundColor Cyan
-        $childArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $PSCommandPath, '-Config', $c.FullName)
-        if ($Keep) { $childArgs += '-Keep' }
-        $out = (& powershell @childArgs 2>&1 | Out-String)
-        Write-Host $out
-        $code = $LASTEXITCODE
-        $m = [regex]::Match($out, '(\d+)/(\d+) checks passed')
-        $passes += ("{0}: {1}" -f $c.Name, $(if ($m.Success) { $m.Value } elseif ($code -eq 0) { 'passed' } else { "exit $code" }))
-        if ($code -ne 0 -or -not $m.Success) { $failed++ }
+        Write-Host ("=== offline suite with {0}, {1} shard(s) ===" -f $c.Name, $n) -ForegroundColor Cyan
+        $children = @(for ($k = 0; $k -lt $n; $k++) { Invoke-SuiteChild -ConfigPath $c.FullName -Select "$k/$n" })
+        $results = @(); $crashed = 0
+        foreach ($ch in $children) {
+            $r = Wait-SuiteChild $ch
+            if ($null -eq $r) { $crashed++ } else { $results += $r }
+        }
+        $retried = @()
+        $failedSections = @($results | Where-Object { $_.Result -eq 'FAIL' } | ForEach-Object { $_.Section } | Sort-Object -Unique)
+        if ($failedSections.Count -and -not $crashed) {
+            Write-Host ("=== rerun alone: section(s) {0} ===" -f ($failedSections -join ',')) -ForegroundColor Cyan
+            $again = Wait-SuiteChild (Invoke-SuiteChild -ConfigPath $c.FullName -Select ('list:' + ($failedSections -join ',')))
+            if ($null -eq $again) { $crashed++ }
+            else {
+                $retried = @($results | Where-Object { $_.Result -eq 'FAIL' } | ForEach-Object { $_.Id })
+                $results = @($results | Where-Object { $failedSections -notcontains $_.Section }) + @($again)
+            }
+        }
+        $pass = @($results | Where-Object { $_.Result -eq 'PASS' }).Count
+        $fails = @($results | Where-Object { $_.Result -eq 'FAIL' } | ForEach-Object { $_.Id })
+        $flaky = @($retried | Where-Object { $fails -notcontains $_ })
+        Write-Host ''
+        Write-Host '=== engine offline suite ===' -ForegroundColor Cyan
+        Write-Host ("  {0}: {1}/{2} checks passed" -f $c.Name, $pass, $results.Count)
+        if ($flaky.Count) { Write-Host ("  passed on the rerun alone (timing under load): {0}" -f ($flaky -join ', ')) -ForegroundColor Yellow }
+        if ($fails.Count) { Write-Host ("  failed: {0}" -f ($fails -join ', ')) -ForegroundColor Red }
+        if ($crashed) { Write-Host "  $crashed child process(es) ended without a report" -ForegroundColor Red }
+        if ($fails.Count -or $crashed) { $failed++ }
     }
-    Write-Host ''
-    Write-Host '=== engine offline suite ===' -ForegroundColor Cyan
-    foreach ($p in $passes) { Write-Host "  $p" }
+    Write-Host ("  wall time: {0:N0} s" -f $clock.Elapsed.TotalSeconds)
     if ($failed) { Write-Host "$failed of $($matrix.Count) config(s) did not pass" -ForegroundColor Red; exit 1 }
     Write-Host 'all configs passed' -ForegroundColor Green
     exit 0
@@ -54,6 +111,8 @@ $script:activeConfigName = (Split-Path -Leaf $script:activeConfig)
 $script:results = New-Object System.Collections.ArrayList
 $script:failures = 0
 $script:workspaces = New-Object System.Collections.ArrayList
+$script:repoTemplate = $null
+$script:currentSection = -1
 # No network: live model prices come from a seeded cache file only (T-L2), never from opencode.ai.
 $env:PROJECTA_ORCH_NO_RATE_FETCH = '1'
 
@@ -65,15 +124,27 @@ $env:PROJECTA_ORCH_NO_RATE_FETCH = '1'
 # The harness calls Write-ProgressFile and the pool functions directly, and those report their own events
 # (plan 0004 §6.6). Sourcing the reporter keeps them defined; without a report block each call is a no-op.
 . (Join-Path $Orch 'lib\report.ps1')
+# bus.ps1 too (Get-TaskDir, Get-Findings): many sections load it themselves, and with shards a section may
+# run without the one before it.
+. (Join-Path $Orch 'lib\bus.ps1')
+
+# Each check is charged the time since the previous one (its scenario's setup and runs), so the report can
+# name the slow ones.
+$script:clock = [System.Diagnostics.Stopwatch]::StartNew()
+$script:lastMark = 0.0
 
 function Check {
     param([string]$Id, [string]$Name, [bool]$Ok, [string]$Detail = '')
+    $now = $script:clock.Elapsed.TotalSeconds
     [void]$script:results.Add([pscustomobject]@{
             Id     = $Id
             Check  = $Name
             Result = $(if ($Ok) { 'PASS' } else { 'FAIL' })
+            Sec    = [math]::Round($now - $script:lastMark, 1)
+            Section = $script:currentSection
             Detail = $Detail
         })
+    $script:lastMark = $now
     if (-not $Ok) { $script:failures++ }
 }
 
@@ -95,8 +166,33 @@ function New-WorkSpace {
     New-Item -ItemType Directory -Path $dir | Out-Null
     [void]$script:workspaces.Add($dir)
     Write-Host "  workspace $dir" -ForegroundColor DarkGray
+    # The three repos are built once per pass and copied after that: about 18 git processes saved per
+    # workspace (80 workspaces). A copy is the same repo — same files, same commit.
+    if (-not $script:repoTemplate) {
+        $script:repoTemplate = Join-Path $env:TEMP ("project-b-orch-template-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        New-Item -ItemType Directory -Path $script:repoTemplate | Out-Null
+        [void]$script:workspaces.Add($script:repoTemplate)
+        New-RepoSet -Dir $script:repoTemplate
+    }
     foreach ($r in @('Agent', 'Ui', 'Web')) {
-        $rp = Join-Path $dir $r
+        Copy-Item -LiteralPath (Join-Path $script:repoTemplate $r) -Destination $dir -Recurse -Force
+    }
+    Copy-Item -LiteralPath (Join-Path $Here 'mock-agent.ps1') -Destination $dir
+
+    $mock = Join-Path $dir 'mock-agent.ps1'
+    # The pass's project config (configs/*.orchestrator.json) is this workspace's config; only the mock
+    # agent's path is per-workspace. Roles, filing style and description come from that file.
+    $config = Get-Content -LiteralPath $script:activeConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    $config.adapters.mock.args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $mock)
+    ($config | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $dir 'config.json') -Encoding UTF8
+    Write-Host '  workspace ready: 3 repos, mock agent, config' -ForegroundColor DarkGray
+    return $dir
+}
+
+function New-RepoSet {
+    param([string]$Dir)
+    foreach ($r in @('Agent', 'Ui', 'Web')) {
+        $rp = Join-Path $Dir $r
         New-Item -ItemType Directory -Path $rp | Out-Null
         [void](& git -C $rp init -q 2>&1)
         [void](& git -C $rp checkout -q -b work 2>&1)
@@ -109,16 +205,6 @@ function New-WorkSpace {
         [void](& git -C $rp add -A 2>&1)
         [void](& git -C $rp commit -q -m 'init' 2>&1)
     }
-    Copy-Item -LiteralPath (Join-Path $Here 'mock-agent.ps1') -Destination $dir
-
-    $mock = Join-Path $dir 'mock-agent.ps1'
-    # The pass's project config (configs/*.orchestrator.json) is this workspace's config; only the mock
-    # agent's path is per-workspace. Roles, filing style and description come from that file.
-    $config = Get-Content -LiteralPath $script:activeConfig -Raw -Encoding UTF8 | ConvertFrom-Json
-    $config.adapters.mock.args = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $mock)
-    ($config | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $dir 'config.json') -Encoding UTF8
-    Write-Host '  workspace ready: 3 repos, mock agent, config' -ForegroundColor DarkGray
-    return $dir
 }
 
 function Run-Orch {
@@ -528,6 +614,55 @@ function Wait-QueuedProgress {
 
 Write-Host "offline orchestrator test" -ForegroundColor Cyan
 Write-Host "  run.ps1: $RunPs1"
+
+# Shard mode (-Shard k/n, set by the parent above): read the scenario sections back from this file, run
+# every n-th one starting at k, then the report section, which exits. Without -Shard the file simply runs
+# on, top to bottom. A section is everything from one "# -----" marker line to the next; the markers
+# after this block are the scenarios, and the last one is "report".
+if ($Shard) {
+    # The scenarios run in this scope and use short names ($s, $k, $n, $i ...), so every name here is
+    # prefixed: a scenario must not overwrite the runner's counter.
+    # Encoding.Default on purpose: Windows PowerShell 5.1 reads this BOM-less file as ANSI, and so it reads
+    # the libs; a UTF-8 read would turn a dash here into a different string than the libs' (T6).
+    $shardLines = [System.IO.File]::ReadAllLines($PSCommandPath, [System.Text.Encoding]::Default)
+    $shardBegin = [Array]::IndexOf($shardLines, '# ==== scenarios ====')
+    $shardMarks = @(for ($shardI = $shardBegin + 1; $shardI -lt $shardLines.Count; $shardI++) { if ($shardLines[$shardI] -match '^# -{20,} ') { $shardI } })
+    $shardReport = $shardMarks[-1]
+    $shardSections = @($shardMarks | Where-Object { $_ -lt $shardReport })
+    if ($Shard -like 'list:*') {
+        # The parent's rerun: these sections, in order.
+        $shardMine = @(($Shard.Substring(5) -split ',') | Where-Object { $_ } | ForEach-Object { [int]$_ })
+    }
+    else {
+    $shardParts = $Shard -split '/'
+    $shardK = [int]$shardParts[0]; $shardN = [Math]::Max(1, [int]$shardParts[1])
+    # Contiguous blocks, not every n-th section: neighbouring sections share variables and helpers (the
+    # P sections reuse one workspace, T-L2 needs T-L1's functions), and the file order keeps that intact.
+    # The blocks are balanced by the engine runs each section makes, the part that costs time.
+    $shardWeights = @(for ($shardI = 0; $shardI -lt $shardSections.Count; $shardI++) {
+            $shardEnd = if ($shardI + 1 -lt $shardSections.Count) { $shardSections[$shardI + 1] } else { $shardReport }
+            $shardBody = $shardLines[$shardSections[$shardI]..($shardEnd - 1)] -join "`n"
+            1 + [regex]::Matches($shardBody, 'Invoke-New|Invoke-Approve|Run-Orch|Start-Orch|Invoke-Role|Invoke-External|New-WorkSpace').Count
+        })
+    $shardTotal = ($shardWeights | Measure-Object -Sum).Sum
+    $shardMine = @(); $shardAcc = 0
+    for ($shardI = 0; $shardI -lt $shardSections.Count; $shardI++) {
+        $shardOwner = [Math]::Min($shardN - 1, [int][Math]::Floor($shardAcc * $shardN / $shardTotal))
+        if ($shardOwner -eq $shardK) { $shardMine += $shardI }
+        $shardAcc += $shardWeights[$shardI]
+    }
+    }
+    Write-Host ("  shard {0}: {1} of {2} scenario sections" -f $Shard, $shardMine.Count, $shardSections.Count)
+    foreach ($shardIndex in $shardMine) {
+        $shardEnd = if ($shardIndex + 1 -lt $shardSections.Count) { $shardSections[$shardIndex + 1] } else { $shardReport }
+        $shardText = ($shardLines[$shardSections[$shardIndex]..($shardEnd - 1)] -join "`r`n")
+        $script:currentSection = $shardIndex
+        . ([scriptblock]::Create($shardText))
+    }
+    . ([scriptblock]::Create(($shardLines[$shardReport..($shardLines.Count - 1)] -join "`r`n")))
+}
+
+# ==== scenarios ====
 
 # ---------------------------------------------------------------- S1/S2/S4/S5/S6/S7/S13: full conductor run
 try {
@@ -1478,8 +1613,8 @@ catch { Fail-Scenario 'T-RB4' 'stale verifier request' ("exception: " + $_.Excep
 # ---------------------------------------------------------------- T-C1/T-C2/T-C3: close deletes a filed run only
 try {
     $ws = New-WorkSpace 'close'
-    # T-C1..T-C3 are the number-filing case (plan 0005 D3): say so, so the case means the same thing in
-    # both config passes. The slug case is T-C5..T-C8 below.
+    # T-C1..T-C3 are the number-filing case (plan 0005 D3): set explicitly, whatever the config says.
+    # The slug case is T-C5..T-C8 below.
     Edit-Config -Ws $ws -Change { param($cfg) Set-CfgProp $cfg 'planFiling' 'number' }
     [void](Invoke-New $ws 'T-C-001' 'Ui')
     [void](Run-Orch -Ws $ws -Argv @('approve', 'T-C-001', '-Branch', 'plan-0099-close-test'))
@@ -2887,11 +3022,46 @@ try {
 }
 catch { Fail-Scenario 'P5' 'a run with a profile' ("exception: " + $_.Exception.Message) }
 
+# ---------------------------------------------------------------- T-TOK: where the report token comes from
+try {
+    $ws = New-WorkSpace 'report-token'
+    $localFile = Join-Path $ws 'orchestrator.local.json'
+    Set-Content -LiteralPath $localFile -Value '{ "reportToken": "file-token" }' -Encoding UTF8
+    $ctx = [pscustomobject]@{
+        ConfigPath = (Join-Path $ws 'config.json')
+        Config     = [pscustomobject]@{ report = [pscustomobject]@{ enabled = $true; url = 'http://127.0.0.1:9/api/events'; project = 'demo'; tokenEnv = 'ORCH_TEST_REPORT_TOKEN' } }
+    }
+
+    $old = $env:ORCH_TEST_REPORT_TOKEN
+    try {
+        $env:ORCH_TEST_REPORT_TOKEN = ''
+        $fromFile = Get-ReportToken $ctx
+        $env:ORCH_TEST_REPORT_TOKEN = 'env-token'
+        $fromEnv = Get-ReportToken $ctx
+    }
+    finally { $env:ORCH_TEST_REPORT_TOKEN = $old }
+
+    Remove-Item -LiteralPath $localFile -Force
+    $env:ORCH_TEST_REPORT_TOKEN = ''
+    try { $none = Get-ReportToken $ctx } finally { $env:ORCH_TEST_REPORT_TOKEN = $old }
+
+    # Plan 0009 D10: env first, the local file second, nothing when neither is set.
+    Check 'T-TOK' 'the report token comes from the env variable, else the local file, else nothing' `
+        ($fromFile -eq 'file-token' -and $fromEnv -eq 'env-token' -and $none -eq '') `
+        ("file='$fromFile' env='$fromEnv' none='$none'")
+}
+catch { Fail-Scenario 'T-TOK' 'report token resolver' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------------------------------- report
 Write-Host ''
 $script:results | Format-Table -AutoSize | Out-String -Width 400 | Write-Host
 $pass = @($script:results | Where-Object { $_.Result -eq 'PASS' }).Count
 $total = @($script:results).Count
+Write-Host 'slowest checks (seconds, setup included):' -ForegroundColor DarkGray
+$script:results | Sort-Object Sec -Descending | Select-Object -First 15 Id, Sec |
+    Format-Table -AutoSize | Out-String | Write-Host
+Write-Host ("suite time: {0:N0} s" -f $script:clock.Elapsed.TotalSeconds) -ForegroundColor DarkGray
+if ($Shard) { foreach ($r in $script:results) { Write-Host ("RESULT|{0}|{1}|{2}" -f $r.Section, $r.Id, $r.Result) } }
 Write-Host ("{0}/{1} checks passed" -f $pass, $total) -ForegroundColor $(if ($script:failures) { 'Red' } else { 'Green' })
 
 if (-not $Keep) {

@@ -105,8 +105,9 @@ The one thing an import does **not** delete is the project's `RunEvent` rows
 
 ## Live events (phase 1)
 
-The runner posts one envelope per event to `POST api/events` (bearer token, `Orchestra:ReportToken`;
-no token configured means the route answers 404). Schema 1:
+The runner posts one envelope per event to `POST api/events` (bearer token: `Orchestra:ReportToken` when
+set, else the token the dashboard generates and keeps in `<data>/report-token` — plan
+[0009](../../.orchestra/plans/0009-easy-onboarding.md) D6; a wrong or missing token answers 401). Schema 1:
 
 ```json
 { "schema": 1, "id": "<guid>", "project": "project-b", "taskId": "T-AGENT-031",

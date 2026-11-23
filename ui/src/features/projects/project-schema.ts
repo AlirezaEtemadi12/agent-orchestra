@@ -5,15 +5,15 @@ export type ProjectSchemaMessages = {
   idFormat: string;
 };
 
-/** The form's rules; the server re-validates and answers one code (plan 0003 D12). */
+/** The form's rules; the server re-validates and answers one code (plan 0003 D12). The profile field is
+ * gone: the engine reads the profile from the project's own file (plan 0009 D12). */
 export function projectSchema({ required, idFormat }: ProjectSchemaMessages) {
   return z.object({
     name: z.string().trim().min(1, required).max(80, required),
     id: z.string().trim().regex(/^[a-z0-9-]{1,40}$/, idFormat),
     rootPath: z.string().trim().min(1, required),
     runsPath: z.string().trim().min(1, required),
-    repos: z.string(),
-    profile: z.string(),
+    repos: z.array(z.string()),
   });
 }
 

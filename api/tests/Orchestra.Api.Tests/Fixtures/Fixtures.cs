@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
+using Orchestra.Api.Common.Hosting;
 using Orchestra.Api.Modules.Projects;
 
 namespace Orchestra.Api.Tests.Fixtures;
@@ -27,6 +28,6 @@ internal static class TestRegistries
     {
         var path = Path.Combine(Path.GetTempPath(), $"orchestra-projects-{Guid.NewGuid():n}", "projects.json");
 
-        return new ProjectRegistry(options, new ProjectStore(path), NullLogger<ProjectRegistry>.Instance);
+        return new ProjectRegistry(options, new ProjectStore(path), PathMapper.Empty, NullLogger<ProjectRegistry>.Instance);
     }
 }

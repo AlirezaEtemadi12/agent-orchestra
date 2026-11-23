@@ -123,8 +123,11 @@ it; no engine file names a project):
 }
 ```
 
-The token is read from the named environment variable, never from a file. `enabled: false` or no block
-means no request is made at all. `progressEverySec` is the throttle for the latest-line event (D5).
+The token comes from the environment variable `tokenEnv` names; when that is unset, from `reportToken` in
+the project's git-ignored `orchestrator.local.json`, beside the config file (plan 0009 D10) — so no Windows
+environment variable is needed for a single machine. The dashboard's Connect page shows both pieces.
+Neither source set means the request goes without `Authorization`; `enabled: false` or no block means no
+request is made at all. `progressEverySec` is the throttle for the latest-line event (D5).
 
 ## Tests
 
@@ -132,7 +135,7 @@ means no request is made at all. `progressEverySec` is the throttle for the late
 powershell -NoProfile -File engine/tests/offline/run-offline.ps1
 ```
 
-Windows PowerShell 5.1, no model calls, 15+ minutes: run it in the background with a log and wait for the
-tally. It runs the whole suite once per config in `tests/offline/configs/` (`number` and `slug` plan
-filing). See [`.ai/ci.md`](../.ai/ci.md) for its count, and
+Windows PowerShell 5.1, no model calls, about 7 minutes: run it in the background with a log and wait for
+the tally. It runs the scenarios in four child processes (`-Shards 1` for one, in file order) and reruns a
+failed section once alone; the rerun is named in the report. See [`.ai/ci.md`](../.ai/ci.md) for its count, and
 [`.ai/engine/conventions.md`](../.ai/engine/conventions.md) before changing an engine file.

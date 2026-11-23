@@ -63,6 +63,28 @@ function Get-HistoryEventData {
     return $d
 }
 
+function Get-ReportToken {
+    # Plan 0009 D10: the environment variable named by tokenEnv (as before), else `reportToken` in the
+    # project's git-ignored orchestrator.local.json beside the config. Neither means the request goes
+    # without Authorization and the dashboard answers 401 - the run is unaffected.
+    param($Ctx)
+    $name = [string](Get-ReportSetting $Ctx 'tokenEnv' 'ORCHESTRA_REPORT_TOKEN')
+    if ($name) {
+        $value = [string][System.Environment]::GetEnvironmentVariable($name)
+        if ($value) { return $value }
+    }
+    if (-not $Ctx -or -not $Ctx.ConfigPath) { return '' }
+    $local = Join-Path (Split-Path -Parent $Ctx.ConfigPath) 'orchestrator.local.json'
+    try {
+        if (-not (Test-Path -LiteralPath $local)) { return '' }
+        $doc = Get-Content -LiteralPath $local -Raw -Encoding UTF8 | ConvertFrom-Json
+        $p = $doc.PSObject.Properties['reportToken']
+        if ($p -and $p.Value) { return [string]$p.Value }
+    }
+    catch { }
+    return ''
+}
+
 function Send-OrchestraEvent {
     <#
       One event to the dashboard (plan 0004 §6.1). Never throws, never retries, returns nothing.
@@ -120,8 +142,7 @@ function Send-OrchestraEvent {
         }
 
         $headers = @{}
-        $token = ''
-        if ($tokenEnv) { $token = [string][System.Environment]::GetEnvironmentVariable($tokenEnv) }
+        $token = Get-ReportToken $Ctx
         if ($token) { $headers['Authorization'] = "Bearer $token" }
 
         # Bytes, not the string: the body may hold Persian text and a length in characters is not a length

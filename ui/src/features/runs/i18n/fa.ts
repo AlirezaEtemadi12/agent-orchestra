@@ -33,6 +33,7 @@ export const runsFa = {
     "cacheRead": "cache read",
     "time": "زمان"
   },
+  "noProjects": "هنوز پروژه‌ای نیست — شروع کار",
   "empty": "runی نیست. اگر انتظارش را داشتید، گزارش خواندن را ببینید.",
   "detail": {
     "notFound": "این run در داشبورد نیست. شاید از فایل‌ها حذف شده باشد.",

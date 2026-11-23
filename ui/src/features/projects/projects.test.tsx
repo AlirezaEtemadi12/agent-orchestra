@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@/lib/api/api-error';
@@ -8,9 +8,11 @@ import { copyPrompt } from './clipboard';
 import { CheckResult } from './components/check-result';
 import { ConfirmDialog } from './components/confirm-dialog';
 import { ProjectsTable } from './components/projects-table';
+import { fillFromCheck } from './form-autofill';
 import { projectsEn } from './i18n/en';
 import { isIdTaken } from './projects-errors';
 import { parseRepos, projectSchema, runsPathAfterCheck, slugOf } from './project-schema';
+import { RepoPicker } from './components/repo-picker';
 import type { FolderCheck } from './types';
 
 const messages = { projects: projectsEn, common: { actions: { retry: 'Try again', back: 'Back' } } };
@@ -77,7 +79,11 @@ describe('the folder check result', () => {
       repos: ['api'],
       suggestedRunsPath: '/shop/.orchestra/runs',
       repoKnowledge: [],
-    } as FolderCheck;
+      hostPath: '/shop',
+      suggestedName: 'shop',
+      isReady: false,
+      visible: true,
+    };
 
     withProviders(<CheckResult check={check} />);
 
@@ -108,11 +114,17 @@ describe('the remove dialog', () => {
   });
 });
 
+describe('the form fields', () => {
+  it('has no profile field any more (plan 0009 D12)', () => {
+    expect(projectsEn.fields).not.toHaveProperty('profile');
+  });
+});
+
 describe('the form rules', () => {
   const schema = projectSchema({ required: 'Required.', idFormat: 'Lowercase letters, digits and dashes, up to 40.' });
 
   it('asks for the required fields', () => {
-    const result = schema.safeParse({ name: '', id: '', rootPath: '', runsPath: '', repos: '', profile: 'default' });
+    const result = schema.safeParse({ name: '', id: '', rootPath: '', runsPath: '', repos: [] });
 
     expect(result.success).toBe(false);
 
@@ -128,8 +140,7 @@ describe('the form rules', () => {
       id: 'myshop',
       rootPath: '/work/MyShop',
       runsPath: '/work/MyShop/.orchestra/runs',
-      repos: 'api, web',
-      profile: 'default',
+      repos: ['api', 'web'],
     });
 
     expect(result.success).toBe(true);
@@ -154,6 +165,68 @@ describe('the form rules', () => {
     expect(isIdTaken(new ApiError(409, 'Projects.Project.IdTaken', 'taken'))).toBe(true);
     expect(isIdTaken(new ApiError(400, 'Projects.Project.Invalid', 'bad'))).toBe(false);
     expect(isIdTaken(new Error('network'))).toBe(false);
+  });
+});
+
+describe('the auto-fill rule', () => {
+  const check: FolderCheck = {
+    exists: true,
+    isAbsolute: true,
+    items: [],
+    repos: ['api', 'web'],
+    suggestedRunsPath: 'F:\\Projects\\MyShop\\.orchestra\\runs',
+    repoKnowledge: [],
+    hostPath: 'F:\\Projects\\MyShop',
+    suggestedName: 'MyShop',
+    isReady: true,
+    visible: true,
+  };
+
+  const empty = { name: '  ', id: '', runsPath: '', repos: [], idTouched: false, reposTouched: false };
+
+  it('fills name, runs and repos when they are empty', () => {
+    expect(fillFromCheck(empty, check)).toEqual({
+      name: 'MyShop',
+      runsPath: 'F:\\Projects\\MyShop\\.orchestra\\runs',
+      repos: ['api', 'web'],
+    });
+  });
+
+  it('never overwrites a typed name or runs folder', () => {
+    const patch = fillFromCheck({ ...empty, name: 'Typed', runsPath: '/typed/runs' }, check);
+
+    expect(patch.name).toBeUndefined();
+    expect(patch.runsPath).toBeUndefined();
+  });
+
+  it('keeps a repo list the owner changed', () => {
+    expect(fillFromCheck({ ...empty, repos: ['api'], reposTouched: true }, check).repos).toBeUndefined();
+  });
+});
+
+describe('the repo picker', () => {
+  it('ticks the detected repos and untickes one', () => {
+    const onChange = vi.fn();
+
+    withProviders(<RepoPicker detected={['api']} value={['api', 'web']} disabled={false} onChange={onChange} />);
+
+    expect(screen.getByRole('checkbox', { name: 'api' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'web' })).toBeChecked();
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'api' }));
+
+    expect(onChange).toHaveBeenCalledWith(['web']);
+  });
+
+  it('adds a repo by its folder name', () => {
+    const onChange = vi.fn();
+
+    withProviders(<RepoPicker detected={[]} value={[]} disabled={false} onChange={onChange} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Add a repo folder name'), { target: { value: 'cli' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(onChange).toHaveBeenCalledWith(['cli']);
   });
 });
 

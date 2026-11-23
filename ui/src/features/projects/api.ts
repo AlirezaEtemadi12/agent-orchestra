@@ -1,6 +1,14 @@
 import type { Locale } from '@/lib/i18n/config';
 import { apiClient } from '@/lib/api/client';
-import type { EffectiveConfigDto, FolderCheck, ProjectBody, ProjectStoreState, SavedProject } from './types';
+import type {
+  Connect,
+  EffectiveConfigDto,
+  FolderCheck,
+  FolderList,
+  ProjectBody,
+  ProjectStoreState,
+  SavedProject,
+} from './types';
 
 function encode(value: string): string {
   return encodeURIComponent(value);
@@ -18,4 +26,8 @@ export const projectsApi = {
     apiClient.get<EffectiveConfigDto>(`projects/${encode(id)}/effective`, locale),
   prompt: (locale: Locale, body: { name: string; rootPath: string; repos: string[]; check: FolderCheck }) =>
     apiClient.post<{ text: string }>('projects/scaffold-prompt', locale, body),
+  // Plan 0009: where the dashboard runs, the folders it may list, and what to paste.
+  folders: (locale: Locale, path: string | null) =>
+    apiClient.get<FolderList>(`system/folders${path ? `?path=${encode(path)}` : ''}`, locale),
+  connect: (locale: Locale, id: string) => apiClient.get<Connect>(`projects/${encode(id)}/connect`, locale),
 };

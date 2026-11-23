@@ -4,10 +4,11 @@ using Orchestra.Api.Modules.Projects.Features.CheckFolder;
 namespace Orchestra.Api.Modules.Projects.Features.ScaffoldPrompt;
 
 /// <summary>The prompt the owner hands to their own agent (plan 0003 §6.4). English on purpose: the
-/// agent reads it. The page around it is localized (D4).</summary>
+/// agent reads it. The page around it is localized (D4). Plan 0009 D7: it creates the config file the
+/// engine reads — <c>.orchestra/orchestrator.json</c> — so a project that ran it is ready.</summary>
 public static class ScaffoldPromptBuilder
 {
-    private const string NothingMissing = "Nothing to create: .ai/, AGENTS.md and .orchestra/ already exist.";
+    private const string NothingMissing = "Nothing to create: .ai/, AGENTS.md and .orchestra/orchestrator.json are already there.";
 
     private static readonly string[] InstructionFiles =
     [
@@ -28,9 +29,10 @@ public static class ScaffoldPromptBuilder
 
         var hasAi = found.Contains(".ai/");
         var hasAgents = found.Contains("AGENTS.md");
-        var hasOrchestra = found.Contains(".orchestra/");
+        var hasOrchestraFolder = found.Contains(".orchestra/");
+        var hasConfig = check.IsReady;
 
-        if (hasAi && hasAgents && hasOrchestra)
+        if (hasAi && hasAgents && hasConfig)
         {
             return NothingMissing;
         }
@@ -77,10 +79,10 @@ public static class ScaffoldPromptBuilder
             }
         }
 
-        if (!hasOrchestra)
+        if (!hasConfig)
         {
             lines.Add(string.Empty);
-            lines.AddRange(Section4(ProjectJson(name, repos)));
+            lines.AddRange(Section4(OrchestratorJson(name, repos), hasOrchestraFolder));
         }
 
         lines.Add(string.Empty);
@@ -121,30 +123,60 @@ public static class ScaffoldPromptBuilder
         ];
     }
 
-    private static string[] Section4(string projectJson)
+    private static string[] Section4(string config, bool hasOrchestraFolder)
     {
-        return
-        [
-            "4. Create .orchestra/ — the orchestrator's working folder, in git:",
-            "   - README.md (what each folder is), workflow.md (the gates: understanding -> HTML preview -> plan ->",
-            "     review by another model family -> my approval -> branch -> implement -> verify -> hand over",
-            "     uncommitted),",
-            "   - ideas/README.md, research/, previews/, plans/README.md, plans/TEMPLATE.md, prompts/,",
-            "   - project.json:",
-            projectJson,
-            "   - add .orchestra/evidence/ and .orchestra/runs/ to .gitignore.",
-        ];
+        var lines = new List<string>();
+
+        if (hasOrchestraFolder)
+        {
+            lines.Add("4. Create .orchestra/orchestrator.json — the engine reads this file:");
+        }
+        else
+        {
+            lines.Add("4. Create .orchestra/ — the orchestrator's working folder, in git:");
+            lines.Add("   - README.md (what each folder is), workflow.md (the gates: understanding -> HTML preview -> plan ->");
+            lines.Add("     review by another model family -> my approval -> branch -> implement -> verify -> hand over");
+            lines.Add("     uncommitted),");
+            lines.Add("   - ideas/README.md, research/, previews/, plans/README.md, plans/TEMPLATE.md, prompts/,");
+            lines.Add("   - .orchestra/orchestrator.json:");
+        }
+
+        lines.Add(config);
+        lines.Add("   Fill verifyCommands with each repo's build and test commands.");
+
+        if (!hasOrchestraFolder)
+        {
+            lines.Add("   - add .orchestra/evidence/ and .orchestra/runs/ to .gitignore.");
+        }
+
+        return [.. lines];
     }
 
-    /// <summary>The phase-2 shape (plan 0003 D5): the engine does not read it yet.</summary>
-    private static string ProjectJson(string name, IReadOnlyList<string> repos)
+    /// <summary>Plan 0009 D7: the shape Project A uses. The engine reads this file, not <c>project.json</c>.</summary>
+    private static string OrchestratorJson(string name, IReadOnlyList<string> repos)
     {
-        var shape = new
+        var shape = new Dictionary<string, object?>(StringComparer.Ordinal)
         {
-            name,
-            repos,
-            profile = "default",
-            overrides = new Dictionary<string, object>(),
+            ["profile"] = "default",
+            ["root"] = "..",
+            ["repos"] = repos.ToDictionary(repo => repo, repo => repo, StringComparer.Ordinal),
+            ["plansDir"] = ".orchestra/plans/{repo}",
+            ["description"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["title"] = name,
+                ["repos"] = repos.Count == 0 ? "none" : string.Join(", ", repos),
+            },
+            ["workflow"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["gatesPath"] = ".orchestra/workflow.md",
+                ["rolesPath"] = ".orchestra/roles/{repo}",
+                ["rolesIndex"] = ".orchestra/roles/{repo}/README.md",
+                ["promptsPath"] = ".orchestra/prompts/{repo}",
+                ["agentsDoc"] = "{repo}/AGENTS.md",
+                ["indexDoc"] = "{repo}/.ai/README.md",
+                ["planTemplate"] = ".orchestra/plans/TEMPLATE.md",
+            },
+            ["verifyCommands"] = new Dictionary<string, object?>(StringComparer.Ordinal),
         };
 
         return JsonSerializer.Serialize(shape, new JsonSerializerOptions { WriteIndented = true });

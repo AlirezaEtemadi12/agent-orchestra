@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/app/empty-state';
 import { PageHeader } from '@/components/app/page-header';
 import { ProjectChips } from '@/components/app/project-chips';
 import { StatusBadge } from '@/components/app/status-badge';
+import { Button } from '@/components/ui/button';
 import { TableSkeleton } from '@/components/app/table-skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Link } from '@/i18n/navigation';
@@ -108,7 +109,19 @@ export function RunsList({ title }: { title?: string }) {
         />
       ) : null}
 
-      {!runs.isPending && !runs.isError && loaded.length === 0 ? <EmptyState title={t('empty')} /> : null}
+      {/* Plan 0009 D15: with no projects the empty state leads to the start page. */}
+      {!runs.isPending && !runs.isError && loaded.length === 0 ? (
+        <EmptyState
+          title={t('empty')}
+          action={
+            (projects.data?.length ?? 0) === 0 ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={'/start/' as never}>{t('noProjects')}</Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      ) : null}
 
       {loaded.length > 0 ? (
         <Table>

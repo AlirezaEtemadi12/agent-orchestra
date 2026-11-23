@@ -15,6 +15,14 @@ public sealed record Error(string Code, int Status)
 
     public static Error ProjectStoreUnreadable => new("Projects.Store.Unreadable", 409);
 
+    public static Error ProjectPathNotVisible => new("Projects.Path.NotVisible", 400);
+
+    public static Error ProjectRunsPathNotVisible => new("Projects.RunsPath.NotVisible", 400);
+
+    public static Error FolderOutsideRoots => new("System.Folder.OutsideRoots", 400);
+
+    public static Error FolderMissing => new("System.Folder.Missing", 404);
+
     public static Error ProfileNotFound => new("Profiles.Profile.NotFound", 404);
 
     public static Error ProfileInvalid => new("Profiles.Profile.Invalid", 400);

@@ -1,29 +1,35 @@
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
+using Orchestra.Api.Common.Hosting;
 
 namespace Orchestra.Api.Modules.Projects;
 
 /// <summary>Config projects first, then the dashboard's own; the configuration wins a shared id. One
-/// immutable snapshot serves every request and is swapped only after a successful write (plan 0003 D8).</summary>
+/// immutable snapshot serves every request and is swapped only after a successful write (plan 0003 D8).
+/// The snapshot keeps each dashboard entry's stored (host) paths beside the mapped options (plan 0009 D3).</summary>
 public sealed class ProjectRegistry
 {
     private sealed record Snapshot(
         IReadOnlyDictionary<string, ProjectOptions> Projects,
-        IReadOnlyDictionary<string, ProjectOrigin> Origins);
+        IReadOnlyDictionary<string, ProjectOrigin> Origins,
+        IReadOnlyDictionary<string, StoredProject> Stored);
 
     private readonly object _write = new();
     private readonly IOptions<OrchestraOptions> _options;
     private readonly ProjectStore _store;
+    private readonly PathMapper _mapper;
     private readonly ILogger<ProjectRegistry> _logger;
     private Snapshot _snapshot;
 
     public ProjectRegistry(
         IOptions<OrchestraOptions> options,
         ProjectStore store,
+        PathMapper mapper,
         ILogger<ProjectRegistry> logger)
     {
         _options = options;
         _store = store;
+        _mapper = mapper;
         _logger = logger;
 
         var read = store.Read();
@@ -41,6 +47,13 @@ public sealed class ProjectRegistry
     public ProjectOptions? Find(string id)
     {
         return Current.Projects.GetValueOrDefault(id);
+    }
+
+    /// <summary>Plan 0009 D3: the entry as the owner typed it, for the edit form and the list. Null for a
+    /// config project (its paths are already server paths — show those).</summary>
+    public StoredProject? Stored(string id)
+    {
+        return Current.Stored.GetValueOrDefault(id);
     }
 
     public ProjectOrigin? OriginOf(string id)
@@ -126,6 +139,7 @@ public sealed class ProjectRegistry
     {
         var projects = new Dictionary<string, ProjectOptions>(StringComparer.Ordinal);
         var origins = new Dictionary<string, ProjectOrigin>(StringComparer.Ordinal);
+        var entries = new Dictionary<string, StoredProject>(StringComparer.Ordinal);
         var duplicates = new List<string>();
 
         foreach (var project in _options.Value.Projects)
@@ -142,9 +156,10 @@ public sealed class ProjectRegistry
 
         foreach (var entry in stored)
         {
-            if (projects.TryAdd(entry.Id, entry.ToOptions()))
+            if (projects.TryAdd(entry.Id, entry.ToOptions(_mapper)))
             {
                 origins[entry.Id] = ProjectOrigin.Dashboard;
+                entries[entry.Id] = entry;
             }
             else
             {
@@ -157,6 +172,6 @@ public sealed class ProjectRegistry
             _logger.LogWarning("Project id {Id} appears more than once; the configuration wins.", id);
         }
 
-        return new Snapshot(projects, origins);
+        return new Snapshot(projects, origins, entries);
     }
 }

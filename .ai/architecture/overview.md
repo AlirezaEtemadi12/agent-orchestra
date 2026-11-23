@@ -21,8 +21,9 @@
 ```
 
 - **api/** — one ASP.NET Core app, a small **modular monolith** after Project B's Web: modules
-  `Projects`, `Runs`, `Usage`, `Events`, `Profiles`, later `Settings`. EF Core with SQLite; migrations
-  in the repo.
+  `Projects`, `Runs`, `Usage`, `Events`, `Profiles`, `Setup`, later `Settings`. `Setup` (order 15) owns
+  `api/system/hosting` and `api/system/folders`, the hosting mode and the folder browser. EF Core with
+  SQLite; migrations in the repo.
 - **ui/** — Next.js 16, **static export** (`output: 'export'`), served by the API: one container, one
   port, no Node at runtime. Stack and rules follow Project B's Ui (shadcn/ui from the official
   registry, Tailwind v4, TanStack Query, vertical slices, tokens only), in **fa (RTL) and en (LTR)**
@@ -32,8 +33,15 @@
   `_ledger.md` on start and on demand, and upserts into SQLite. Idempotent: re-importing changes nothing.
 - **events** (phase 1) — `POST api/events`, a bearer token that opens only that route, and a
   `RunEvent` table the importer reads but never deletes ([ADR 0006](../decisions/0006-events-are-the-dashboards-own-record.md)).
-  The posting side is written once, in `engine/lib/report.ps1`; it is fire-and-forget — 2 s timeout, no
-  retry, one warning line per run — so a run behaves the same with the dashboard down.
+  The token is configured or made and kept by `ReportTokenStore` in `<data>/report-token`
+  ([ADR 0008](../decisions/0008-host-paths-and-own-report-token.md)). The posting side is written once,
+  in `engine/lib/report.ps1`, which reads the token from the env variable or from the project's
+  `orchestrator.local.json`; it is fire-and-forget — 2 s timeout, no retry, one warning line per run — so
+  a run behaves the same with the dashboard down.
+- **host paths** (plan 0009) — `Orchestra:PathMap` translates the Windows path the owner types into the
+  path this process can open, and back for every response: `projects.json` keeps the typed value, the
+  importer and the indexer get the mapped one, and one `${ORCHESTRA_HOST_ROOT}:/host:ro` mount covers every
+  project in Docker.
 - **engine/** — the orchestrator itself, once for every project: `run.ps1`, `lib/` (agents, bus,
   gates, pools), `refresh-graph.ps1`, the offline suite and the conductor docs. A project keeps its
   `orchestrator.json`, its `runs/`, a git-ignored `orchestrator.local.json` with `enginePath` (and
@@ -59,7 +67,7 @@
 |---|---|---|
 | Access | `http://localhost:<port>` only | HTTPS behind the server's reverse proxy |
 | Sign-in | none (bound to localhost) | one user, password or passkey |
-| Runner → API | not needed (import reads files) | report-only bearer token, from an env var |
+| Runner → API | not needed (import reads files) | report-only bearer token, from an env var or `orchestrator.local.json` |
 | Data | `data/orch.db` (git-ignored) | a Docker volume, backed up |
 
 What leaves the Windows machine in phase 3 (metadata only, or plan and review text too) is decided in
