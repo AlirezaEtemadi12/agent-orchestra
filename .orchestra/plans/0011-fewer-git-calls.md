@@ -8,7 +8,7 @@
 **Plan review:** — (gate 2 by another model family, before the run starts)
 **Decided by:** owner in the chat, 2026-11-23 ("four git calls is really too many; nobody touches the repo at that moment" — the check stays, its cost goes, see D1)
 **Branch:** `alireza/fewer-git-calls` — the implementer creates it.
-**Base:** `main` @ the commit that merges `alireza/easy-onboarding` — the conductor writes the hash here when the run starts
+**Base:** `main` @ `3c3ff5d` (the merge of `alireza/easy-onboarding`)
 **Companion:** None
 **Steps changed:** None
 

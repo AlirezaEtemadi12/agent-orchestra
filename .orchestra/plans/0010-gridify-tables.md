@@ -8,7 +8,7 @@
 **Plan review:** gate 2 by another model family (review pasted by the owner, 2026-11-23): 3 must-fix, 4 should-fix — all applied in this version (Base, D1, D4, D6, D8, D10, D12, manifest rows 4, 7, 8, 9, 10)
 **Decided by:** owner in the chat, 2026-11-23 ("wherever a table is needed, use Gridify", the Project B pattern)
 **Branch:** `alireza/gridify-tables` — the implementer creates it.
-**Base:** `main` @ the commit that merges plan 0009 — the conductor writes the hash here when the run starts (0009's start page reads the runs count; §6.4 says how)
+**Base:** `main` @ `3c3ff5d` (the merge of plan 0009) (0009's start page reads the runs count; §6.4 says how)
 **Companion:** None. The pattern is ported from Project B (`Web` `Common.Framework/Paging`, `Ui`
 `components/app/data-grid`, `lib/gridify`); nothing in that workspace changes.
 **Steps changed:** no preview (no new screen)

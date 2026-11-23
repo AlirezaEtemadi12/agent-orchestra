@@ -4,7 +4,7 @@
 **Created:** 2026-11-23 · **Updated:** 2026-11-23 · **Done:** 2026-11-23
 **Preview:** none — the owner asked for the plan directly (2026-11-23); see **Steps changed**
 **Run:** — (implemented by an agent in the chat, phases A–D)
-**Commit:** the commit titled "Plan 0009: add a project by its Windows path …" on `alireza/easy-onboarding` · **Merge:** — (not merged yet)
+**Commit:** `73abf32` on `alireza/easy-onboarding` · **Merge:** `3c3ff5d` into `main`, 2026-11-23
 **Code review:** by the planner after hand-over, 2026-11-23 — fixed before the commit: the folder browser compared Windows paths with `/` only (direct installs could not open a subfolder), `..` escaped the browse roots, the connect page polled the wrong query and never turned green; plus small ones (`isAbsolute` on Linux, a relative path reported as "not visible", raw ISO time, the profilesPath note, one hosting query). Those fixes compile (build, typecheck, lint); the test suites were **not** re-run after them, at the owner's request
 **Planned by:** Claude Opus 5.5, 2026-11-23. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** gate 2 by another model family (review pasted by the owner, 2026-11-23): 8 must-fix, 5 should-fix, 3 minor — all applied in this version (D3, D4, D5, D7, D8, D12, D16, D17, §6.2, §6.8, manifest rows 1, 3, 4, 6, 9, 11, 12, 16)
