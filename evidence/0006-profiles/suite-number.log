@@ -1,5 +1,5 @@
 offline orchestrator test
-  run.ps1: F:\Projects\@Source Codes\@Personal\Project Orchestra\engine\run.ps1
+  run.ps1: <orchestra>\engine\run.ps1
   workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-d42413c2
   workspace ready: 3 repos, mock agent, config
   run.ps1 new T-P1-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-d42413c2\plan-T-P1-001.md -> exit 0 (4.7s)

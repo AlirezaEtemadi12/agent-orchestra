@@ -2,8 +2,8 @@
 
 Status: **Implemented and tested 2026-10-20** — this file is kept as the record of what was approved;
 results are in the session report and in [`REVIEW-BRIEF.md`](REVIEW-BRIEF.md).
-Source (read-only): `F:\Projects\@Source Codes\@Personal\Project DrivingScore\orchestrator\`
-Target: `F:\Projects\@Source Codes\@Personal\Project ProjectB\orchestrator\` (this folder)
+Source (read-only): `<workspace>\orchestrator\`
+Target: `<workspace>\orchestrator\` (this folder)
 
 Nothing is copied yet. This document is the whole plan; step 3 implements it, step 4 tests it
 without a single paid model call.

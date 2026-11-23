@@ -191,7 +191,7 @@ calling a model (it only opens lock files).
 - the `run.ps1 pools` output;
 - every deviation.
 
-## 3. Part B — DrivingScore (`F:\Projects\@Source Codes\@Personal\Project DrivingScore`)
+## 3. Part B — DrivingScore (`<workspace>`)
 
 ### B1 — port the pools
 

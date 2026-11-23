@@ -1,7 +1,7 @@
 
 === offline suite with number.orchestrator.json ===
 offline orchestrator test
-  run.ps1: F:\Projects\@Source Codes\@Personal\Project Orchestra\engine\run.ps1
+  run.ps1: <orchestra>\engine\run.ps1
   workspace C:\Users\user\AppData\Local\Temp\project-b-orch-main-7587c9be
   workspace ready: 3 repos, mock agent, config
   run.ps1 new T-P1-001 Ui mock demo task -PlanFile C:\Users\user\AppData\Local\Temp\project-b-orch-main-7587c9be\plan-T-P1-001.md -> exit 0 (3.6s)
@@ -479,7 +479,7 @@ T-RP2    a dashboard that is down costs one warning line, under 3 s more, and ch
 
 === offline suite with slug.orchestrator.json ===
 offline orchestrator test
-  run.ps1: F:\Projects\@Source Codes\@Personal\Project Orchestra\engine\run.ps1
+  run.ps1: <orchestra>\engine\run.ps1
   workspace C:\Users\user\AppData\Local\Temp\project-b-orch-main-ce9c697d
   workspace ready: 3 repos, mock agent, config
   run.ps1 new T-P1-001 Ui mock demo task -PlanFile C:\Users\user\AppData\Local\Temp\project-b-orch-main-ce9c697d\plan-T-P1-001.md -> exit 0 (3.5s)

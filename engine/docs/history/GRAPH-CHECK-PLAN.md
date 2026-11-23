@@ -4,7 +4,7 @@ Status: **Implemented (2026-10-20).** `tests/offline/run-offline.ps1` is 36/36 g
 and the read-only `run.ps1 graph -Check` on the real repos reports `Agent` stale (its own open
 plan-0081 edits) with `Ui` and `Web` fresh. No real graph was refreshed.
 
-Reference (read-only): `F:\Projects\@Source Codes\@Personal\Project DrivingScore\orchestrator\`
+Reference (read-only): `<workspace>\orchestrator\`
 `refresh-graph.ps1`, `lib\gates.ps1` (`Get-SemanticIds`, `Get-GraphStatus`, `Format-Age`), `run.ps1` (`Cmd-Graph`).
 
 ## What differs today

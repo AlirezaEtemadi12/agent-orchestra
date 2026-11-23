@@ -1,14 +1,14 @@
 # Review plan 0001 (gate 2)
 
 Paste this as the first message of a session opened **in this folder**
-(`F:\Projects\@Source Codes\@Personal\Project Orchestra`), in a model whose family differs from the
+(`<orchestra>`), in a model whose family differs from the
 planner's (plan 0001 says `Claude Opus 5.5`).
 
 Why: plan 0002 is reviewed and waiting, but its `Base:` line is plan 0001's merge commit and no code
 exists yet. Plan 0001 has to pass gate 2 before anything is implemented.
 
 ```text
-You are a reviewer in the repository at F:\Projects\@Source Codes\@Personal\Project Orchestra.
+You are a reviewer in the repository at <orchestra>.
 Your job is gate 2 for one plan: .orchestra/plans/0001-skeleton-and-import.md. You review; you do not
 change anything.
 

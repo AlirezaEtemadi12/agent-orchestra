@@ -1,11 +1,11 @@
 # Task: port the multi-agent orchestrator to Project A
 
-You are working on the Project A workspace at `F:\Projects\@Source Codes\@Fartak\Project A`
+You are working on the Project A workspace at `<workspace>`
 (a plain container, not a git repo; it holds two git repos: `Ui/` = Next.js 16, `Web/` = .NET 10 ASP.NET Core,
 `ProjectA.sln`). Read its root `AGENTS.md`, then `Ui/AGENTS.md` and `Web/AGENTS.md`, before anything else.
 
 The source to port is a working orchestrator in another workspace — **read it, never edit it**:
-`F:\Projects\@Source Codes\@Personal\Project ProjectB\orchestrator\` (its own git repo, branch `main`).
+`<workspace>\orchestrator\` (its own git repo, branch `main`).
 Read, in this order: `CONDUCTOR.md` (the procedure), `DESIGN.md`, `WORKING-MODEL.md`, `CLOSE-PLAN.md`,
 `orchestrator.json`, `run.ps1`, `lib/*.ps1`, then skim `tests/offline/run-offline.ps1` (the mock suite).
 Also read the two skill pointers in `F:\...\Project ProjectB\.claude\skills\` (`project-b-orchestrate`,

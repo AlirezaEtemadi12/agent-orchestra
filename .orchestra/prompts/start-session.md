@@ -1,7 +1,7 @@
 # Start a session in Orchestra
 
 Paste this as the first message of a new session opened **in this folder**
-(`F:\Projects\@Source Codes\@Personal\Project Orchestra`):
+(`<orchestra>`):
 
 ```text
 تو در پروژه‌ی Orchestra هستی: داشبورد و موتور مشترک ارکستر چندعاملی من.
