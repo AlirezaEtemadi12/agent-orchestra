@@ -135,7 +135,7 @@ request is made at all. `progressEverySec` is the throttle for the latest-line e
 powershell -NoProfile -File engine/tests/offline/run-offline.ps1
 ```
 
-Windows PowerShell 5.1, no model calls, 15+ minutes: run it in the background with a log and wait for the
-tally. It runs the whole suite once per config in `tests/offline/configs/` (`number` and `slug` plan
-filing). See [`.ai/ci.md`](../.ai/ci.md) for its count, and
+Windows PowerShell 5.1, no model calls, about 7 minutes: run it in the background with a log and wait for
+the tally. It runs the scenarios in four child processes (`-Shards 1` for one, in file order) and reruns a
+failed section once alone; the rerun is named in the report. See [`.ai/ci.md`](../.ai/ci.md) for its count, and
 [`.ai/engine/conventions.md`](../.ai/engine/conventions.md) before changing an engine file.

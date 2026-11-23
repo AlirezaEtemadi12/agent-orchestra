@@ -22,19 +22,23 @@ implementer runs.
 
 ## Engine (Windows only, owner-run)
 
-Outside the green table: it needs Windows PowerShell 5.1, no model and no network, but it takes 15+
-minutes. Run it in the background with its output in a log and wait for the tally; never stop it on a
+Outside the green table: it needs Windows PowerShell 5.1, no model and no network, and takes about
+7 minutes. Run it in the background with its output in a log and wait for the tally; never stop it on a
 timeout.
 
 | Where | Command | Must be |
 |---|---|---|
 | `engine/` | `powershell -NoProfile -File engine/tests/offline/run-offline.ps1` | all pass, count never drops |
 
-The suite runs its whole set once per config in [`../engine/tests/offline/configs/`](../engine/tests/offline/)
-(`number` and `slug` plan filing) and prints a total.
+The suite runs once per config in [`../engine/tests/offline/configs/`](../engine/tests/offline/) — one
+config since 2026-11-23 (`number`; the close checks set both filing styles themselves, so a `slug` pass
+re-ran everything to test nothing new). Its scenario sections run in four child processes at once
+(`-Shards`, contiguous blocks); a section that fails runs once more alone, and the report names any check
+that passed only on that rerun (timing under load). It prints a total and the wall time.
 
 | When | Tests |
 |---|---|
+| suite sped up — one config, four shards, workspaces copied from one template (2026-11-23) | 140; ~7 min (was ~37 for two configs) |
 | after plan 0009 — the report token from `orchestrator.local.json` (2026-11-23) | 140 per config |
 | after plan 0007 phase A — `close` by `plansDir` and `Status: Done` (2026-11-22) | 139 per config, 278 across `number` and `slug`; ~19 min per config |
 | after plan 0006 — profiles merge in the engine (2026-11-22) | 133 per config, 266 across `number` and `slug`; ~19 min per config |
@@ -48,7 +52,7 @@ The suite runs its whole set once per config in [`../engine/tests/offline/config
 |---|---|
 | `api` | 269 |
 | `ui` | 77 |
-| `engine` (offline suite, Windows only — its own section above) | 140 per config |
+| `engine` (offline suite, Windows only — its own section above) | 140 |
 
 ## Baseline after plan 0007 phase A — the engine and the dashboard read `.orchestra/` (2026-11-22)
 

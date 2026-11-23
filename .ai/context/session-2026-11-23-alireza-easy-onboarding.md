@@ -127,6 +127,18 @@ Machine note: the engine reads the Windows variable `ORCHESTRA_REPORT_TOKEN` bef
 `Orchestra__ReportToken` is removed from `deploy/.env`, the dashboard makes a new token and the old variable
 gets 401s — delete the variable then.
 
+## After the 0009 commit (same day)
+
+- Offline suite: one config instead of two (`planFiling` is read only by `close`, whose checks set both
+  styles themselves), four parallel shards, workspaces copied from one template, one rerun-alone of a
+  failed section. 140/140 in 440 s, was ~37 min. See `.ai/ci.md`.
+- Plan [0011](../../.orchestra/plans/0011-fewer-git-calls.md) written (Draft): one `git status
+  --porcelain=v2` per repo per snapshot instead of four calls. The before/after check stays (D1).
+- Both READMEs gained a usage guide (Docker, add a project, connect the engine, run a task).
+- `deploy/.env` on this machine gained `ORCHESTRA_HOST_ROOT`; `docker compose ... up --build -d` ran,
+  and `api/system/hosting` answers `mode: container, mapped: true`.
+- The API and UI suites were not re-run after the review fixes.
+
 ## Notes for the next session
 
 - The offline suite reports with `Write-Host`, so a plain `> log` redirect keeps only the two config headers.
