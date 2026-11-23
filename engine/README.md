@@ -10,7 +10,10 @@ Everything a run needs comes from the project's `orchestrator.json`:
 
 - `root` — the project folder whose repos the agents work in;
 - `runsDir` — where `runs/<taskId>/` lives (relative to the config file's folder);
-- `repos`, `verifyCommands`, workflow paths, roles, adapters, pools, `planFiling`, `description`.
+- `repos`, `verifyCommands`, workflow paths, roles, adapters, pools, `planFiling`, `description`;
+- `plansDir` — where the project's plans live, workspace-relative with the `{repo}` token
+  (`".orchestra/plans/{repo}"`), optional: when it is set a plan is closed by its `**Status:** Done`
+  line instead of by moving it into a `done/` folder (plan 0007 D3).
 
 The engine reads its own files from `$PSScriptRoot` (`lib/`, `refresh-graph.ps1`) and the project's from
 the folder `-Config` points at. That separation is why it can be shared: nothing in a project's folder
@@ -21,23 +24,33 @@ is found by looking next to `run.ps1`.
 Each project keeps:
 
 ```
-orchestrator/
+.orchestra/                    ← plan 0007's name for the old orchestrator/ folder
 ├── orchestrator.json          ← the project's settings (this one is versioned)
 ├── orchestrator.local.json    ← { "enginePath": …, "profilesPath": … } (git-ignored)
 ├── run.ps1                    ← a 10-line shim
+├── workflow.md                ← the gates, one file for the whole workspace (plan 0007 D7)
+├── roles/<Repo>/              ← that repo's role files and its README index (D2)
+├── prompts/<Repo>/            ← that repo's stage prompts (D2)
+├── plans/<Repo>/              ← the repo's plans and plans/README.md; plans/TEMPLATE.md at the root
+├── previews/  ideas/  research/  evidence/
 ├── CLOSE-PLAN.md              ← the project's close-plan checklist (its skill points at it)
 └── runs/                      ← run state (git-ignored)
 ```
 
+A workspace that has not run the plan 0007 companion still calls the folder `orchestrator/` and keeps
+its plans, roles and prompts inside the repos' `.ai/`; nothing in the engine depends on either name —
+the project's own `orchestrator.json` names every path (see `workflow` and `plansDir`).
+
 and the same commands as before:
 
 ```powershell
-powershell -File orchestrator/run.ps1 agents
-powershell -File orchestrator/run.ps1 new T-AGENT-032 Agent "…"
+powershell -File .orchestra/run.ps1 agents
+powershell -File .orchestra/run.ps1 new T-AGENT-032 Agent "…"
 ```
 
 The shim reads `enginePath` from `orchestrator.local.json` and calls
-`<enginePath>\engine\run.ps1 -Config <this project>\orchestrator.json`. It refuses a `-Config` of its
+`<enginePath>\engine\run.ps1 -Config <this project>\.orchestra\orchestrator.json` (the shim passes its own
+folder's config, whatever that folder is called). It refuses a `-Config` of its
 own: a run always uses its project's config. Missing file or a path without `engine\run.ps1` → one red
 line saying what to write, exit 1.
 
@@ -45,6 +58,14 @@ line saying what to write, exit 1.
 enters a project's git. One function, `Get-EnginePath` in the shim, is the only place that knows how the
 path is found (plan 0005 D10). It also holds `profilesPath`, the dashboard's profiles folder; the engine
 reads it only when the project's `orchestrator.json` names a `profile` (plan 0006 D5).
+
+## Plans and their folder (plan 0007)
+
+With `plansDir` set, a plan is written once into `<plansDir>/NNNN-topic.md` (slug filing:
+`<slug>.md`) and stays there; `close` looks for it there, by number or by slug, and accepts it only
+when its header's `Status:` line says `Done` (`**Status:** Done`, `Status: **Done**` and an unbolded
+`Status: Done` all count). Without `plansDir` nothing changes: the plan is filed into the repo's
+`plansDoneDir` (`.ai/plans/done` by default) and that file is what `close` checks.
 
 ## Profiles (plan 0006)
 

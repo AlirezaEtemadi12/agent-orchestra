@@ -69,8 +69,10 @@ USAGE
   run.ps1 status <taskId>                     summary + the run's task.json
   run.ps1 queue [taskId]                      FREE: manual requests still waiting for an answer, with the
                                               paths and the key; reads the filesystem only
-  run.ps1 close <taskId> [-Force]             after the plan is filed in <repo>/.ai/plans/done/: delete
-                                              runs/<id>/ and runs/_drafts/<id>.* (-Force: without the check)
+  run.ps1 close <taskId> [-Force]             after the plan is filed (Status: Done in the project's
+                                              plansDir, or in <repo>/<plansDoneDir> for a project without
+                                              one): delete runs/<id>/ and runs/_drafts/<id>.*
+                                              (-Force: without the check)
   run.ps1 watch [taskId] [-Every 90] [-Once]  read progress.json and print what each running hop is
                                               doing (no model, no lock, read-only; -Once prints one block)
   run.ps1 watch <taskId> -ThenResume [-PollSec 5]
@@ -106,7 +108,8 @@ NOTES
     the waiting one says whom it waits for; two runs on different pools do not wait. A 429 marks the pool
     cooling down until the retry. Inbox hops (a human answers) take no slot. See `pools`.
 {1}
-  - Conductor procedure: orchestrator/CONDUCTOR.md. Decisions and reasons: orchestrator/WORKING-MODEL.md.
+  - Conductor procedure and rules: engine/docs/CONDUCTOR.md and engine/docs/WORKING-MODEL.md, in the engine's
+    own repository (a project that still has the old copy keeps orchestrator/ until plan 0007's companion).
 '@ -f $title, $repos
     Write-Host $usage
 }
@@ -1550,6 +1553,17 @@ function Get-ApprovedPlan {
     Get-Content -LiteralPath $f -Raw -Encoding UTF8
 }
 
+function Test-PlanDone {
+    # Plan 0007 D4: a plan is closed by its Status line, not by its folder. The header is the first 15
+    # lines; `**Status:** Done`, `Status: **Done**` and an unbolded `Status: Done` all count.
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path)) { return $false }
+    foreach ($line in @(Get-Content -LiteralPath $Path -TotalCount 15 -Encoding UTF8)) {
+        if ($line -match '^\s*\*{0,2}Status:?\*{0,2}\s*\*{0,2}Done') { return $true }
+    }
+    return $false
+}
+
 function Cmd-Close {
     # The durable record is the plan filed in its repo's done folder. So a run is deleted (its folder and its
     # _drafts/<id>.* files) only once that filed copy exists, or with -Force. Before that, its ledger block is
@@ -1570,6 +1584,46 @@ function Cmd-Close {
         $planFiling = 'number'
         $pf = $Ctx.Config.PSObject.Properties['planFiling']
         if ($pf -and $pf.Value) { $planFiling = [string]$pf.Value }
+        # Plan 0007 D3: a project that sets a top-level `plansDir` keeps every plan of a repo in one folder
+        # for its whole life, and `**Status:** Done` is what files it - there is no done/ folder. Without
+        # `plansDir` the switch below is today's code, unchanged.
+        $planDir = $null
+        $plansDirProp = $Ctx.Config.PSObject.Properties['plansDir']
+        if ($plansDirProp -and $plansDirProp.Value) {
+            if (-not $state.repo) { throw "run '$TaskId' has no repo in task.json, so its plan folder is unknown. close -Force to delete it anyway." }
+            $planDir = Resolve-WorkflowPath $Ctx ([string]$plansDirProp.Value) $state.repo
+        }
+        if ($planDir) {
+            $candidates = @()
+            if ($planFiling -eq 'slug') {
+                $slug = Get-PlanSlug -Branch $branch -PlanText $planText
+                if (-not $slug) { throw "run '$TaskId' names no plan branch (branch '$branch'), so its filed copy cannot be checked. close -Force to delete it anyway." }
+                $exact = Join-Path $planDir "$slug.md"
+                if (Test-Path -LiteralPath $exact) { $candidates += @(Get-Item -LiteralPath $exact) }
+                $candidates += @(Get-ChildItem -LiteralPath $planDir -Filter "*-$slug.md" -File -ErrorAction SilentlyContinue)
+                if ($branch) {
+                    $candidates += @(Get-ChildItem -LiteralPath $planDir -Filter '*.md' -File -ErrorAction SilentlyContinue | Where-Object {
+                            $t = Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8
+                            $t -and $t.Contains($branch)
+                        })
+                }
+                $planLabel = "'$slug'"
+            }
+            else {
+                $num = Get-PlanNumber -Branch $branch -PlanText $planText
+                if (-not $num) { throw "run '$TaskId' names no plan number (branch '$branch'), so its filed copy cannot be checked. close -Force to delete it anyway." }
+                $candidates += @(Get-ChildItem -LiteralPath $planDir -Filter "$num-*.md" -File -ErrorAction SilentlyContinue)
+                $planLabel = $num
+            }
+            # Every match is a candidate and only then filtered on Done, so the run's own open plan (which
+            # also names its branch) never hides a Done copy.
+            $candidates = @($candidates | Sort-Object -Property FullName -Unique)
+            $filed = @($candidates | Where-Object { Test-PlanDone $_.FullName })
+            if (-not $candidates.Count) { throw "plan $planLabel is not in $planDir. Write it there first (gate 1), or close -Force to delete the run anyway." }
+            if (-not $filed.Count) { throw "plan $planLabel is in $planDir but its Status is not Done yet. Close the plan first (the close-plan checklist), or close -Force to delete the run anyway." }
+            Write-Host "plan $planLabel is filed: $($filed[0].FullName)" -ForegroundColor DarkGray
+        }
+        else {
         switch ($planFiling) {
             'slug' {
         # Project A plans are filed by slug (`done/<slug>.md`), never by number. Find the filed copy by the
@@ -1598,6 +1652,7 @@ function Cmd-Close {
         if (-not $filed.Count) { throw "plan $num is not filed in $doneDir yet. File it first (the close-plan checklist), or close -Force to delete the run anyway." }
         Write-Host "plan $num is filed: $($filed[0].FullName)" -ForegroundColor DarkGray
             }
+        }
         }
     }
     # Ledger: the run's summary and token totals are kept in runs/_ledger.md before its folder goes.

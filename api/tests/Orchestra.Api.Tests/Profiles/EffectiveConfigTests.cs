@@ -116,6 +116,7 @@ public sealed class EffectiveConfigTests
 
         config.Should().BeNull();
         error!.Code.Should().Be("Profiles.Project.Unreadable");
+        detail.Should().Contain(".orchestra");
         detail.Should().Contain("orchestrator.json");
     }
 
@@ -159,5 +160,43 @@ public sealed class EffectiveConfigTests
         config.Sources.Single(source => source.Path == "roles.plan-reviewer.chain").From.Should().Be("project");
         config.SuggestedOrchestratorJson.Should().Contain("\"profile\": \"default\"");
         config.SuggestedOrchestratorJson.Should().NotContain("\"steps\"");
+        config.ConfigPath.Should().Be("orchestrator/orchestrator.json");
+    }
+
+    [Fact]
+    public async Task The_endpoint_reads_the_new_orchestra_layout_first()
+    {
+        using var host = new ProfileTestHost();
+        host.AddProfile("default", Profile);
+
+        var root = Path.Combine(host.Folder, "project");
+        Directory.CreateDirectory(Path.Combine(root, ".orchestra"));
+        Directory.CreateDirectory(Path.Combine(root, "orchestrator"));
+
+        // Both layouts exist: the moved one wins, and the page is told which file it read.
+        await File.WriteAllTextAsync(
+            Path.Combine(root, ".orchestra", "orchestrator.json"),
+            """
+            { "version": 2, "root": "..", "profile": "default", "description": { "title": "moved" } }
+            """);
+        await File.WriteAllTextAsync(
+            Path.Combine(root, "orchestrator", "orchestrator.json"),
+            """
+            { "version": 1, "root": ".", "description": { "title": "old copy" } }
+            """);
+
+        var options = Options.Create(new OrchestraOptions
+        {
+            Projects = [new ProjectOptions { Id = "demo", Name = "Demo", RootPath = root, RunsPath = Path.Combine(root, ".orchestra", "runs") }],
+        });
+
+        var handler = new EffectiveConfigHandler(TestRegistries.ConfigOnly(options), host.Database);
+
+        var (config, error, _) = await handler.HandleAsync("demo", CancellationToken.None);
+
+        error.Should().BeNull();
+        config!.ConfigPath.Should().Be(".orchestra/orchestrator.json");
+        config.Profile.Should().Be("default");
+        JsonNode.Parse(config.Effective.GetRawText())!["description"]!["title"]!.GetValue<string>().Should().Be("moved");
     }
 }

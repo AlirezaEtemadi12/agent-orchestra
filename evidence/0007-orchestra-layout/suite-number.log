@@ -1,0 +1,515 @@
+offline orchestrator test
+  run.ps1: F:\Projects\@Source Codes\@Personal\Project Orchestra\engine\run.ps1
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-51cf64ea
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P1-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-51cf64ea\plan-T-P1-001.md -> exit 0 (4.6s)
+  run.ps1 revise T-P1-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-51cf64ea\plan.v2.md -> exit 0 (6.9s)
+  run.ps1 approve T-P1-001 keep it small -> exit 0 (1.0s)
+  run.ps1 implement T-P1-001 1 -> exit 0 (6.9s)
+  run.ps1 verify T-P1-001 -> exit 0 (4.8s)
+  run.ps1 implement T-P1-001 2 -> exit 0 (7.2s)
+  run.ps1 implement T-P1-001 2 -> exit 1 (1.0s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-readback-0632d3c8
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P3-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-readback-0632d3c8\plan-T-P3-001.md -> exit 0 (7.0s)
+  run.ps1 approve T-P3-001 -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-dirty-e5b20fc7
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P8-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-dirty-e5b20fc7\plan-T-P8-001.md -> exit 0 (7.1s)
+  run.ps1 approve T-P8-001 -> exit 0 (1.0s)
+  run.ps1 implement T-P8-001 1 -> exit 1 (1.1s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-readonly-911c8f45
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P9-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-readonly-911c8f45\plan-T-P9-001.md -> exit 1 (4.2s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-halfedit-bf130350
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P10-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-halfedit-bf130350\plan-T-P10-001.md -> exit 0 (7.2s)
+  run.ps1 approve T-P10-001 -> exit 0 (1.0s)
+  run.ps1 implement T-P10-001 1 -> exit 1 (5.5s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sibling-65032194
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P11-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sibling-65032194\plan-T-P11-001.md -> exit 0 (6.9s)
+  run.ps1 approve T-P11-001 -> exit 0 (1.0s)
+  run.ps1 implement T-P11-001 1 -> exit 0 (6.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-commit-37632c04
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P12-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-commit-37632c04\plan-T-P12-001.md -> exit 0 (7.0s)
+  run.ps1 approve T-P12-001 -> exit 0 (1.0s)
+  run.ps1 implement T-P12-001 1 -> exit 0 (6.9s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-redgate-3f58c7d7
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-P14-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-redgate-3f58c7d7\plan-T-P14-001.md -> exit 0 (7.0s)
+  run.ps1 approve T-P14-001 -> exit 0 (1.1s)
+  run.ps1 implement T-P14-001 1 -> exit 0 (6.9s)
+  run.ps1 verify T-P14-001 -> exit 0 (4.9s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-4f37dcab
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 graph -Check -> exit 0 (1.3s)
+  run.ps1 graph -Check Ui -> exit 0 (1.1s)
+  run.ps1 graph Bogus -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graphrefresh-6c8615e0
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 graph Ui -> exit 0 (3.5s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-status-d0eda8bc
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-head-9547ca96
+  workspace ready: 3 repos, mock agent, config
+  refresh-graph.ps1 -Repos Ui -> exit 0
+  refresh-graph.ps1 -Repos Ui -> exit 0
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-warn-87205076
+  workspace ready: 3 repos, mock agent, config
+  refresh-graph.ps1 -Repos Ui,Web -> exit 0
+  refresh-graph.ps1 -Repos Web -> exit 0
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-backup-6c7b8c60
+  workspace ready: 3 repos, mock agent, config
+  refresh-graph.ps1 -Repos Ui -> exit 0
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-merge-82a9960e
+  workspace ready: 3 repos, mock agent, config
+  refresh-graph.ps1 -Repos Ui,Web -> exit 0
+  refresh-graph.ps1 -Repos Ui,Web -> exit 0
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-noverdict-ea0c437c
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-F2-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-noverdict-ea0c437c\plan-T-F2-001.md -> exit 0 (4.6s)
+  run.ps1 approve T-F2-001 -> exit 1 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-planbranch-c3dc3562
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-B1-001 Ui mock branch task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-planbranch-c3dc3562\plan-branch.md -> exit 0 (8.5s)
+  run.ps1 approve T-B1-001 -> exit 0 (1.2s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-graph-docs-1b26bdbd
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-timeout-d42a162e
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-scoped-0ca92ca6
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-progress-3f6e12c9
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-estimate-15adf67d
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-watch-44e7480f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 watch T-WCH-001 -Every 1 -Once -> exit 0 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-review-f470bab4
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-M1-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-review-f470bab4\plan-T-M1-001.md -> exit 3 (4.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-verify-bb9ed4ac
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-M2-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-verify-bb9ed4ac\plan-T-M2-001.md -> exit 0 (8.3s)
+  run.ps1 approve T-M2-001 -> exit 0 (1.2s)
+  run.ps1 implement T-M2-001 1 -> exit 0 (7.5s)
+  run.ps1 verify T-M2-001 -> exit 3 (5.0s)
+  run.ps1 answer T-M2-001 verifier.df8eca309441 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-verify-bb9ed4ac\verifier-answer.md -> exit 0 (0.8s)
+  run.ps1 verify T-M2-001 -> exit 0 (5.5s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-stale-6dc36524
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-M3-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-stale-6dc36524\plan-T-M3-001.md -> exit 0 (8.9s)
+  run.ps1 approve T-M3-001 -> exit 0 (1.0s)
+  run.ps1 implement T-M3-001 1 -> exit 0 (6.4s)
+  run.ps1 verify T-M3-001 -> exit 3 (4.2s)
+  run.ps1 answer T-M3-001 verifier.f06174d2c086 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-stale-6dc36524\stale-answer.md -> exit 0 (0.7s)
+  run.ps1 implement T-M3-001 2 -> exit 0 (6.1s)
+  run.ps1 verify T-M3-001 -> exit 3 (4.1s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-moved-730b93ad
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-M5-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e\plan-T-M5-001.md -> exit 0 (6.9s)
+  run.ps1 answer T-M5-001 plan-reviewer.v1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e\empty.md -> exit 1 (0.7s)
+  run.ps1 answer T-M5-001 plan-reviewer.v1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e\prose.md -> exit 1 (0.7s)
+  run.ps1 answer T-M5-001 plan-reviewer.v1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e\good.md -> exit 0 (0.7s)
+  run.ps1 answer T-M5-001 plan-reviewer.v1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-answer-7b8e607e\good.md -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-badconfig-db5c3c77
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 status T-NONE -> exit 1 (0.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-inbox-review-133b0c24
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-M7-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-inbox-review-133b0c24\plan-T-M7-001.md -> exit 3 (3.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-inbox-badconfig-e6af92ce
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 status T-NONE -> exit 1 (0.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-bad-transport-70a78cde
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 status T-NONE -> exit 1 (0.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-queue-357a7771
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-Q1-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-queue-357a7771\plan-T-Q1-001.md -> exit 3 (3.8s)
+  run.ps1 queue T-Q1-001 -> exit 0 (0.7s)
+  run.ps1 answer T-Q1-001 plan-reviewer.v1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-queue-357a7771\review-answer.md -> exit 0 (0.7s)
+  run.ps1 queue T-Q1-001 -> exit 0 (0.7s)
+  run.ps1 review T-Q1-001 -> exit 0 (6.4s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-watch-resume-31b33157
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-W1-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-watch-resume-31b33157\plan-T-W1-001.md -> exit 3 (3.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-readback-f56bc34e
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RB-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-readback-f56bc34e\plan-T-RB-001.md -> exit 3 (6.4s)
+  run.ps1 readback T-RB-001 -> exit 0 (3.7s)
+  run.ps1 revise T-RB-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-readback-f56bc34e\plan-T-RB-001-v2.md -> exit 3 (6.5s)
+  run.ps1 queue T-RB-001 -> exit 0 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-stale-queue-0556ce27
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RB4-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-stale-queue-0556ce27\plan-T-RB4-001.md -> exit 0 (6.8s)
+  run.ps1 approve T-RB4-001 -> exit 0 (1.0s)
+  run.ps1 implement T-RB4-001 1 -> exit 0 (6.5s)
+  run.ps1 verify T-RB4-001 -> exit 3 (4.2s)
+  run.ps1 implement T-RB4-001 2 -> exit 0 (6.2s)
+  run.ps1 verify T-RB4-001 -> exit 3 (4.2s)
+  run.ps1 queue T-RB4-001 -> exit 0 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-80414d1f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-C-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-80414d1f\plan-T-C-001.md -> exit 0 (6.8s)
+  run.ps1 approve T-C-001 -Branch plan-0099-close-test -> exit 0 (0.8s)
+  run.ps1 close T-C-001 -> exit 1 (0.7s)
+  run.ps1 close T-C-001 -> exit 0 (0.8s)
+  run.ps1 new T-C-002 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-80414d1f\plan-T-C-002.md -> exit 0 (6.8s)
+  run.ps1 close T-C-002 -> exit 1 (0.7s)
+  run.ps1 close T-C-002 -Force -> exit 0 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-archive-2a9192f0
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-AR-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-archive-2a9192f0\plan-T-AR-001.md -> exit 0 (6.7s)
+  run.ps1 close T-AR-001 -Force -> exit 0 (0.8s)
+  run.ps1 new T-AR-002 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-archive-2a9192f0\plan-T-AR-002.md -> exit 0 (6.7s)
+  run.ps1 close T-AR-002 -Force -> exit 0 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-limits-c58234ff
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-queue-766e4e1e
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-two-71c5c036
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-paid-e63a06a3
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-next-2a72ff09
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-NB-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-next-2a72ff09\plan-T-NB-001.md -> exit 0 (7.0s)
+  run.ps1 approve T-NB-001 -> exit 0 (1.0s)
+  run.ps1 implement T-NB-001 1 -> exit 0 (6.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-timeout-1d12da9e
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-QT-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-timeout-1d12da9e\plan-T-QT-001.md -> exit 0 (6.9s)
+  run.ps1 approve T-QT-001 -> exit 0 (1.0s)
+  run.ps1 implement T-QT-001 1 -> exit 0 (7.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-rate-e863a18f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RL-001 Ui mock rate-limited task -> exit 0 (14.0s)
+  run.ps1 new T-RL-002 Ui mock rate-limited task -> exit 0 (16.2s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-cool-e1d86614
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-kill-ffc7dab2
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-inbox-5578088f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-IN-001 Ui mock inbox task -> exit 3 (6.5s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pool-list-2ceaabab
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 pools -> exit 0 (0.8s)
+  run.ps1 pools -> exit 0 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-ok-8bce6eac
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 status T-NONE -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-planner-bad-3fcfd26f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 status T-NONE -> exit 1 (0.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-family-exclude-4beec5a3
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-FAM-A Ui mock family task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-family-exclude-4beec5a3\plan-fam-a.md -> exit 0 (6.8s)
+  run.ps1 new T-FAM-B Ui mock family task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-family-exclude-4beec5a3\plan-fam-b.md -> exit 0 (6.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-revise-family-03aad40c
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RF-001 Ui mock revise family -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-revise-family-03aad40c\plan-rf.md -> exit 0 (6.9s)
+  run.ps1 revise T-RF-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-revise-family-03aad40c\plan-rf.v2.md -PlanFamily deepseek -> exit 0 (6.7s)
+  run.ps1 revise T-RF-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-revise-family-03aad40c\plan-rf.v3.md -> exit 0 (6.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-plan-family-stop-579b5bce
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-PF-001 Ui mock no author -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-plan-family-stop-579b5bce\plan-pf.md -> exit 1 (0.7s)
+  run.ps1 new T-PF-002 Ui mock owner plan -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-plan-family-stop-579b5bce\plan-pf2.md -PlanFamily human -> exit 0 (6.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-quota-exhaust-228d1353
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-Q-001 Ui mock quota task -> exit 0 (11.7s)
+  run.ps1 pools -> exit 0 (0.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess7-fef324d8
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T7-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess7-fef324d8\plan-t7.md -> exit 0 (6.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess8-a17e447b
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T8-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess8-a17e447b\plan-t8-v1.md -> exit 0 (4.4s)
+  run.ps1 revise T8-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess8-a17e447b\plan-t8-v2.md -> exit 0 (7.4s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess9a-b063c476
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T9-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess9a-b063c476\plan-t9a.md -> exit 0 (6.8s)
+  run.ps1 approve T9-001 keep it small -> exit 0 (1.0s)
+  run.ps1 implement T9-001 1 -> exit 0 (6.4s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess9b-4ffa87ce
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T9-002 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess9b-4ffa87ce\plan-t9b.md -> exit 0 (6.8s)
+  run.ps1 revise T9-002 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess9b-4ffa87ce\plan-t9b-v2.md -NoReadBack -> exit 0 (4.3s)
+  run.ps1 approve T9-002 -> exit 0 (1.0s)
+  run.ps1 implement T9-002 1 -> exit 0 (6.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess10a-e8a55ba0
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T10-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess10a-e8a55ba0\plan-t10a.md -> exit 0 (6.7s)
+  run.ps1 approve T10-001 -> exit 0 (1.0s)
+  run.ps1 implement T10-001 1 -> exit 0 (6.5s)
+  run.ps1 verify T10-001 -> exit 0 (4.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess10b-88449246
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T10-002 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess10b-88449246\plan-t10b.md -> exit 0 (6.9s)
+  run.ps1 approve T10-002 -> exit 0 (1.0s)
+  run.ps1 implement T10-002 1 -> exit 0 (6.5s)
+  run.ps1 verify T10-002 -> exit 0 (4.6s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess-swap-3104367d
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-SW-001 Ui mock swap task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess-swap-3104367d\plan-sw.md -> exit 0 (6.8s)
+  run.ps1 approve T-SW-001 -> exit 0 (1.0s)
+  run.ps1 implement T-SW-001 1 -> exit 0 (6.5s)
+  run.ps1 verify T-SW-001 -> exit 0 (4.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess11-7d3200e9
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T11-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess11-7d3200e9\plan-t11.md -> exit 0 (4.2s)
+  run.ps1 revise T11-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess11-7d3200e9\plan-t11-v2.md -> exit 0 (6.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess12-a6a642d3
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T12-001 Ui mock session task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-sess12-a6a642d3\plan-t12.md -> exit 0 (6.8s)
+  run.ps1 approve T12-001 -> exit 0 (1.0s)
+  run.ps1 implement T12-001 1 -> exit 0 (8.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-2a9cfcd1
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T13-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-2a9cfcd1\plan-T13-001.md -> exit 0 (6.8s)
+  run.ps1 approve T13-001 -> exit 0 (1.0s)
+  run.ps1 implement T13-001 1 -> exit 3 (7.7s)
+  run.ps1 answer T13-001 implementer.phase-1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-2a9cfcd1\impl-answer.md -> exit 0 (0.7s)
+  run.ps1 implement T13-001 1 -> exit 0 (5.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-sibling-37cf67fa
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T13-002 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-sibling-37cf67fa\plan-T13-002.md -> exit 0 (6.8s)
+  run.ps1 approve T13-002 -> exit 0 (1.1s)
+  run.ps1 implement T13-002 1 -> exit 3 (7.9s)
+  run.ps1 answer T13-002 implementer.phase-1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-impl-sibling-37cf67fa\impl-answer.md -> exit 0 (0.7s)
+  run.ps1 implement T13-002 1 -> exit 0 (5.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pending-review-4fdd737a
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T14-001 Ui mock pending -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-pending-review-4fdd737a\plan-t14.md -> exit 3 (6.0s)
+  run.ps1 review T14-001 -NoReadBack -> exit 3 (3.3s)
+  run.ps1 review T14-001 -NoReadBack -Retry -> exit 0 (4.0s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-resume-implement-6e2b71a4
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T15-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-resume-implement-6e2b71a4\plan-T15-001.md -> exit 0 (4.0s)
+  run.ps1 approve T15-001 -> exit 0 (1.0s)
+  run.ps1 implement T15-001 1 -> exit 3 (5.5s)
+  run.ps1 answer T15-001 implementer.phase-1 C:\Users\Alireza\AppData\Local\Temp\project-b-orch-resume-implement-6e2b71a4\a1.md -> exit 0 (0.7s)
+  run.ps1 implement T15-001 1 -> exit 0 (5.7s)
+  run.ps1 implement T15-001 2 -> exit 3 (5.0s)
+  run.ps1 queue T15-001 -> exit 0 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-header-5e31881f
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-cleantree-28118f1d
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T18-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-cleantree-28118f1d\plan-T18-001.md -> exit 0 (6.8s)
+  run.ps1 approve T18-001 -> exit 0 (1.0s)
+  run.ps1 implement T18-001 1 -> exit 0 (6.7s)
+  run.ps1 verify T18-001 -> exit 0 (4.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-cleantree-block-c84459fa
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T19-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-cleantree-block-c84459fa\plan-T19-001.md -> exit 0 (6.8s)
+  run.ps1 approve T19-001 -> exit 0 (1.0s)
+  run.ps1 implement T19-001 1 -> exit 1 (1.1s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-slug-19daf6cc
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-C-101 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-slug-19daf6cc\plan-T-C-101.md -> exit 0 (6.8s)
+  run.ps1 approve T-C-101 -Branch alireza/close-by-slug -> exit 0 (0.8s)
+  run.ps1 close T-C-101 -> exit 0 (0.8s)
+  run.ps1 new T-C-102 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-slug-19daf6cc\plan-T-C-102.md -> exit 0 (6.8s)
+  run.ps1 approve T-C-102 -Branch alireza/close-suffix -> exit 0 (0.8s)
+  run.ps1 close T-C-102 -> exit 0 (0.8s)
+  run.ps1 new T-C-103 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-slug-19daf6cc\plan-T-C-103.md -> exit 0 (6.8s)
+  run.ps1 approve T-C-103 -Branch alireza/close-named -> exit 0 (0.8s)
+  run.ps1 close T-C-103 -> exit 0 (0.8s)
+  run.ps1 new T-C-104 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-slug-19daf6cc\plan-T-C-104.md -> exit 0 (6.8s)
+  run.ps1 approve T-C-104 -Branch alireza/close-missing -> exit 0 (0.9s)
+  run.ps1 close T-C-104 -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-PD-101 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\plan-T-PD-101.md -> exit 0 (6.7s)
+  run.ps1 approve T-PD-101 -Branch alireza/plan-0042-done -> exit 0 (0.8s)
+  run.ps1 close T-PD-101 -> exit 0 (0.8s)
+  run.ps1 new T-PD-102 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\plan-T-PD-102.md -> exit 0 (6.8s)
+  run.ps1 approve T-PD-102 -Branch alireza/plan-0043-open -> exit 0 (0.8s)
+  run.ps1 close T-PD-102 -> exit 1 (0.7s)
+  run.ps1 new T-PD-103 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\plan-T-PD-103.md -> exit 0 (6.7s)
+  run.ps1 approve T-PD-103 -Branch alireza/pd-slug -> exit 0 (0.8s)
+  run.ps1 close T-PD-103 -> exit 0 (0.9s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdone-b8827a7b
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-PD-104 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdone-b8827a7b\plan-T-PD-104.md -> exit 0 (6.8s)
+  run.ps1 approve T-PD-104 -Branch alireza/plan-0044-old -> exit 0 (0.8s)
+  run.ps1 close T-PD-104 -> exit 0 (0.8s)
+  run.ps1 new T-PD-105 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\plan-T-PD-105.md -> exit 0 (6.8s)
+  run.ps1 approve T-PD-105 -Branch alireza/plan-0045-none -> exit 0 (0.8s)
+  run.ps1 close T-PD-105 -> exit 1 (0.7s)
+  run.ps1 new T-PD-106 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\plan-T-PD-106.md -> exit 0 (6.7s)
+  run.ps1 approve T-PD-106 -Branch alireza/plan-0046-norepo -> exit 0 (0.8s)
+  run.ps1 close T-PD-106 -> exit 1 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-contract-doc-936b948d
+  workspace ready: 3 repos, mock agent, config
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-engine-line-3f84d41f
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 agents -> exit 0 (0.7s)
+  run.ps1 help -> exit 0 (0.7s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-report-off-46f19da4
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RP-001 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-report-off-46f19da4\plan-T-RP-001.md -> exit 0 (6.9s)
+  run.ps1 new T-RP-002 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-report-off-46f19da4\plan-T-RP-002.md -> exit 0 (6.8s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-report-down-4bf05887
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new T-RP-010 Ui mock demo task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-report-down-4bf05887\plan-T-RP-010.md -> exit 0 (7.9s)
+  workspace C:\Users\Alireza\AppData\Local\Temp\project-b-orch-prof-run-872c8586
+  workspace ready: 3 repos, mock agent, config
+  run.ps1 new P-RUN-001 Ui mock profile task -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-prof-run-872c8586\plan-prof-v1.md -> exit 0 (6.9s)
+  run.ps1 revise P-RUN-001 -PlanFile C:\Users\Alireza\AppData\Local\Temp\project-b-orch-prof-run-872c8586\plan-prof-v2.md -> exit 0 (6.9s)
+  run.ps1 close P-RUN-001 -Force -> exit 0 (0.9s)
+
+
+Id       Check                                                                                                                                 Result Detail                                                                                                                                                                                                                                                    
+--       -----                                                                                                                                 ------ ------                                                                                                                                                                                                                                                    
+S1       conductor plan enters at gate 2 as conductor:chat                                                                                     PASS   code=0 adapter=conductor/claude-opus status=AwaitingApproval                                                                                                                                                                                              
+S1       review FINDINGS stops before read-back                                                                                                PASS   review=FINDINGS readback=absent                                                                                                                                                                                                                           
+S2       revise -PlanFile records v2 and reviews it                                                                                            PASS   round=2 review=PASS/v2                                                                                                                                                                                                                                    
+S2       read-back (gate 2.5) runs after a PASS review                                                                                         PASS   readback=PASS/v2                                                                                                                                                                                                                                          
+S4       approve freezes plan.approved.md with notes and sha256                                                                                PASS   code=0 status=Approved branch=alireza/t-p1-001 sha=3009670D                                                                                                                                                                                               
+S5       implement creates the branch and records the phase                                                                                    PASS   code=0 status=Implemented branch=alireza/t-p1-001 base=ff6f06f39ea613fbb934d5e8935f7a2ec1c9c4e3                                                                                                                                                           
+S5       changed files are the ones the plan names (no outside-plan warning)                                                                   PASS   changed=phase1.txt outside=                                                                                                                                                                                                                               
+S6       verify with green gates ends Verified/PASS                                                                                            PASS   status=Verified verdict=PASS gates=green                                                                                                                                                                                                                  
+S7       phase 2 runs after Verified on the same branch                                                                                        PASS   status=Implemented phases=2 branch=alireza/t-p1-001                                                                                                                                                                                                       
+S13      a tampered plan.approved.md is refused                                                                                                PASS   code=1 msg=ERROR: plan.approved.md changed after approval (C:\Users\Alireza\AppData\Local\Temp\project-b-orch-main-51cf64ea\runs\T-P1-001\artifacts\plan.approved.md). Re-approve instead of editing it....                                               
+S3       read-back FINDINGS leave the run awaiting approval                                                                                    PASS   status=AwaitingApproval review=PASS readback=FINDINGS                                                                                                                                                                                                     
+S3       approve without notes is refused while findings are open                                                                              PASS   code=1 status=AwaitingApproval                                                                                                                                                                                                                            
+S8       gate 3 refuses a dirty tree and creates no branch                                                                                     PASS   code=1 status=Approved branch=work                                                                                                                                                                                                                        
+S9       a read-only role that edits the repo is stopped                                                                                       PASS   code=1 wrote=True status=Planning                                                                                                                                                                                                                         
+S10      a write role failing after an edit gets no fallback                                                                                   PASS   code=1 implementerCalls=1 status=Approved                                                                                                                                                                                                                 
+S11      a sibling-repo change during implement is a note, not a Violation                                                                     PASS   status=Implemented violations= note=True                                                                                                                                                                                                                  
+S12      a commit made by the worker is a Violation                                                                                            PASS   status=Violation violations=1 commit(s) made                                                                                                                                                                                                              
+S14      a red gate command fails the verify whatever the model says                                                                           PASS   verdict=FAIL status=VerifyFailed gates=red: if (Test-Path .verify-fail) { exit 1 } else { exit 0 }                                                                                                                                                        
+S15      every configured opencode model name resolves (free check)                                                                            PASS   rows=18 opencode=9 unknown=0 badOpenCode=                                                                                                                                                                                                                 
+S16      graph -Check reports stale / fresh / missing and the semantic flag, writing nothing                                                   PASS   code=0 stale=True fresh=True missing=True semantic=True                                                                                                                                                                                                   
+S17      graph -Check <repo> reports only that repo                                                                                            PASS   code=0                                                                                                                                                                                                                                                    
+S18      graph with an unknown repo is refused                                                                                                 PASS   code=1                                                                                                                                                                                                                                                    
+S19      graph <repo> refreshes that repo and touches no sibling                                                                               PASS   code=0 uiGraph=True agentGraph=False webGraph=False                                                                                                                                                                                                       
+T1       a repo with no graph.json is missing, and says why                                                                                    PASS   state=missing reason=no graph.json head=f245723                                                                                                                                                                                                           
+T2       a tracked file edited after the graph makes it stale                                                                                  PASS   before=fresh after=stale reason=1 uncommitted file(s) newer than graph                                                                                                                                                                                    
+T2       an untracked file counts too, a file under graphify-out/ does not                                                                     PASS   state=stale reason=2 uncommitted file(s) newer than graph                                                                                                                                                                                                 
+T3       a successful refresh records HEAD in graphify-out/.orch-head                                                                          PASS   code=0 sidecar=e4935eb head=e4935eb                                                                                                                                                                                                                       
+T3       checking out an older commit makes the graph stale (an mtime check would not)                                                         PASS   before=fresh afterCheckout=stale reason=HEAD moved since refresh (e4935eb -> 901a406)                                                                                                                                                                     
+T4       after a no-op update the sidecar wins over the graph mtime                                                                            PASS   sidecar=3b40fcd head=3b40fcd graphOlderThanCommit=True state=fresh                                                                                                                                                                                        
+T4       without the sidecar the same state is stale (the check above is not vacuous)                                                          PASS   state=stale reason=commit newer than graph                                                                                                                                                                                                                
+T5       a graphify warning on stderr is printed and does not abort the refresh                                                                PASS   code=0 printed='[Ui] graphify: WARNING: tree_sitter_sql not installed' uiSidecar=True webSidecar=True                                                                                                                                                     
+T7       no .orch-head is written when graphify-out/ is not git-ignored                                                                        PASS   code=0 sidecar=False warned=True                                                                                                                                                                                                                          
+T7       an untracked file under graphify-out/ is not counted as an edit                                                                       PASS   state=fresh reason=                                                                                                                                                                                                                                       
+T6       only the newest two graph backups are kept                                                                                            PASS   code=0 count=2 names=graph.json.bak-20200101-000004,graph.json.bak-20261123-004521                                                                                                                                                                        
+T8       a root graph with a semantic id no repo graph has is not re-merged                                                                    PASS   code=0 refused=True rootUntouched=True                                                                                                                                                                                                                    
+T8       a root graph whose semantic ids all live in a repo graph is re-merged                                                                 PASS   code=0 rebuilt=True merged={"nodes":[],"edges":[]}                                                                                                                                                                                                        
+T-F1     a numbered `1. FINDING [blocker]` line counts as a blocker                                                                            PASS   count=3 blocker=1 should=1 nit=1                                                                                                                                                                                                                          
+T-F3     a `FINDING should` line without brackets counts as a should                                                                           PASS   count=3 blocker=1 should=1 nit=1 first='A9 (T1ƒ?"T3): the test seam is unstated (MofidVmInitializeTests.cs:1615)'                                                                                                                                        
+T-F2     a reply without VERDICT: records NO_VERDICT and approve refuses it                                                                    PASS   new=0 verdict=NO_VERDICT approve=1 status=AwaitingApproval                                                                                                                                                                                                
+T-B1     the plan's git switch -c name wins over the alireza/<taskid> fallback                                                                 PASS   new=0 approve=0 branch=plan-0081-mofid-quantity-after-freeze                                                                                                                                                                                              
+T-G1     an uncommitted .md leaves the repo fresh, an uncommitted .cs still makes it stale                                                     PASS   doc=fresh code=stale reason=1 uncommitted file(s) newer than graph                                                                                                                                                                                        
+T-T1     a hop that keeps printing runs past the idle timeout and finishes OK                                                                  PASS   exit=0 timedOut=False kind= secs=4 lines=15                                                                                                                                                                                                               
+T-T2     a silent hop is killed by the idle timeout, long before the cap                                                                       PASS   timedOut=True kind=idle secs=1.8 cap=30                                                                                                                                                                                                                   
+T-T3     idleTimeoutSec 0 falls back to the absolute cap                                                                                       PASS   timedOut=True kind=total secs=2.2 cap=2                                                                                                                                                                                                                   
+T-T4     a 300 KB prompt to a child that prints 800 KB first completes, all of stdin read                                                      PASS   exit=0 timedOut=False tail=read 300000                                                                                                                                                                                                                    
+T-W1     a sibling repo changing is a note, the target repo changing still throws                                                              PASS   siblingThrew=False note=True targetThrew=True msg=read-only role 'plan-reviewer' (mock:mock-reviewer) changed the target repo: Ui. Stopped; inspect with git status. Attempts: {"adapter":"mock","model":"mock-reviewer","family":"reviewerfam","pool":...
+T-P1     progress.json is valid at every read and ends done with the last output line                                                          PASS   valid=True running=4 done=1 exit=0 state=done last='mock progress line 23' elapsed=6                                                                                                                                                                      
+T-P2     three runs of 60/90/120 s give 90 s; a single run gives no number                                                                     PASS   three=90 basis='median of 3 runs' one=null                                                                                                                                                                                                                
+T-P3     watch prints the block once and exits instead of polling a finished run                                                               PASS   code=0 secs=0.8 block=T-WCH-001  revise -> plan-reviewer  opencode:glm-5.3-flash-free...                                                                                                                                                                  
+T-M1     a manual review writes inbox/<key>.md + fingerprint, exits 3 and leaves the run alone                                                 PASS   code=3 keys=plan-reviewer.v1 fingerprint=True status=Planning secs=4.7                                                                                                                                                                                    
+T-M2     verify defers (exit 3), then consumes the stored answer and records the review                                                        PASS   defer=3 status1=Implemented key=verifier.df8eca309441 stored=0 verify=0 verdict=PASS                                                                                                                                                                      
+T-M3     an answer for the old diff is ignored; the new verify defers under a different key                                                    PASS   code=3 k1=verifier.f06174d2c086 k2=verifier.1196907f8277 verify=absent status=Implemented                                                                                                                                                                 
+T-M4     an answer whose repo moved since the prompt is a violation, not a pass                                                                PASS   first=-2 second=0 third=-3 class=manual-violation                                                                                                                                                                                                         
+T-M5     answer refuses an empty file and one without VERDICT:, and refuses to overwrite                                                       PASS   empty=1 prose=1 good=0 again=1 stored=True                                                                                                                                                                                                                
+T-M6     a config with a manual hop in planner fails to load                                                                                   PASS   code=1 msg=ERROR: config: 'planner' has a manual hop; a manual hop never acts on its own, so the planner is the one role that may not have one (its plan must be written by a model).                                                                     
+T-M7     a review through an adapter with transport inbox writes inbox/<key>.md and exits 3                                                    PASS   code=3 keys=plan-reviewer.v1 status=Planning                                                                                                                                                                                                              
+T-M8     a config with an inbox adapter in planner fails to load, whatever the adapter is called                                               PASS   code=1                                                                                                                                                                                                                                                    
+T-M9     a config whose adapter has a transport other than cli or inbox fails to load                                                          PASS   code=1                                                                                                                                                                                                                                                    
+T-Q1     queue lists the waiting request with its paths and the next commands                                                                  PASS   code=0 out=T-Q1-001  plan-reviewer.v1  [Ui]  state=Planning  waiting 0m...                                                                                                                                                                                
+T-Q1     a stored answer takes the request off the queue                                                                                       PASS   stored=0 queue=nothing is waiting for a manual answer....                                                                                                                                                                                                 
+T-R1     review consumes the deferred plan-reviewer answer without creating a new version                                                      PASS   code=0 round=1 review=PASS/v1 status=AwaitingApproval                                                                                                                                                                                                     
+T-W1     watch -ThenResume waits without claiming the run, then consumes the answer and reviews                                                PASS   waiting=True finished=True code=0 review=PASS out=waiting for an answer to 'plan-reviewer.v1' |   answer: C:\Users\Alireza\AppData\Local\Temp\project-b-orch-manual-watch-resume-31b33157\runs\T-W1-001\answers\plan-reviewer.v1.md                       
+T-RB1    a manual read-back is requested before the review; the review still runs and is recorded, exit 3                                      PASS   code=3 keys=readback.v1 review=PASS status=AwaitingApproval impl-readback-calls=0                                                                                                                                                                         
+T-RB2    readback consumes the answer the tool wrote and records it for the current version                                                    PASS   code=0 readback=FINDINGS/v1/manual                                                                                                                                                                                                                        
+T-RB3    a new version asks for readback.v2, and queue shows only that one (v1 is history, not pending)                                        PASS   revise=3 round=2 queue=T-RB-001  readback.v2  [Ui]  state=AwaitingApproval  waiting 0m...                                                                                                                                                                 
+T-RB4    two verifier requests on disk, only the newest is pending                                                                             PASS   keys=2 queue=1 request(s) waiting....                                                                                                                                                                                                                     
+T-C1     close is refused while the plan is not filed in done/, and deletes nothing                                                            PASS   code=1 run=True                                                                                                                                                                                                                                           
+T-C2     close deletes the run and only its own drafts once the plan is filed                                                                  PASS   code=0 run=False drafts=shared.json,T-C-0011.plan.md                                                                                                                                                                                                      
+T-C4     close leaves runs/_archive/<id>.<yyyyMMddHHmm>.json with the task, the review texts and the usage map                                 PASS   file=True task=T-C-001 reviews=1                                                                                                                                                                                                                          
+T-C3     a run with no plan number needs -Force, which deletes it                                                                              PASS   code=1 force=0                                                                                                                                                                                                                                            
+T-AR     archive.enabled=false writes no archive; a failed archive write is one line and close still deletes the run                           PASS   off=0/True fail=0 note=True gone=True                                                                                                                                                                                                                     
+P-1      limits resolve hop -> adapter -> tier -> built-in, and the pool defaults to the adapter name                                          PASS   builtin: pool=mock tier='' max=0 gap=0 retries=1 backoff=20 busy=wait wait=7200 | adapter: pool=shared max=3 | tier: max=3 gap=7 retries=2 | hop: pool=own max=2 busy=next                                                                                
+P-12     a waiting hop writes phase queued with pool and heldBy to progress.json                                                               PASS   phase=queued pool=mock state=queued heldBy=held by T-HOLDER-1 plan-reviewer since 00:49:55                                                                                                                                                                
+P-2      one free pool: the second caller names the holder and starts only after the first ends                                                PASS   held=True code=0 waited=True startAfterEnd=True line= [plan-reviewer] waiting for pool mock: held by T-HOLDER-1 plan-reviewer since 00:49:55                                                                                                              
+P-3      two pools: both callers hold a slot at the same time and neither waits                                                                PASS   startA=639309918074344255 startB=639309918074369529 endA=639309918104935333 overlapped=True waitedA=False waitedB=False                                                                                                                                   
+P-4      the shipped paid shape is one slot: the second caller waits for the first to end                                                      PASS   startB=639309918194065526 endA=639309918153049625 serial=True waited=True                                                                                                                                                                                 
+P-4      maxConcurrent 0 lets two callers overlap and creates no lock file                                                                     PASS   overlapped=True locks=0                                                                                                                                                                                                                                   
+P-5      whenBusy next: the busy hop is skipped with its reason and the next hop answers                                                       PASS   code=0 status=Implemented attempt1=skipped: pool mock busy (held by T-NB-HOLD implementer since 00:50:34) attempt2=mock2:ok                                                                                                                               
+P-6      queueWaitSec runs out: the hop fails as queue-timeout and the next hop answers                                                        PASS   code=0 status=Implemented attempt1=queue-timeout attempt2=mock2:ok                                                                                                                                                                                        
+P-7      rateLimitRetries 2 gives three attempts, then the chain moves on to the next hop                                                      PASS   two429: code=0 plannerCalls=3 | three429: code=0 plannerCalls=3 nextHopCalls=1                                                                                                                                                                            
+P-8      a pool inside its 429 backoff reports "cooling down" to the next caller, which waits                                                  PASS   throttled=True A=0 B=0 line=' [plan-reviewer] waiting for pool mock: cooling down until 00:51:43'                                                                                                                                                         
+P-9      a holder killed with Stop-Process -Force frees its slot for the next caller within two polls                                          PASS   held=True queued=True exited=True code=0 startedAfterSecs=1.5                                                                                                                                                                                             
+P-10     an inbox hop takes no slot, even when its adapter carries a free tier                                                                 PASS   code=3 manualPool=False mockPool=True                                                                                                                                                                                                                     
+P-11     pools lists each configured pool with its tier and 0/1, and shows the holder while one is held                                        PASS   free='mock free 0/1 - - mock ' paid='paidpool paid 0/1 - - mock2 ' held='mock free 1/1 held by T-POOLS-1 holder since 00:52:16 - mock '                                                                                                                   
+T1       a manual implementer hop loads; a manual planner hop throws the planner-only message                                                  PASS   impl=1 planner=1                                                                                                                                                                                                                                          
+T2       Get-HopFamily: claude/opus -> claude-opus, sonnet -> claude-sonnet, haiku -> claude-haiku, explicit wins                              PASS   opus=claude-opus sonnet=claude-sonnet haiku=claude-haiku explicit=explicit                                                                                                                                                                                
+T2       a claude-sonnet plan skips the claude-sonnet reviewer hop; a claude-opus plan may use it                                              PASS   sonnetPlan=mock-rev-glm opusPlan=mock-rev-sonnet                                                                                                                                                                                                          
+T3       new takes the family from Planned by; a conflicting -PlanFamily is ignored with a note; a header-less revise keeps the previous       PASS   new=claude-opus header=claude-sonnet headerless=claude-sonnet                                                                                                                                                                                             
+T-PF     no model in Planned by and no flag stops new and creates no run; with -PlanFamily it runs with a warning                              PASS   stop=1 made=False flagged=0/human                                                                                                                                                                                                                         
+T4       quota-exhausted: one call, the pool marker exists, the same-pool hop is skipped, another pool runs, pools says so                     PASS   class=quota-exhausted code=0 a=1 b=0 c=1 marker=True pools=True                                                                                                                                                                                           
+T5       a 429 stays rate-limit (retried), not quota-exhausted, with the quota patterns present                                                PASS   class=rate-limit                                                                                                                                                                                                                                          
+T6       reviewer and read-back protocols carry ƒ?" FIX:, and a numbered FIX finding still counts as one blocker                               PASS   rev=True rb=True findings=1 level=blocker                                                                                                                                                                                                                 
+T-R4     findings restated as RESOLVED are skipped; NOT RESOLVED / UNRESOLVED still count                                                      PASS   count=3 levels=should,blocker,nit                                                                                                                                                                                                                         
+T-R3     manifest rows written with a leading ellipsis (unicode or ...) match as a path suffix; an unlisted sibling is still outside           PASS   outside=Src/03.Endpoint/ProjectB.Agent.Presentation/Pages/Shell/Other.cs                                                                                                                                                                                  
+T-R2     opencode: a write hop passes --agent build, a read-only hop --agent plan (also when continuing a session)                             PASS   write='run -m m --format default --agent build --session ses_x' readonly='run -m m --format default --agent plan --session ses_x'                                                                                                                         
+T-L1     the ledger has a cost column, a numeric total and a by-stage table; an unpriced model prints ? and a lower-bound total                PASS   head=True row=True total=True unpriced=True stage=True                                                                                                                                                                                                    
+T-L2     live prices are parsed, used from the cache without the provider prefix, and fall back to modelRates                                  PASS   parse=True static=True live=True fallback=True note='opencode.ai/data prices fetched 2026-11-20 00:53 (orchestrator.json modelRates for models it does not list)'                                                                                         
+T7       a session-capable review hop records state.review.session and state.sessions.<id>.turns=1                                             PASS   code=0 sid=ses_mock_e705eb9d turns=1 role=plan-reviewer                                                                                                                                                                                                   
+T8       round-2 review continues the same session with a shorter follow-up carrying the diff; turns=2                                         PASS   code=0 round=2 prompts=2 sameSid=True turns=2 fu=True diff=True len1=10853 len2=2314                                                                                                                                                                      
+T9       implement continues the read-back id when readback.round==approved.version, prompt carries the amendments                             PASS   code=0 rbSid=ses_mock_fb5f7940 implSid=ses_mock_fb5f7940 fu=1 amend=True                                                                                                                                                                                  
+T9       when readback.round < approved.version, implement continues the read-back session with the plan diff since that version               PASS   code=0 rbRound=1 approved=2 rbSid=ses_mock_4e690609 implSid=ses_mock_4e690609 fu=1                                                                                                                                                                        
+T10      verify continues the review id (family differs from the implementer), prompt says the plan was approved                               PASS   code=0 revSid=ses_mock_3d405b61 verifySid=ses_mock_3d405b61 fu=1 verdict=PASS                                                                                                                                                                             
+T10      when the review hop had no sessions, verify runs the full chain with the full prompt                                                  PASS   code=0 revSession= verifyPrompts=1 full=True                                                                                                                                                                                                              
+T-SW     implement continues the review session on its own family (full prompt, new role); verify continues the other-family read-back session PASS   impl=True verify=True rev=ses_mock_d037cfe5 rb=ses_mock_425ff4d4 implSid=ses_mock_d037cfe5 verSid=ses_mock_425ff4d4 rbFam=reviewerfam                                                                                                                     
+T11      once maxFollowUps is reached the next review starts a fresh session with the full prompt                                              PASS   code=0 sid1=ses_mock_3efe3e1c sid2=ses_mock_dea70801 turns1=1 prompts=2 fu=False                                                                                                                                                                          
+T12      a continuation that fails without repo changes falls through to the chain (reason starts continue: )                                  PASS   code=0 status=Implemented attempts=2 continue=1 reason0=continue: rate-limit                                                                                                                                                                              
+T13      a manual implement phase defers with a workspace snapshot, then the answer implements with no automatic call                          PASS   defer=3 prompt=True ws=True code=0 status=Implemented callsBefore=1 callsAfter=1                                                                                                                                                                          
+T13      a sibling repo the human touched during a manual implement phase is a note, not a Violation                                           PASS   defer=3 code=0 status=Implemented violations= note=True                                                                                                                                                                                                   
+T14      a pending review request skips the automatic hops; -Retry deletes it and calls the first hop                                          PASS   new=3 req=True skip=3 c0=1 c1=1 stillPending=True retry=0 c2=2 gone=True verdict=PASS                                                                                                                                                                     
+T15      an implementer.phase-2 answer resumes with implement <id> 2 (DEFERRED message and queue then: line)                                   PASS   d1=3 d2=3 deferred=True queue=True                                                                                                                                                                                                                        
+T16      the manual header names any agent and the avoided family, offers -Retry, and never names a tool                                       PASS   anyAgent=True family=True retry=True noFreebuff=True impl=True ws=True noImplFp=True emptyOmits=True                                                                                                                                                      
+T17      no tool name for the manual hop: freebuff appears nowhere in the code, config or CONDUCTOR                                            PASS   hits= files=8                                                                                                                                                                                                                                             
+T18      ignored records pass gate 3, are remembered, stay out of changed/outsidePlan, and reach the verifier                                  PASS   code=0 status=Implemented pre=.ai/context/session-1.md,.ai/plans/0001-x.md changed=phase1.txt outside= vline=True                                                                                                                                         
+T19      a dirty code file blocks gate 3 naming only it, while the records stay ignored                                                        PASS   code=1 baseSha=False namesReadme=True noRecords=True                                                                                                                                                                                                      
+T-C5     planFiling=slug: close finds done/<slug>.md from the branch topic                                                                     PASS   code=0                                                                                                                                                                                                                                                    
+T-C6     planFiling=slug: close falls back to *-<slug>.md                                                                                      PASS   code=0                                                                                                                                                                                                                                                    
+T-C7     planFiling=slug: close falls back to a done file that names the branch                                                                PASS   code=0                                                                                                                                                                                                                                                    
+T-C8     planFiling=slug: close is refused, naming the slug, while nothing is filed                                                            PASS   code=1                                                                                                                                                                                                                                                    
+T-PD1    plansDir: a plan whose Status is Done in plans/<repo>/ files the run                                                                  PASS   code=0                                                                                                                                                                                                                                                    
+T-PD2    plansDir: a Running plan is refused, naming the folder and the Status rule                                                            PASS   code=1                                                                                                                                                                                                                                                    
+T-PD3    planFiling=slug: an open plan naming the branch does not hide the Done copy in plansDir                                               PASS   code=0 out=plan 'pd-slug' is filed: C:\Users\Alireza\AppData\Local\Temp\project-b-orch-close-plansdir-a65e0e3f\.orchestra\plans\Ui\0007-pd-slug.md...                                                                                                     
+T-PD4    no plansDir: the done/ folder still files a run with no Status line                                                                   PASS   code=0                                                                                                                                                                                                                                                    
+T-PD5    plansDir: no plan at all names the folder and says where it belongs                                                                   PASS   code=1                                                                                                                                                                                                                                                    
+T-PD6    plansDir: a run with no repo stops with the one line that says so                                                                     PASS   code=1                                                                                                                                                                                                                                                    
+T-CG1    the plan's own **Branch:** line names the branch, whoever the git user is                                                             PASS   branch=someone/topic-x                                                                                                                                                                                                                                    
+T-CG2    config contractDoc puts that doc in a non-Web prompt                                                                                  PASS                                                                                                                                                                                                                                                             
+T-CG3    the planner phase is expanded (plan1, plan2, ...), not the literal text                                                               PASS                                                                                                                                                                                                                                                             
+T-A1     agents prints the engine folder after the config line                                                                                 PASS   line=True                                                                                                                                                                                                                                                 
+T-D1     help without a description prints the fallback title and the repos line                                                               PASS   code=0                                                                                                                                                                                                                                                    
+T-D2     help with an unloadable config prints the usage and says no config is loaded                                                          PASS   saysNoConfig=True                                                                                                                                                                                                                                         
+T-RP1    with no report block a run is unchanged and nothing is attempted                                                                      PASS   code=0 review=PASS warned=False secs=7                                                                                                                                                                                                                    
+T-RP-003 report.enabled=false makes no request at all                                                                                          PASS   code=0 warned=False                                                                                                                                                                                                                                       
+T-RP2    a dashboard that is down costs one warning line, under 3 s more, and changes nothing                                                  PASS   code=0 warnings=1 secs=7.9 baseline=6.9 overhead=1 review=PASS                                                                                                                                                                                            
+P1       the profile is the base and the project overrides in place; workflow paths and steps both survive                                     PASS   planner=project-planner reviewer=profile-reviewer gates=gates.md preview=True profile=default v2                                                                                                                                                          
+P2       Merge-ConfigObject merges objects, replaces scalars and removes a null key                                                            PASS   a=2 drop=False one=1 two=3 three=4                                                                                                                                                                                                                        
+P3       a missing profilesPath or export is one clear line naming the file                                                                    PASS   local='config: set "profilesPath" in orchestrator.local.json to the dashboard's profiles folder' missing='config: profile 'default' not found at C:\Users\Alireza\AppData\Local\Temp\project-a-orch-profile-ac19ac19\bare\default.json; open the dashbo...
+P4       turning review off is rejected; turning preview off is accepted                                                                       PASS   locked='config: step 'review' is always on and cannot be turned off' preview=False                                                                                                                                                                        
+P5       a run records its effective config once, and a newer profile prints one line                                                          PASS   code=0 record=True hashSame=True line=True profile=default v2 tier=1                                                                                                                                                                                      
+P6       close writes effectiveConfig into the archive before deleting the run folder                                                          PASS   code=0 archives=1 hasEffective=True                                                                                                                                                                                                                       
+
+
+
+139/139 checks passed
+SUITE_EXIT=0

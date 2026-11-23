@@ -40,6 +40,22 @@ public sealed class LibraryIndexerTests : IDisposable
     }
 
     [Fact]
+    public void A_run_draft_preview_is_indexed_from_the_new_layout()
+    {
+        // Plan 0007 D4b: the preview is written to runs/_drafts first and moved to previews/ only when the
+        // plan is filed, so the in-flight one has to stay visible after the projects drop their own globs.
+        var root = TempRoot();
+        LibraryFixture.Copy(LibraryFixture.OrchestraRoot, root);
+        LibraryFixture.Write(root, ".orchestra/runs/_drafts/T-X-001.preview.html", "<html></html>");
+
+        var items = LibraryIndexer.Build(LibraryFixture.Project(root), []).Items;
+
+        items.Should().Contain(item =>
+            item.Category == LibraryCategory.Preview
+            && item.RelPath == ".orchestra/runs/_drafts/T-X-001.preview.html");
+    }
+
+    [Fact]
     public void A_plan_carries_its_header_its_repo_and_its_indexed_preview()
     {
         var items = LibraryIndexer.Build(LibraryFixture.Project(LibraryFixture.OrchestraRoot), []).Items;

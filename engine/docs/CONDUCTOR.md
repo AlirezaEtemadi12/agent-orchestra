@@ -12,9 +12,13 @@ themselves are owned per repo, in:
 
 | Repo | Gates (authoritative) | Roles | Gate commands |
 |---|---|---|---|
-| `Agent/` (.NET 10 WPF) | `Agent/.ai/agents/workflow.md` | `Agent/.ai/agents/{planner,plan-reviewer,implementer,verifier}.md` | `Agent/.ai/coding/ci.md` |
-| `Ui/` (Next.js 16) | `Ui/.ai/agents/workflow.md` | `Ui/.ai/agents/README.md` sections | `Ui/.ai/coding/ci.md` |
-| `Web/` (.NET 10 API) | `Web/.ai/agents/workflow.md` | `Web/.ai/agents/{planner,plan-reviewer,implementer,verifier}.md` | `Web/.ai/coding/ci.md` |
+| `Agent/` (.NET 10 WPF) | `.orchestra/workflow.md` | `.orchestra/roles/Agent/{planner,plan-reviewer,implementer,verifier}.md` | `Agent/.ai/coding/ci.md` |
+| `Ui/` (Next.js 16) | `.orchestra/workflow.md` | `.orchestra/roles/Ui/README.md` sections | `Ui/.ai/coding/ci.md` |
+| `Web/` (.NET 10 API) | `.orchestra/workflow.md` | `.orchestra/roles/Web/{planner,plan-reviewer,implementer,verifier}.md` | `Web/.ai/coding/ci.md` |
+
+A workspace that has not run the plan 0007 move yet keeps the same files under `<repo>/.ai/agents/`
+(`workflow.md`, the four role files, a `README.md` index): the engine reads whichever paths that
+project's `orchestrator.json` names.
 
 This file is only the procedure. It restates no repo rule.
 
@@ -75,14 +79,16 @@ without `-Retry` skips the automatic hops until the answer is stored.
      the unhappy paths that matter (no session, market closed, a failed read).
    The plan's owner-check line (its phase list's last paragraph) copies this checklist, and the close
    report repeats it as the items to confirm. Save it as
-   `orchestrator/runs/_drafts/<taskId>.preview.html` (the task id the run will use) and keep it as the
-   reference the plan follows. **Do not write the plan until the user approves the preview**; every change
+   `.orchestra/runs/_drafts/<taskId>.preview.html` (the task id the run will use; `orchestrator/runs/`
+   in a workspace that has not run the plan 0007 move) and keep it as the reference the plan follows.
+   When the plan is filed, copy it to `.orchestra/previews/NNNN-topic/index.html` — the dashboard reads
+   previews from there. **Do not write the plan until the user approves the preview**; every change
    they ask for is made in the preview first. When the plan is written, its "Decided by" line names the
    approved preview file. Skip this step only for a change with nothing on screen (a service, a session
    fix, docs) — say so in one line.
 
 2. **Check the graph is current — free, before you read source.**
-   `powershell -NoProfile -File orchestrator/run.ps1 graph -Check` writes nothing and calls no model:
+   `powershell -NoProfile -File .orchestra/run.ps1 graph -Check` writes nothing and calls no model:
    it compares the HEAD recorded at the last refresh (`graphify-out/.orch-head`), the graph's mtime
    and any uncommitted edit, and prints one `Reason` per stale repo. If the target repo is stale, run
    the same command without `-Check` (AST only). A plan written against a stale graph is the most
@@ -95,8 +101,13 @@ without `-Retry` skips the automatic hops until the answer is stored.
    decision. The plan opens with «فهم من از درخواست» — **your own understanding** of the request, not
    the user's words copied: requests are often worded loosely, so say which reading you took where one
    could mean two things — then «جریان کار» and «نتیجه و آنچه بعد از پیاده‌سازی تست می‌کنید» (the
-   result and the owner's post-implementation checklist; the repo's `TEMPLATE.md` says what each carries). Write it to
-   `orchestrator/runs/_drafts/<taskId>.plan.md` — never inside a repo you are not implementing.
+   result and the owner's post-implementation checklist; the    repo's `TEMPLATE.md` says what each carries). Write the draft to
+   `.orchestra/runs/_drafts/<taskId>.plan.md` — never inside a repo you are not implementing — then copy
+   it, unchanged, to its home: `.orchestra/plans/<Repo>/NNNN-topic.md` (slug filing:
+   `.orchestra/plans/<Repo>/<slug>.md`), with the plan's `**Status:**` line in its header. That one file
+   stays there for the plan's whole life; closing the plan changes only its `Status:` line. A project
+   without `plansDir` in its `orchestrator.json` keeps today's shape: the plan is written into
+   `<repo>/.ai/plans/` and filed into `<repo>/.ai/plans/done/` at close.
 
 3b. **Show, then review.** Show the user those three sections and a short outline, not the whole file
    unless they ask. Start the run (step 4) only after they confirm the understanding; a correction goes
@@ -105,11 +116,11 @@ without `-Retry` skips the automatic hops until the answer is stored.
 4. **Start the run** (background; it takes minutes):
 
    ```
-   powershell -NoProfile -File orchestrator/run.ps1 new <taskId> <Agent|Ui|Web> "<one-line task>" `
-       -PlanFile orchestrator/runs/_drafts/<taskId>.plan.md -NoReadBack
+   powershell -NoProfile -File .orchestra/run.ps1 new <taskId> <Agent|Ui|Web> "<one-line task>" `
+       -PlanFile .orchestra/runs/_drafts/<taskId>.plan.md -NoReadBack
    ```
 
-   Task ids: `T-<REPO>-NNN`, next free number under `orchestrator/runs/`.
+   Task ids: `T-<REPO>-NNN`, next free number under `.orchestra/runs/`.
 
    **Who wrote the plan comes from the plan, not from you.** The orchestrator reads the family from the
    plan's `**Planned by:**` header line (`Claude Opus 5.5` -> `claude-opus`) and gate 2 excludes that
@@ -169,8 +180,9 @@ without `-Retry` skips the automatic hops until the answer is stored.
    - Anything that needs a product decision or touches many files is a normal new plan.
 
 8. **Close.** The user commits, merges and deletes the branch — or tells you to, one action per
-   message. The orchestrator never does it. Last, once the plan is filed in the repo's
-   `.ai/plans/done/` and the executor's report is checked, **`run.ps1 close <taskId>`** deletes the run's
+   message. The orchestrator never does it. Last, once the plan is filed — `**Status:** Done` in its
+   header, in `.orchestra/plans/<repo>/` (a project without `plansDir` still files into
+   `<repo>/.ai/plans/done/`) — and the executor's report is checked, **`run.ps1 close <taskId>`** deletes the run's
    working files (`runs/<id>/` and `runs/_drafts/<id>.*`) — no need to ask; `runs/` is scratch, the filed
    plan is the record. Keep a run only while something still reads it (e.g. a test report a retest needs).
    Before deleting, `close` appends the run's block to **`runs/_ledger.md`** (verdicts, models, calls, opencode requests and
@@ -219,7 +231,7 @@ without `-Retry` skips the automatic hops until the answer is stored.
 - **The read-back is the owner's, in a manual agent.** With the `readback` role configured, `new` / `revise`
   exit 3 after the review with `readback.v<n>` waiting. That is expected, not a failure: report the
   review, then tell the user, in one line they can paste into the agent of their choice, to read
-  `orchestrator/runs/<id>/inbox/readback.v<n>.md` and do what it says (it writes
+  `.orchestra/runs/<id>/inbox/readback.v<n>.md` and do what it says (it writes
   `answers/readback.v<n>.md` itself). When the user says it is done, run `run.ps1 readback <id>` (or let
   `watch <id> -ThenResume` do it) and treat its findings like the reviewer's.
 - **How each agent is reached** is the adapter's `transport` in `orchestrator.json` (described by its
@@ -247,7 +259,7 @@ without `-Retry` skips the automatic hops until the answer is stored.
 The orchestrator is a plain PowerShell CLI; any harness with a shell can drive it. Point it at this
 file explicitly:
 
-> Read `orchestrator/CONDUCTOR.md` and `orchestrator/WORKING-MODEL.md` and act as the conductor for:
+> Read `engine/docs/CONDUCTOR.md` and `engine/docs/WORKING-MODEL.md` and act as the conductor for:
 > <task>.
 
 Caveats:

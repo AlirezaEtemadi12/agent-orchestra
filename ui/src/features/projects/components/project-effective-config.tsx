@@ -65,7 +65,8 @@ export function ProjectEffectiveConfig() {
   const project = projects.data?.find((item) => item.id === id);
   const name = project?.name ?? id;
 
-  const prompt = `Replace orchestrator/orchestrator.json in ${name} with this; commit nothing.`;
+  // Plan 0007 D4a: the API says which file it read, so the prompt follows the project's layout.
+  const prompt = `Replace ${config.data.configPath} in ${name} with this; commit nothing.`;
 
   const copy = async (text: string): Promise<void> => {
     const ok = await copyPrompt(text);

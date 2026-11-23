@@ -2616,6 +2616,75 @@ try {
 }
 catch { Fail-Scenario 'T-C5' 'close by slug' ("exception: " + $_.Exception.Message) }
 
+# ------------------------------- T-PD1..T-PD6: close by plansDir + `**Status:** Done` (plan 0007 D3)
+# A project that sets `plansDir` keeps every plan of a repo in one folder for its whole life: close
+# finds it there and accepts it only when its header says Done. Without `plansDir`, today's done/ path.
+try {
+    # Both filing styles are exercised here, whatever this config's default is (number or slug).
+    $ws = New-WorkSpace 'close-plansdir'
+    Edit-Config -Ws $ws -Change {
+        param($cfg)
+        Set-CfgProp $cfg 'plansDir' '.orchestra/plans/{repo}'
+        Set-CfgProp $cfg 'planFiling' 'number'
+    }
+    $plansUi = Join-Path $ws '.orchestra\plans\Ui'
+    New-Item -ItemType Directory -Force -Path $plansUi | Out-Null
+
+    [void](Invoke-New $ws 'T-PD-101' 'Ui')
+    [void](Run-Orch -Ws $ws -Argv @('approve', 'T-PD-101', '-Branch', 'alireza/plan-0042-done'))
+    Set-Content -LiteralPath (Join-Path $plansUi '0042-done.md') -Value "**Status:** Done - filed`n# Plan 0042" -Encoding UTF8
+    $r = Run-Orch -Ws $ws -Argv @('close', 'T-PD-101')
+    Check 'T-PD1' 'plansDir: a plan whose Status is Done in plans/<repo>/ files the run' `
+        ($r.Code -eq 0 -and -not (Test-Path -LiteralPath (Join-Path $ws 'runs\T-PD-101'))) ("code=$($r.Code)")
+
+    [void](Invoke-New $ws 'T-PD-102' 'Ui')
+    [void](Run-Orch -Ws $ws -Argv @('approve', 'T-PD-102', '-Branch', 'alireza/plan-0043-open'))
+    Set-Content -LiteralPath (Join-Path $plansUi '0043-open.md') -Value "**Status:** Running - in progress`n# Plan 0043" -Encoding UTF8
+    $r = Run-Orch -Ws $ws -Argv @('close', 'T-PD-102')
+    Check 'T-PD2' 'plansDir: a Running plan is refused, naming the folder and the Status rule' `
+        ($r.Code -eq 1 -and $r.Out -match 'Status is not Done' -and (Test-Path -LiteralPath (Join-Path $ws 'runs\T-PD-102'))) ("code=$($r.Code)")
+
+    # The run's own open plan names its branch; the Done copy must win over it.
+    Edit-Config -Ws $ws -Change { param($cfg) Set-CfgProp $cfg 'planFiling' 'slug' }
+    [void](Invoke-New $ws 'T-PD-103' 'Ui')
+    [void](Run-Orch -Ws $ws -Argv @('approve', 'T-PD-103', '-Branch', 'alireza/pd-slug'))
+    Set-Content -LiteralPath (Join-Path $plansUi 'pd-slug.md') -Value "**Status:** Running - open copy`n**Branch:** ``alireza/pd-slug```n" -Encoding UTF8
+    Set-Content -LiteralPath (Join-Path $plansUi '0007-pd-slug.md') -Value "**Status:** Done - filed`n# Plan 0007" -Encoding UTF8
+    $r = Run-Orch -Ws $ws -Argv @('close', 'T-PD-103')
+    Check 'T-PD3' 'planFiling=slug: an open plan naming the branch does not hide the Done copy in plansDir' `
+        ($r.Code -eq 0 -and -not (Test-Path -LiteralPath (Join-Path $ws 'runs\T-PD-103'))) ("code=$($r.Code) out=$($r.Out -split "`n" | Select-String -Pattern 'not Done|is filed' | Select-Object -First 1)")
+
+    # T-PD4: a workspace with no plansDir keeps today's done/ behaviour, Status line or not.
+    $ws2 = New-WorkSpace 'close-plansdone'
+    Edit-Config -Ws $ws2 -Change { param($cfg) Set-CfgProp $cfg 'planFiling' 'number' }
+    $done = Join-Path $ws2 'Ui\.ai\plans\done'
+    New-Item -ItemType Directory -Force -Path $done | Out-Null
+    [void](Invoke-New $ws2 'T-PD-104' 'Ui')
+    [void](Run-Orch -Ws $ws2 -Argv @('approve', 'T-PD-104', '-Branch', 'alireza/plan-0044-old'))
+    Set-Content -LiteralPath (Join-Path $done '0044-old.md') -Value '# Plan 0044' -Encoding UTF8
+    $r = Run-Orch -Ws $ws2 -Argv @('close', 'T-PD-104')
+    Check 'T-PD4' 'no plansDir: the done/ folder still files a run with no Status line' `
+        ($r.Code -eq 0 -and -not (Test-Path -LiteralPath (Join-Path $ws2 'runs\T-PD-104'))) ("code=$($r.Code)")
+
+    Edit-Config -Ws $ws -Change { param($cfg) Set-CfgProp $cfg 'planFiling' 'number' }
+    [void](Invoke-New $ws 'T-PD-105' 'Ui')
+    [void](Run-Orch -Ws $ws -Argv @('approve', 'T-PD-105', '-Branch', 'alireza/plan-0045-none'))
+    $r = Run-Orch -Ws $ws -Argv @('close', 'T-PD-105')
+    Check 'T-PD5' 'plansDir: no plan at all names the folder and says where it belongs' `
+        ($r.Code -eq 1 -and $r.Out -match 'is not in' -and $r.Out -match 'Write it there first \(gate 1\)') ("code=$($r.Code)")
+
+    [void](Invoke-New $ws 'T-PD-106' 'Ui')
+    [void](Run-Orch -Ws $ws -Argv @('approve', 'T-PD-106', '-Branch', 'alireza/plan-0046-norepo'))
+    $tf = Join-Path $ws 'runs\T-PD-106\task.json'
+    $st = Get-Content -LiteralPath $tf -Raw -Encoding UTF8 | ConvertFrom-Json
+    $st.PSObject.Properties.Remove('repo')
+    ($st | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath $tf -Encoding UTF8
+    $r = Run-Orch -Ws $ws -Argv @('close', 'T-PD-106')
+    Check 'T-PD6' 'plansDir: a run with no repo stops with the one line that says so' `
+        ($r.Code -eq 1 -and $r.Out -match 'has no repo in task.json') ("code=$($r.Code)")
+}
+catch { Fail-Scenario 'T-PD1' 'close by plansDir' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------- T-CG1..T-CG3: Project A behaviours kept by the engine (phase C)
 try {
     $b = Get-PlanBranch -PlanText "# Plan`n**Branch:** ``someone/topic-x```n" -GitUser 'other user' -TaskId 'T-G-1'
