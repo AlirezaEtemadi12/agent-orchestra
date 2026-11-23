@@ -41,8 +41,8 @@ nothing pushed. Phases B and C are companions in the two project workspaces and 
   the owner's `Orchestra.Api` process holds `bin/Debug`).
 - `dotnet test Orchestra.slnx`: **248** passed (was 246).
 - `ui`: `npm run typecheck`, `npm run lint`, `npm test` (**64** passed, 13 files), `npm run build`.
-- Offline suite: **139/139** on `number` (`evidence/0007-orchestra-layout/suite-number.log`) and
-  **139/139** on `slug` (`evidence/0007-orchestra-layout/suite-slug.log`), T-PD1–T-PD6 listed.
+- Offline suite: **139/139** on `number` (`.orchestra/evidence/0007-orchestra-layout/suite-number.log`) and
+  **139/139** on `slug` (`.orchestra/evidence/0007-orchestra-layout/suite-slug.log`), T-PD1–T-PD6 listed.
 - The Status matcher was smoke-tested on its own: `**Status:** Done — x`, `Status: **Done**`,
   `Status: Done` and a Done line on line 3 all accept; `Running` and no Status line refuse.
 

@@ -9,7 +9,7 @@ fixed in `fe8a77f`, offline suite 127/127 on both configs
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-19. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** pre-gate review 2026-11-20 (B1–B7 + 5 smaller points, checked against both orchestrator repos read-only); fixes in this version
-**Baseline counts:** Project B offline suite 114/114 (HEAD `b327225`) · Project A offline suite 116/116 (HEAD `4c0d570`) — measured 2026-11-20, logs in `evidence/0005-engine-move/baseline-*.log`
+**Baseline counts:** Project B offline suite 114/114 (HEAD `b327225`) · Project A offline suite 116/116 (HEAD `4c0d570`) — measured 2026-11-20, logs in `.orchestra/evidence/0005-engine-move/baseline-*.log`
 **Decided by:** owner's §8 answers 2026-11-20; D10 proposed by the planner, D11 and "dirty means code" decided by Alireza 2026-11-20
 **Branch:** `alireza/engine-move` — the implementer creates it.
 **Base:** `alireza/skeleton-and-import` @ `89dbee1` (plan 0003 closed; there is no `main` yet). This plan comes **before** 0004 (owner, 2026-11-20)
@@ -88,7 +88,7 @@ Before the first edit, in each orchestrator repo (read-only): no uncommitted **c
 note the HEAD hash. Code is copied **from that commit** (`git show <hash>:<path>`), never from the working
 tree; the history docs of D7 are copied as they are on disk. Then run
 `powershell -NoProfile -File tests/offline/run-offline.ps1` in the background with its output in a log
-(`evidence/0005-engine-move/baseline-<project>.log`) and wait for the tally — it takes 15+ minutes; never
+(`.orchestra/evidence/0005-engine-move/baseline-<project>.log`) and wait for the tally — it takes 15+ minutes; never
 stop it on a timeout. Record both counts on the header's **Baseline counts** line. If either repo has
 uncommitted code, STOP and tell the owner.
 

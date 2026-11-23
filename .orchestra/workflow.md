@@ -61,7 +61,7 @@ another is being implemented. Leave it untouched and never copy it from the work
 The deliverable is a **dirty working tree on the branch**, gates green (plan 0001 writes
 [`../.ai/ci.md`](../.ai/ci.md); until then: `dotnet build` + `dotnet test` with zero warnings in
 `api/`, `npm run typecheck` + `lint` + `test` + `build` in `ui/`). Screenshots and reports from an
-agent's own checks go to `evidence/NNNN-<topic>/phase-<X>/` (git-ignored). No `commit`, `push`,
+agent's own checks go to `.orchestra/evidence/NNNN-<topic>/phase-<X>/` (git-ignored). No `commit`, `push`,
 `merge`, `rebase` or `branch -d` unless the owner asks for that action in that message. When a commit
 is authorized, stage the exact paths — never `git add -A` / `git add .`. The close is three separate
 questions: commit? merge? delete the branch?

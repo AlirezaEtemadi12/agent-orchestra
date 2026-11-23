@@ -10,7 +10,7 @@ Plan: [`../plans/0005-engine-move.md`](../../.orchestra/plans/0005-engine-move.m
 
 - **Baseline first.** Both orchestrator repos were clean of uncommitted code. The offline suites ran
   from their own HEADs, read-only: Project B `b327225` (main) **114/114**, Project A `4c0d570` (main)
-  **116/116**; logs in [`evidence/0005-engine-move/`](../../evidence/0005-engine-move/).
+  **116/116**; logs in [`.orchestra/evidence/0005-engine-move/`](../../evidence/0005-engine-move/).
 - **The copy.** `run.ps1`, `lib/{agents,bus,gates,pool}.ps1`, `refresh-graph.ps1`,
   `tests/offline/{run-offline,mock-agent}.ps1`, the conductor docs and the history docs were taken with
   `git show <hash>:<path>` — byte-identical to the commit, never from a working tree.
@@ -39,7 +39,7 @@ Plan: [`../plans/0005-engine-move.md`](../../.orchestra/plans/0005-engine-move.m
 
 - `powershell -NoProfile -File engine/tests/offline/run-offline.ps1` — **121/121 with
   `number.orchestrator.json` and 121/121 with `slug.orchestrator.json`**, exit 0, ~18 min per config.
-  Log: [`evidence/0005-engine-move/suite-phase-a-b.log`](../../evidence/0005-engine-move/suite-phase-a-b.log).
+  Log: [`.orchestra/evidence/0005-engine-move/suite-phase-a-b.log`](../../evidence/0005-engine-move/suite-phase-a-b.log).
   Run 1 is kept too: it failed 3 checks in the slug pass because `T-C1`–`T-C3` assumed number filing;
   they now set `planFiling: number` themselves, so the case means the same thing in both passes.
 - `engine/run.ps1 help` with the example config prints its description in both places; with no config

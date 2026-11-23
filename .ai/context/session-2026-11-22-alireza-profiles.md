@@ -50,8 +50,8 @@
 - `dotnet build Orchestra.slnx`: 0 warnings, 0 errors. `dotnet test`: **246** passed (was 217).
 - `ui`: `npm run typecheck`, `npm run lint`, `npm run test` (**64** passed, was 56), `npm run build` (static
   export, both locales, every route prerendered).
-- Offline suite: **133/133** on `number` (`evidence/0006-profiles/suite-number.log`) and **133/133** on `slug`
-  (`evidence/0006-profiles/suite-slug.log`).
+- Offline suite: **133/133** on `number` (`.orchestra/evidence/0006-profiles/suite-number.log`) and **133/133** on `slug`
+  (`.orchestra/evidence/0006-profiles/suite-slug.log`).
 - Live API smoke on a temp database and a temp project: seed created `default` v1 and exported it; `PUT` without
   a reason → 400 `Profiles.Reason.Required`; a locked step off → 400 `Profiles.Step.Locked`; a real save → v2 and a
   rewritten export; revert to the current version → 400; revert to v1 → v3 with reason `revert to v1`;

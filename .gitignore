@@ -35,3 +35,6 @@ graphify-out/
 # Local tool folders and build output
 /artifacts/
 .freebuff/
+
+# Docker's profile exports (deploy/.env ORCHESTRA_PROFILES_DIR=./profiles)
+deploy/profiles/

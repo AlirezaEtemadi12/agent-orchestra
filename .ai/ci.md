@@ -15,7 +15,7 @@
 | `ui/` | `npm run build` | static export succeeds, every route prerendered |
 
 If the owner's `dotnet run` holds `bin/Debug`, build and test with
-`-p:ArtifactsPath=<repo>/artifacts/agent` instead of stopping their process — never take the runtime.
+`-p:ArtifactsPath=$env:TEMP/orchestra-build` (outside the repo) instead of stopping their process — never take the runtime.
 
 The browser checks (both languages, both themes, mobile width) are the **owner's**, not a gate the
 implementer runs.

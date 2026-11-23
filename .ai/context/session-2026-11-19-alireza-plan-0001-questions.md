@@ -27,7 +27,7 @@
 - Files stay the source of truth and the DB indexes them. Keeping plans only in the DB would break
   ADR 0002 (agents would depend on the dashboard) and would take plans out of git.
 - New folders: `.ai/api/`, `.ai/ui/`, `ideas/` (one file per idea, replacing `vision/ideas.md`),
-  `research/`, `previews/`, `evidence/` (git-ignored). `plans/done/` is dropped; the `Status:` line
+  `research/`, `previews/`, `.orchestra/evidence/` (git-ignored). `plans/done/` is dropped; the `Status:` line
   decides.
 - Plan 0001 = skeleton + runs import + four screens + i18n. Plan 0002 = Library (indexes
   ideas/research/previews/plans/evidence). The `.ai/` restructure is a separate docs-only change.

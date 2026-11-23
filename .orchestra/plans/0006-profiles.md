@@ -271,7 +271,7 @@ fa text** of any key not listed here, rather than writing Persian itself.
 
 - **A — dashboard storage, API, export.** Files 1–5b, 13 (data model), 14. **Gate** (`.ai/ci.md`). Stop.
 - **B — engine merge.** Files 6–9, 13 (engine). **Gate:** the offline suite (background, log in
-  `evidence/0006-profiles/`, ~18 min per config). Stop.
+  `.orchestra/evidence/0006-profiles/`, ~18 min per config). Stop.
 - **C — screens.** Files 10–12. **Gate.** **Owner checks:** the items of «نتیجه». Stop.
 
 ## 10. Definition of done

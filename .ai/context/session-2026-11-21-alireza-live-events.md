@@ -30,7 +30,7 @@ Plan: [`../plans/0004-live-events.md`](../../.orchestra/plans/0004-live-events.m
   the board and pools routes.
 - `powershell -NoProfile -File engine/tests/offline/run-offline.ps1` — **124/124 with
   `number.orchestrator.json` and 124/124 with `slug.orchestrator.json`**, exit 0. Log:
-  [`evidence/0004-live-events/suite-phase-d-run3.log`](../../evidence/0004-live-events/).
+  [`.orchestra/evidence/0004-live-events/suite-phase-d-run3.log`](../../evidence/0004-live-events/).
 - Every edited PowerShell file parses (Parser API); every new JSON file parses.
 - A manual pool check (`.orchestra/evidence/0004-live-events/pool-check.ps1`): a holder script with only
   `lib/pool.ps1` dot-sourced still acquires, and a dead dashboard costs one warning line and ~1 s.

@@ -6,8 +6,9 @@
 **/.next/
 **/out/
 /artifacts/
-/data/
-/evidence/
+deploy/profiles/
+**/.env*
+!**/.env.example
 .git/
 .vs/
 .freebuff/

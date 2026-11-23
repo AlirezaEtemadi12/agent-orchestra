@@ -17,7 +17,7 @@ Project A orchestrator `58d1806`. Nothing pushed.
 
 ## Verified
 
-- Offline suite 127/127 on `number` and `slug` (`evidence/0005-engine-move/gaps-suite.log`).
+- Offline suite 127/127 on `number` and `slug` (`.orchestra/evidence/0005-engine-move/gaps-suite.log`).
 - In each project: `agents` (with the `engine:` line), `new … -DryRun`, and `health` (owner, after a
   `claude` re-login) — all roles PONG.
 
