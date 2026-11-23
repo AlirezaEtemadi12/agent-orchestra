@@ -7,12 +7,14 @@ import { profilesMessages } from '@/features/profiles';
 import { projectsMessages } from '@/features/projects';
 import { qualityMessages } from '@/features/quality';
 import { runsMessages } from '@/features/runs';
+import { startMessages } from '@/features/start';
 import { commonEn } from '@/lib/i18n/messages/common.en';
 import { commonFa } from '@/lib/i18n/messages/common.fa';
 
 export const messages = {
   en: {
     common: commonEn,
+    start: startMessages.en,
     runs: runsMessages.en,
     board: boardMessages.en,
     pools: poolsMessages.en,
@@ -25,6 +27,7 @@ export const messages = {
   },
   fa: {
     common: commonFa,
+    start: startMessages.fa,
     runs: runsMessages.fa,
     board: boardMessages.fa,
     pools: poolsMessages.fa,

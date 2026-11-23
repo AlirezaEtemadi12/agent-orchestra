@@ -10,15 +10,16 @@ services:
       - '127.0.0.1:3500:3500'
     volumes:
       - orchestra-data:/data
+      # Plan 0009 D13: one read-only parent folder instead of a mount per project. Every project is
+      # added in the dashboard by the Windows path you see, e.g. F:\Projects\MyApp.
+      - ${ORCHESTRA_HOST_ROOT:?set ORCHESTRA_HOST_ROOT in deploy/.env (the folder that contains your projects, e.g. F:/Projects)}:/host:ro
       # Plan 0006 D5: profile exports, beside the database (a relative ProfilesPath resolves there).
       # The host folder must be writable by the image's uid 10001: `chown -R 10001 <folder>` once.
       - ${ORCHESTRA_PROFILES_DIR:?set ORCHESTRA_PROFILES_DIR in deploy/.env}:/data/profiles
-      - ${PROJECT1_RUNS:?set PROJECT1_RUNS in deploy/.env}:/projects/p1:ro
-      - ${PROJECT2_RUNS:?set PROJECT2_RUNS in deploy/.env}:/projects/p2:ro
-      # The library reads the project root, not the runs folder. Uncomment with PROJECT1_ROOT /
-      # PROJECT2_ROOT in .env; without them the library stays empty in Docker.
-      - ${PROJECT1_ROOT:?set PROJECT1_ROOT in deploy/.env}:/projects/root1:ro
-      - ${PROJECT2_ROOT:?set PROJECT2_ROOT in deploy/.env}:/projects/root2:ro
+    environment:
+      # Plan 0009 D2: the host path the owner types maps to this folder inside the container.
+      - Orchestra__PathMap__0__Host=${ORCHESTRA_HOST_ROOT}
+      - Orchestra__PathMap__0__Server=/host
     env_file: .env
     restart: unless-stopped
 

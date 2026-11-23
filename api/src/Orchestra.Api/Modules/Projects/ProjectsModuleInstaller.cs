@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
+using Orchestra.Api.Modules.Projects.Features.Connect;
 using Orchestra.Api.Modules.Projects.Features.CreateProject;
 using Orchestra.Api.Modules.Projects.Features.DeleteProject;
 using Orchestra.Api.Modules.Projects.Features.ListProjects;
@@ -35,6 +36,7 @@ public sealed class ProjectsModuleInstaller : IModuleInstaller
         services.AddScoped<UpdateProjectHandler>();
         services.AddScoped<DeleteProjectHandler>();
         services.AddScoped<CheckFolderHandler>();
+        services.AddScoped<ConnectHandler>();
         services.AddScoped<ScaffoldPromptHandler>();
     }
 }

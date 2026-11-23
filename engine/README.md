@@ -123,8 +123,11 @@ it; no engine file names a project):
 }
 ```
 
-The token is read from the named environment variable, never from a file. `enabled: false` or no block
-means no request is made at all. `progressEverySec` is the throttle for the latest-line event (D5).
+The token comes from the environment variable `tokenEnv` names; when that is unset, from `reportToken` in
+the project's git-ignored `orchestrator.local.json`, beside the config file (plan 0009 D10) — so no Windows
+environment variable is needed for a single machine. The dashboard's Connect page shows both pieces.
+Neither source set means the request goes without `Authorization`; `enabled: false` or no block means no
+request is made at all. `progressEverySec` is the throttle for the latest-line event (D5).
 
 ## Tests
 

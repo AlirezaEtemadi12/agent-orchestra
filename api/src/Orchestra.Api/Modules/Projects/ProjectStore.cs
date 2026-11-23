@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Orchestra.Api.Common;
+using Orchestra.Api.Common.Hosting;
 
 namespace Orchestra.Api.Modules.Projects;
 
@@ -22,14 +23,16 @@ public sealed record StoredProject
 
     public DateTime CreatedAt { get; init; }
 
-    public ProjectOptions ToOptions()
+    /// <summary>Plan 0009 D3: the entry keeps what the owner typed; everything that touches the disk
+    /// gets the server form.</summary>
+    public ProjectOptions ToOptions(PathMapper mapper)
     {
         return new ProjectOptions
         {
             Id = Id,
             Name = Name,
-            RootPath = RootPath,
-            RunsPath = RunsPath,
+            RootPath = mapper.ToServer(RootPath),
+            RunsPath = mapper.ToServer(RunsPath),
             Repos = [.. Repos],
             Library = new(),
         };

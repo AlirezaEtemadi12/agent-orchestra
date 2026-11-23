@@ -7,8 +7,10 @@ import { profilesFeature } from './profiles';
 import { projectsFeature } from './projects';
 import { qualityFeature } from './quality';
 import { runsFeature } from './runs';
+import { startFeature } from './start';
 
 export const FEATURES = [
+  startFeature,
   runsFeature,
   boardFeature,
   poolsFeature,

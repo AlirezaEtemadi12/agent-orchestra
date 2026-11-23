@@ -19,6 +19,8 @@ export type ProjectDto = {
   rootPath: string | null;
   runsPath: string | null;
   repos: string[];
+  /** Plan 0009 D11: the last event the dashboard received from this project, UTC. */
+  lastEventAt?: string | null;
 };
 
 export function useProjects() {

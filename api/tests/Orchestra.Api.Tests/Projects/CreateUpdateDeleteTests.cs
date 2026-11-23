@@ -40,6 +40,8 @@ public sealed class CreateUpdateDeleteTests : IDisposable
 
         taken.Error!.Code.Should().Be(Error.ProjectIdTaken.Code);
 
+        // A relative path is invalid, not "not visible": that code (and its Docker text) is kept for an
+        // absolute path a container cannot reach, which only a Linux host can produce.
         var relative = Input("shop", "C:/nope") with { RootPath = ".orchestra/runs" };
 
         (await Create.HandleAsync(relative, CancellationToken.None)).Error!
@@ -56,7 +58,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
     [Fact]
     public async Task Update_refuses_a_config_project_and_an_unknown_id()
     {
-        var handler = new UpdateProjectHandler(_fixture.Registry, _fixture.Imports);
+        var handler = new UpdateProjectHandler(_fixture.Registry, _fixture.Imports, _fixture.Mapper);
 
         var config = await handler.HandleAsync(
             ProjectsFixture.ConfigProject,
@@ -78,7 +80,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
 
         var renamed = Input("shop", root) with { Name = "Renamed" };
 
-        var (saved, error) = await new UpdateProjectHandler(_fixture.Registry, _fixture.Imports)
+        var (saved, error) = await new UpdateProjectHandler(_fixture.Registry, _fixture.Imports, _fixture.Mapper)
             .HandleAsync("shop", renamed, CancellationToken.None);
 
         error.Should().BeNull();
@@ -168,7 +170,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
             .Code.Should().Be(Error.ProjectNotFound.Code);
     }
 
-    private CreateProjectHandler Create => new(_fixture.Registry, _fixture.Imports, TimeProvider.System);
+    private CreateProjectHandler Create => new(_fixture.Registry, _fixture.Imports, _fixture.Mapper, TimeProvider.System);
 
     private DeleteProjectHandler Handler()
     {

@@ -12,12 +12,15 @@
 | **3** | **Hosting**: Docker on the personal server, sign-in, HTTPS | Yes — `sync` and `profile pull` commands | 0008 |
 
 **Order (owner, 2026-11-20):** 0005 (engine move) runs **before** 0004 (live), so the reporter is
-written once, in `engine/`; then 0004, 0006, 0007. 0008 waits — the owner runs locally in Docker for now.
+written once, in `engine/`; then 0004, 0006, 0007. Then [0009](../../.orchestra/plans/0009-easy-onboarding.md)
+(easy onboarding: host paths, the dashboard's own token, connect and Getting-started pages) and
+[0010](../../.orchestra/plans/0010-gridify-tables.md) (server-side Gridify tables). 0008 waits — the owner
+runs locally in Docker for now.
 
 ## Phase 0 — read what exists
 
 Value from day one with **no risk to running work**. Runs locally (`dotnet run`, or Docker on
-Windows with the project folders mounted read-only).
+Windows with one parent folder mounted read-only — plan 0009 replaced the per-project mounts).
 
 | Plan | What |
 |---|---|

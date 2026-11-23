@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 
 export const FEATURE_KEYS = [
+  'start',
   'runs',
   'board',
   'pools',

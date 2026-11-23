@@ -41,10 +41,23 @@ run دقیقاً مثل قبل کار می‌کند.
 
 ## اجرای داشبورد
 
-.NET 10 و Node 22 لازم دارید، یا Docker.
+.NET 10 و Node 22 لازم دارید، یا Docker. بعد `http://localhost:3500` را باز کنید و از «شروع کار» در
+منو پیش بروید: از «داشبورد را اجرا کنید» تا «اولین پلن»، و هر قدم از روی چیزی که داشبورد واقعاً
+می‌بیند تیک می‌خورد.
 
-فایل `api/src/Orchestra.Api/appsettings.Local.example.json` را به `appsettings.Local.json` کپی کنید
-(در git نادیده گرفته می‌شود) و پوشهٔ runهای پروژه‌هایتان را در آن بنویسید.
+با Docker، اول `deploy/.env.example` را به `deploy/.env` کپی کنید و در آن `ORCHESTRA_HOST_ROOT` را
+پوشه‌ای بگذارید که پروژه‌هایتان در آن است (مثلاً `F:/Projects`). این پوشه فقط‌خواندنی روی `/host`
+وصل می‌شود و داشبورد مسیر ویندوزی‌ای که می‌نویسید را خودش به `/host/...` تبدیل می‌کند:
+
+</div>
+
+```
+docker compose -f deploy/docker-compose.yml up --build
+```
+
+<div dir="rtl" align="right">
+
+بدون Docker — با `dotnet run` یا IIS:
 
 </div>
 
@@ -55,17 +68,11 @@ dotnet run --project api/src/Orchestra.Api
 
 <div dir="rtl" align="right">
 
-یا با Docker. اول `deploy/.env.example` را به `deploy/.env` کپی و پر کنید:
-
-</div>
-
-```
-docker compose -f deploy/docker-compose.yml up --build
-```
-
-<div dir="rtl" align="right">
-
-سپس `http://localhost:3500` را باز کنید. پوشه‌های پروژه‌ها فقط‌خواندنی mount می‌شوند.
+بعد پروژه را با همان مسیری که در ویندوز می‌بینید اضافه کنید (`F:\Projects\MyApp`): فرم شناسه، پوشهٔ
+runها و ریپوها را خودش پر می‌کند، و صفحهٔ «اتصال» بلوک `report` و کلید `reportToken` را می‌دهد. هیچ
+متغیر محیطی لازم نیست؛ داشبورد توکن خودش را می‌سازد و در `<data>/report-token` نگه می‌دارد (پلن ۰۰۰۹).
+زیر IIS، بستهٔ ASP.NET Core 10 Hosting Bundle را نصب کنید، به Application Pool اجازهٔ خواندن پوشهٔ
+پروژه‌ها را بدهید، و سایت را فقط روی `localhost` باز کنید تا پلن ۰۰۰۸ ورود را اضافه کند.
 
 ## استفاده از موتور
 

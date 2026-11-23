@@ -2887,6 +2887,36 @@ try {
 }
 catch { Fail-Scenario 'P5' 'a run with a profile' ("exception: " + $_.Exception.Message) }
 
+# ---------------------------------------------------------------- T-TOK: where the report token comes from
+try {
+    $ws = New-WorkSpace 'report-token'
+    $localFile = Join-Path $ws 'orchestrator.local.json'
+    Set-Content -LiteralPath $localFile -Value '{ "reportToken": "file-token" }' -Encoding UTF8
+    $ctx = [pscustomobject]@{
+        ConfigPath = (Join-Path $ws 'config.json')
+        Config     = [pscustomobject]@{ report = [pscustomobject]@{ enabled = $true; url = 'http://127.0.0.1:9/api/events'; project = 'demo'; tokenEnv = 'ORCH_TEST_REPORT_TOKEN' } }
+    }
+
+    $old = $env:ORCH_TEST_REPORT_TOKEN
+    try {
+        $env:ORCH_TEST_REPORT_TOKEN = ''
+        $fromFile = Get-ReportToken $ctx
+        $env:ORCH_TEST_REPORT_TOKEN = 'env-token'
+        $fromEnv = Get-ReportToken $ctx
+    }
+    finally { $env:ORCH_TEST_REPORT_TOKEN = $old }
+
+    Remove-Item -LiteralPath $localFile -Force
+    $env:ORCH_TEST_REPORT_TOKEN = ''
+    try { $none = Get-ReportToken $ctx } finally { $env:ORCH_TEST_REPORT_TOKEN = $old }
+
+    # Plan 0009 D10: env first, the local file second, nothing when neither is set.
+    Check 'T-TOK' 'the report token comes from the env variable, else the local file, else nothing' `
+        ($fromFile -eq 'file-token' -and $fromEnv -eq 'env-token' -and $none -eq '') `
+        ("file='$fromFile' env='$fromEnv' none='$none'")
+}
+catch { Fail-Scenario 'T-TOK' 'report token resolver' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------------------------------- report
 Write-Host ''
 $script:results | Format-Table -AutoSize | Out-String -Width 400 | Write-Host

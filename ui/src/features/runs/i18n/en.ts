@@ -34,6 +34,7 @@ export const runsEn = {
     "time": "Time"
   },
   "empty": "No runs. Check the import log if you expected some.",
+  "noProjects": "No projects yet — Getting started",
   "detail": {
     "notFound": "This run is not in the dashboard. It may have been removed from the files.",
     "planVersion": "Plan version",

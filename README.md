@@ -35,23 +35,30 @@ with the dashboard down.
 
 ## Run the dashboard
 
-You need .NET 10 and Node 22, or Docker.
+You need .NET 10 and Node 22, or Docker. Open `http://localhost:3500` afterwards and start from
+**Getting started** in the menu: it walks from "run the dashboard" to "first plan" and ticks each step
+from what the dashboard really sees.
 
-Copy `api/src/Orchestra.Api/appsettings.Local.example.json` to `appsettings.Local.json` (git-ignored)
-and fill in your projects' runs folders.
+With Docker, copy `deploy/.env.example` to `deploy/.env` and set `ORCHESTRA_HOST_ROOT` to the folder that
+holds your projects (e.g. `F:/Projects`). It is mounted read-only at `/host`, and the dashboard translates
+the Windows paths you type into `/host/...` itself:
+
+```
+docker compose -f deploy/docker-compose.yml up --build
+```
+
+Without Docker — `dotnet run`, or IIS:
 
 ```
 cd ui && npm ci && npm run build && cd ..
 dotnet run --project api/src/Orchestra.Api
 ```
 
-Or with Docker (copy `deploy/.env.example` to `deploy/.env` and fill it in first):
-
-```
-docker compose -f deploy/docker-compose.yml up --build
-```
-
-Open `http://localhost:3500`. The projects' folders are mounted read-only.
+Then add a project by the path you see in Windows (`F:\Projects\MyApp`): the form fills the id, the runs
+folder and the repos, and the Connect page hands you the `report` block and the `reportToken` key. No
+environment variable is needed — the dashboard makes its own token and keeps it in `<data>/report-token`
+(plan 0009). Under IIS, install the ASP.NET Core 10 Hosting Bundle, give the app pool read access to your
+projects folder, and bind the site to `localhost` only until plan 0008 adds sign-in.
 
 ## Use the engine
 

@@ -6,6 +6,30 @@ import type { Locale } from '@/lib/i18n/config';
 import { projectsApi } from './api';
 import type { FolderCheck, ProjectBody } from './types';
 
+export { useHosting } from '@/lib/hosting/queries';
+
+/** Plan 0009 §6.6: the browser opens on the roots and walks down from there. */
+export function useFolders(path: string | null, enabled = true) {
+  const locale = useLocale() as Locale;
+
+  return useQuery({
+    queryKey: ['projects', 'folders', locale, path],
+    queryFn: () => projectsApi.folders(locale, path),
+    enabled,
+  });
+}
+
+/** The two pastes do not change; the connect page polls the project list for its first event instead. */
+export function useConnect(id: string | null) {
+  const locale = useLocale() as Locale;
+
+  return useQuery({
+    queryKey: ['projects', id, 'connect', locale],
+    queryFn: () => projectsApi.connect(locale, id as string),
+    enabled: Boolean(id),
+  });
+}
+
 export function useStoreState() {
   const locale = useLocale() as Locale;
 

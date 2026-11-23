@@ -13,6 +13,7 @@ public sealed record ProjectDto(
     string? Origin,
     string? RootPath,
     string? RunsPath,
-    IReadOnlyList<string> Repos);
+    IReadOnlyList<string> Repos,
+    DateTime? LastEventAt);
 
 public sealed record LastImportDto(DateTime FinishedAt, int ErrorCount);

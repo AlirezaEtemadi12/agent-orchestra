@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
+using Orchestra.Api.Modules.Projects.Features.Connect;
 using Orchestra.Api.Modules.Projects.Features.CreateProject;
 using Orchestra.Api.Modules.Projects.Features.DeleteProject;
 using Orchestra.Api.Modules.Projects.Features.EffectiveConfig;
@@ -82,6 +83,17 @@ public sealed class ProjectsController : ControllerBase
         [FromBody] FolderCheckRequest input)
     {
         return Ok(handler.Handle(input?.RootPath));
+    }
+
+    /// <summary>Plan 0009 D8: the two texts the owner pastes and the prompt for an agent.</summary>
+    [HttpGet("{id}/connect")]
+    public IActionResult Connect(
+        [FromServices] ConnectHandler handler,
+        string id)
+    {
+        var (connect, error) = handler.Handle(id, $"{Request.Scheme}://{Request.Host}");
+
+        return error is null ? Ok(connect) : Failure(error);
     }
 
     [HttpPost("scaffold-prompt")]

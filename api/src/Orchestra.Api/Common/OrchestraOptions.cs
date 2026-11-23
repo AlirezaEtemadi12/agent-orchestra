@@ -17,9 +17,21 @@ public sealed class OrchestraOptions
 
     public bool ImportOnStart { get; init; } = true;
 
-    /// <summary>The bearer token <c>POST api/events</c> accepts, and nothing else (plan 0004 D1). Unset
-    /// means the reporter is off and the route answers 404 (D2).</summary>
+    /// <summary>The bearer token <c>POST api/events</c> accepts, and nothing else (plan 0004 D1). When it
+    /// is unset the dashboard makes and keeps one (plan 0009 D6): the reporter is always on.</summary>
     public string? ReportToken { get; init; }
+
+    /// <summary>Plan 0009 D2/D13: host path to server path, for a container that sees the owner's
+    /// folders through one read-only parent mount.</summary>
+    public List<PathMapEntry> PathMap { get; init; } = [];
+
+    /// <summary>Plan 0009 D5: the folders the browser may list in a direct install. Empty means every
+    /// fixed drive — acceptable only on loopback until plan 0008 (D16).</summary>
+    public List<string> BrowseRoots { get; init; } = [];
+
+    /// <summary>Plan 0009 D8: the origin the report block points at, when it is not the origin the
+    /// browser used (behind IIS or a proxy).</summary>
+    public string? PublicUrl { get; init; }
 
     public List<ProjectOptions> Projects { get; init; } = [];
 
@@ -48,6 +60,14 @@ public sealed class OrchestraOptions
 
         return Path.GetFullPath(Path.Combine(folder, ProfilesPath));
     }
+}
+
+/// <summary>One plan 0009 D2 entry: a folder as the owner sees it, and where this process sees it.</summary>
+public sealed class PathMapEntry
+{
+    public string Host { get; init; } = string.Empty;
+
+    public string Server { get; init; } = string.Empty;
 }
 
 public sealed class ProjectOptions

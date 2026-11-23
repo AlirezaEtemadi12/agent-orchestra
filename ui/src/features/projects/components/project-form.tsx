@@ -14,8 +14,12 @@ import { Button } from '@/components/ui/button';
 import { useRouter } from '@/i18n/navigation';
 import { useProjects, type ProjectDto } from '@/lib/projects/queries';
 import { CheckResult } from './check-result';
+import { FolderBrowser } from './folder-browser';
+import { HostingLine } from './hosting-line';
+import { RepoPicker } from './repo-picker';
 import { copyPrompt, selectText } from '../clipboard';
-import { parseRepos, projectSchema, runsPathAfterCheck, slugOf, type ProjectFormValues } from '../project-schema';
+import { fillFromCheck } from '../form-autofill';
+import { projectSchema, slugOf, type ProjectFormValues } from '../project-schema';
 import { errorText, isIdTaken } from '../projects-errors';
 import { useCheckFolder, useCreateProject, useScaffoldPrompt, useUpdateProject } from '../queries';
 import type { FolderCheck } from '../types';
@@ -75,8 +79,7 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
       id: project?.id ?? '',
       rootPath: project?.rootPath ?? '',
       runsPath: project?.runsPath ?? '',
-      repos: (project?.repos ?? []).join(', '),
-      profile: 'default',
+      repos: [...(project?.repos ?? [])],
     },
   });
 
@@ -85,9 +88,15 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
   const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [idTouched, setIdTouched] = useState(false);
+  const [browserOpen, setBrowserOpen] = useState(false);
+  const [browsePath, setBrowsePath] = useState<string | null>(null);
   const promptRef = useRef<HTMLPreElement | null>(null);
+  const [checkedPath, setCheckedPath] = useState(project?.rootPath ?? '');
+  const [reposTouched, setReposTouched] = useState((project?.repos ?? []).length > 0);
 
   const name = useWatch({ control: form.control, name: 'name' });
+  const rootPath = useWatch({ control: form.control, name: 'rootPath' });
+  const repos = useWatch({ control: form.control, name: 'repos' });
 
   useEffect(() => {
     if (readOnly || idTouched) {
@@ -105,30 +114,61 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
     router.push('/settings/projects/' as never);
   };
 
-  const runCheck = async (): Promise<void> => {
+  const runCheck = async (path: string): Promise<FolderCheck | null> => {
+    if (path.trim().length === 0) {
+      return null;
+    }
+
     setMessage(null);
 
     try {
-      const result = await check.mutateAsync(form.getValues('rootPath'));
-      const runsPath = runsPathAfterCheck(form.getValues('runsPath'), result.suggestedRunsPath);
+      const result = await check.mutateAsync(path);
+      const values = form.getValues();
 
-      if (runsPath !== form.getValues('runsPath')) {
-        form.setValue('runsPath', runsPath);
+      const patch = fillFromCheck(
+        {
+          name: values.name,
+          id: values.id,
+          runsPath: values.runsPath,
+          repos: values.repos,
+          idTouched,
+          reposTouched,
+        },
+        result,
+      );
+
+      if (patch.name) {
+        form.setValue('name', patch.name);
+      }
+
+      if (patch.runsPath) {
+        form.setValue('runsPath', patch.runsPath);
+      }
+
+      if (patch.repos) {
+        form.setValue('repos', patch.repos);
       }
 
       setCheckResult(result);
+      setCheckedPath(path);
+      setPromptText(null);
 
-      const generated = await prompt.mutateAsync({
-        name: form.getValues('name'),
-        rootPath: form.getValues('rootPath'),
-        repos: parseRepos(form.getValues('repos')),
-        check: result,
-      });
+      if (result.visible && !result.isReady) {
+        const generated = await prompt.mutateAsync({
+          name: form.getValues('name'),
+          rootPath: path,
+          repos: form.getValues('repos'),
+          check: result,
+        });
 
-      setPromptText(generated.text);
-      setCopied(false);
+        setPromptText(generated.text);
+        setCopied(false);
+      }
+
+      return result;
     } catch (error) {
       setMessage(errorText(error, common('errors.unexpected')));
+      return null;
     }
   };
 
@@ -152,21 +192,22 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
       name: values.name,
       rootPath: values.rootPath,
       runsPath: values.runsPath,
-      repos: parseRepos(values.repos),
+      repos: values.repos,
       profile: 'default',
     };
 
     setMessage(null);
 
     try {
-      if (project) {
-        await update.mutateAsync({ id: project.id, body });
-      } else {
-        await create.mutateAsync(body);
-      }
+      const saved = project
+        ? await update.mutateAsync({ id: project.id, body })
+        : await create.mutateAsync(body);
 
       toast.success(t('saved'));
-      back();
+      router.push({
+        pathname: '/settings/projects/connect/',
+        query: { id: saved.id },
+      } as never);
     } catch (error) {
       if (!project && isIdTaken(error)) {
         form.setError('id', { message: t('errors.IdTaken') });
@@ -186,12 +227,54 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
         actions={readOnly ? <Badge variant="outline">{t('origin.config')}</Badge> : undefined}
       />
 
+      {!readOnly ? <HostingLine /> : null}
+
+      <Field label={t('fields.rootPath')} hint={t('hints.rootPath')} error={errors.rootPath?.message}>
+        <div className="flex items-center gap-2">
+          <input
+            {...form.register('rootPath', {
+              onBlur: () => {
+                if (!readOnly && form.getValues('rootPath') !== checkedPath) {
+                  void runCheck(form.getValues('rootPath'));
+                }
+              },
+            })}
+            className={INPUT}
+            data-ltr
+            disabled={readOnly}
+          />
+          {!readOnly ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setBrowsePath(form.getValues('rootPath').trim() || null);
+                setBrowserOpen(true);
+              }}
+            >
+              {t('form.browse')}
+            </Button>
+          ) : null}
+        </div>
+      </Field>
+
+      {checkResult ? <CheckResult check={checkResult} /> : null}
+
+      {checkResult && !checkResult.visible ? (
+        <p className="text-sm text-destructive">{t('form.notVisible')}</p>
+      ) : null}
+
+      {checkResult && checkResult.visible && !checkResult.exists ? (
+        <p className="text-sm text-destructive">{t('folderMissing')}</p>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t('fields.name')} error={errors.name?.message}>
+        <Field label={t('fields.name')} hint={t('hints.name')} error={errors.name?.message}>
           <input {...form.register('name')} className={INPUT} disabled={readOnly} />
         </Field>
 
-        <Field label={t('fields.id')} error={errors.id?.message}>
+        <Field label={t('fields.id')} hint={t('hints.id')} error={errors.id?.message}>
           <input
             {...form.register('id', { onChange: () => setIdTouched(true) })}
             className={INPUT}
@@ -199,25 +282,28 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
             disabled={readOnly || project !== null}
           />
         </Field>
-
-        <Field label={t('fields.rootPath')} error={errors.rootPath?.message}>
-          <input {...form.register('rootPath')} className={INPUT} data-ltr disabled={readOnly} />
-        </Field>
-
-        <Field label={t('fields.runsPath')} error={errors.runsPath?.message}>
-          <input {...form.register('runsPath')} className={INPUT} data-ltr disabled={readOnly} />
-        </Field>
-
-        <Field label={t('fields.repos')} error={errors.repos?.message}>
-          <input {...form.register('repos')} className={INPUT} data-ltr disabled={readOnly} />
-        </Field>
-
-        <Field label={t('fields.profile')} hint={t('fields.profileLater')}>
-          <input value="default" className={INPUT} readOnly disabled />
-        </Field>
       </div>
 
-      <p className="text-xs text-muted-foreground">{t('dockerHint')}</p>
+      <Field label={t('fields.repos')} hint={t('hints.repos')}>
+        <RepoPicker
+          detected={checkResult?.repos ?? []}
+          value={repos}
+          disabled={readOnly}
+          onChange={(next) => {
+            setReposTouched(true);
+            form.setValue('repos', next);
+          }}
+        />
+      </Field>
+
+      <details className="rounded-xl border bg-card/40 p-4">
+        <summary className="cursor-pointer text-sm font-medium">{t('form.advanced')}</summary>
+        <div className="pt-3">
+          <Field label={t('fields.runsPath')} hint={t('hints.runsPath')} error={errors.runsPath?.message}>
+            <input {...form.register('runsPath')} className={INPUT} data-ltr disabled={readOnly} />
+          </Field>
+        </div>
+      </details>
 
       {!readOnly ? (
         <div className="flex flex-wrap items-center gap-2">
@@ -225,22 +311,12 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
             type="button"
             size="sm"
             variant="outline"
-            disabled={check.isPending}
-            onClick={() => void runCheck()}
+            disabled={check.isPending || rootPath.trim().length === 0}
+            onClick={() => void runCheck(form.getValues('rootPath'))}
           >
             {checkResult ? t('checkAgain') : t('check')}
           </Button>
         </div>
-      ) : null}
-
-      {checkResult ? <CheckResult check={checkResult} /> : null}
-
-      {checkResult && !checkResult.isAbsolute ? (
-        <p className="text-sm text-destructive">{t('notAbsolute')}</p>
-      ) : null}
-
-      {checkResult && checkResult.isAbsolute && !checkResult.exists ? (
-        <p className="text-sm text-destructive">{t('folderMissing')}</p>
       ) : null}
 
       {promptText ? (
@@ -258,11 +334,6 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
             <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
               {copied ? t('copied') : t('copy')}
             </Button>
-            {!readOnly ? (
-              <Button type="button" size="sm" variant="ghost" onClick={() => void runCheck()}>
-                {t('checkAgain')}
-              </Button>
-            ) : null}
           </div>
         </section>
       ) : null}
@@ -283,6 +354,17 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
           {message}
         </p>
       ) : null}
+
+      <FolderBrowser
+        open={browserOpen}
+        path={browsePath}
+        onPath={setBrowsePath}
+        onOpenChange={setBrowserOpen}
+        onChoose={(path) => {
+          form.setValue('rootPath', path, { shouldValidate: true });
+          void runCheck(path);
+        }}
+      />
     </form>
   );
 }

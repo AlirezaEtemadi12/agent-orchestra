@@ -27,6 +27,13 @@ public sealed class ListProjectsHandler(OrchestraDbContext database, ProjectRegi
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
+        // Plan 0009 D11: the connect and start pages call a project connected after its first event.
+        var lastEvents = await database.RunEvents
+            .AsNoTracking()
+            .GroupBy(item => item.ProjectId)
+            .Select(group => new { ProjectId = group.Key, Last = group.Max(item => item.ReceivedAt) })
+            .ToListAsync(cancellationToken);
+
         var result = new List<ProjectDto>();
 
         foreach (var id in ids)
@@ -34,6 +41,10 @@ public sealed class ListProjectsHandler(OrchestraDbContext database, ProjectRegi
             var project = projects.FirstOrDefault(item => item.Id == id);
             var runs = project?.Runs ?? [];
             var configured = registry.Find(id);
+
+            // Plan 0009 D3: the form and the list show the paths as the owner typed them, never
+            // the container's /host/... form.
+            var stored = registry.Stored(id);
 
             var lastLog = project is null
                 ? null
@@ -53,9 +64,10 @@ public sealed class ListProjectsHandler(OrchestraDbContext database, ProjectRegi
                 Cost(runs.Sum(run => run.CostMicros)),
                 lastLog is null ? null : new LastImportDto(lastLog.FinishedAt, lastLog.ErrorCount),
                 Origin(registry.OriginOf(id)),
-                configured?.ResolveRootPath(),
-                configured?.RunsPath,
-                configured?.Repos ?? []));
+                stored?.RootPath ?? configured?.ResolveRootPath(),
+                stored?.RunsPath ?? configured?.RunsPath,
+                configured?.Repos ?? [],
+                lastEvents.FirstOrDefault(item => item.ProjectId == id)?.Last));
         }
 
         return result;
