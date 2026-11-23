@@ -47,4 +47,6 @@ export type EffectiveConfigDto = {
   suggestedOrchestratorJson: string;
   profile: string | null;
   profileVersion: number | null;
+  /** The file the API read, root-relative: `.orchestra/orchestrator.json` or the old `orchestrator/…` (plan 0007 D4a). */
+  configPath: string;
 };

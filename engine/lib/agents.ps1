@@ -884,7 +884,7 @@ function Get-RoleProtocol {
     $sb = New-Object System.Text.StringBuilder
     [void]$sb.AppendLine('## Orchestrator mode (overrides the stage prompt where they differ)')
     [void]$sb.AppendLine('You run headless. Nobody reads your questions until you finish, and approvals happen outside your run.')
-    [void]$sb.AppendLine('You are a worker called BY the orchestrator: never run orchestrator/run.ps1 and ignore any "orchestrate" skill or conductor instructions you may find.')
+    [void]$sb.AppendLine('You are a worker called BY the orchestrator: never run its run.ps1 (orchestrator/run.ps1, or .orchestra/run.ps1 in the new layout) and ignore any "orchestrate" skill or conductor instructions you may find.')
     switch ($Role) {
         'readback' {
             [void]$sb.AppendLine('- READ-BACK ONLY. You will implement this plan later, but NOT now: do not edit any file, do not run commands, do not create branches.')

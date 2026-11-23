@@ -1,20 +1,21 @@
 {
     "version": "0.7.0",
-    "note": "An example project config for the shared engine. Copy it to <project>/orchestrator/orchestrator.json and replace the placeholders: repos (folder names under root), verifyCommands (that project's gate commands), description (the two lines `run.ps1 help` prints), planFiling (number or slug), contractDoc (optional: the frontend contract doc relative to root; default Web/.ai/architecture/api-surface-v3.md). Everything else is the engine's behaviour and is the same in every project.",
+    "note": "An example project config for the shared engine. Copy it to <project>/.orchestra/orchestrator.json (a workspace that has not run plan 0007's move yet: <project>/orchestrator/orchestrator.json) and replace the placeholders: repos (folder names under root), verifyCommands (that project's gate commands), description (the two lines `run.ps1 help` prints), planFiling (number or slug), contractDoc (optional: the frontend contract doc relative to root; default Web/.ai/architecture/api-surface-v3.md). Everything else is the engine's behaviour and is the same in every project.",
     "description": {
         "title": "orchestrator / run.ps1 - multi-agent, four-gate driver for <Project>",
         "repos": "  - Repos: <RepoA>, <RepoB> - separate git repos under one workspace root. The root is not a git repo."
     },
     "planFiling": "number",
+    "plansDir": ".orchestra/plans/{repo}",
     "root": "..",
     "workflow": {
-        "gatesPath": "{repo}/.ai/agents/workflow.md",
-        "rolesPath": "{repo}/.ai/agents",
-        "rolesIndex": "{repo}/.ai/agents/README.md",
-        "promptsPath": "{repo}/.ai/prompts",
+        "gatesPath": ".orchestra/workflow.md",
+        "rolesPath": ".orchestra/roles/{repo}",
+        "rolesIndex": ".orchestra/roles/{repo}/README.md",
+        "promptsPath": ".orchestra/prompts/{repo}",
         "agentsDoc": "{repo}/AGENTS.md",
         "indexDoc": "{repo}/.ai/README.md",
-        "planTemplate": "{repo}/.ai/plans/TEMPLATE.md"
+        "planTemplate": ".orchestra/plans/TEMPLATE.md"
     },
     "repos": {
         "<RepoA>": "<RepoA>",

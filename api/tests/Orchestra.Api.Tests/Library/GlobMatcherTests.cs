@@ -33,7 +33,7 @@ public sealed class GlobMatcherTests
     {
         LibraryDefaults.Plans.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/plans", ".orchestra/plans");
         LibraryDefaults.Previews.Select(GlobMatcher.FixedPrefix)
-            .Should().Equal(".orchestra/previews", ".orchestra/previews");
+            .Should().Equal(".orchestra/previews", ".orchestra/previews", ".orchestra/runs/_drafts");
         LibraryDefaults.Ideas.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/ideas");
         LibraryDefaults.Research.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/research");
         LibraryDefaults.Evidence.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/evidence");
