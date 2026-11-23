@@ -1,0 +1,17 @@
+# Build context is the repo root (deploy/docker-compose.yml). Host build output must never reach the
+# image: a copied obj/ makes `dotnet publish` fail with duplicate assembly attributes.
+**/bin/
+**/obj/
+**/node_modules/
+**/.next/
+**/out/
+/artifacts/
+/data/
+/evidence/
+.git/
+.vs/
+.freebuff/
+.orchestra/
+graphify-out/
+deploy/.env
+**/appsettings.Local.json

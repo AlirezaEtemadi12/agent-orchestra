@@ -21,7 +21,10 @@ WORKDIR /app
 COPY --from=api /app ./
 COPY --from=ui /src/out ./wwwroot
 
+# `Urls` (not only ASPNETCORE_URLS): appsettings.json sets Urls=http://localhost:3500 for local runs, and
+# that wins over ASPNETCORE_URLS, so the container would listen on its own loopback only.
 ENV ASPNETCORE_URLS=http://+:3500 \
+    Urls=http://+:3500 \
     Orchestra__DatabasePath=/data/orchestra.db
 
 EXPOSE 3500

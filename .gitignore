@@ -31,3 +31,7 @@ graphify-out/
 
 # Visual Studio
 .vs/
+
+# Local tool folders and build output
+/artifacts/
+.freebuff/
