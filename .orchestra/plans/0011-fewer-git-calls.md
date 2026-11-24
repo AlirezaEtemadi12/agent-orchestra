@@ -1,9 +1,10 @@
 # Plan 0011 — One git call per repo per snapshot
 
-**Status:** Running — phases 1–3 implemented 2026-11-24; the diff is uncommitted on the branch and the offline suite is green (142 checks), 25 git calls per `new` instead of 61
-**Created:** 2026-11-23 · **Updated:** 2026-11-24 · **Done:** —
+**Status:** Done
+**Created:** 2026-11-23 · **Updated:** 2026-11-24 · **Done:** 2026-11-24
 **Preview:** none — no screen; the engine does the same checks with fewer `git` processes
-**Run:** —
+**Run:** — (implemented by an agent in the chat, phases 1–3)
+**Commit:** `a2f36bf` on `alireza/fewer-git-calls` · **Merge:** — (branch pushed, not merged yet)
 **Planned by:** Claude Opus 5.5, 2026-11-23. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** gate 2 by another model family (pasted by the owner, 2026-11-24): 4 must-fix, 7 should-fix. All are applied in v2 (D2–D9, §6, §7, §9). One correction to the review is recorded in D4: the field counts before the path are 9 for `2` and 10 for `u`, checked against git 2.56 output. Second pass (same reviewer, 2026-11-24): all fixes confirmed against the code and git; three small points applied (line numbers in §0, the v1 leftovers in §6.1, the printed baseline in §0 and §9).
 **Decided by:** owner in the chat, 2026-11-23 ("four git calls is really too many; nobody touches the repo at that moment". The check stays and its cost goes; see D1.) Approved for execution by the owner, 2026-11-24.
