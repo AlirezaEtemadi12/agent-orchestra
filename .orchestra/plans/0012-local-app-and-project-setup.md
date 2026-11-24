@@ -10,8 +10,8 @@ the reviewer finds them too vague to build without guessing, the preview is made
 **Decided by:** owner in the chat, 2026-11-24 (plan approved after the gate-2 fixes; "no server", "simple for me first", "adding a project must do
 every step itself"). Every choice below is already decided — **decide nothing new.** If reality contradicts
 this plan, STOP and ask.
-**Branch:** `alireza/local-app`. The implementer creates it. **Commit:** not yet — the diff is uncommitted for the owner.
-**Merge:** —
+**Branch:** `alireza/local-app`. The implementer creates it. **Commit:** `461328f` on `alireza/local-app`
+**Merge:** `c74b46c` into `main`, 2026-11-24 (not pushed)
 **Base:** `bdc8840` (the plan's own commit on `main`, after the plan 0011 merge `f75781b`), 2026-11-24. Phase C edits the offline suite,
 so do not start before that work is merged; record the base hash here when you start.
 **Companion:** None. Project A and Project B are set up again from the app (phase D, owner checks), not by
