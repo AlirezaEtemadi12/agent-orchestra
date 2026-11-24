@@ -56,6 +56,7 @@ describe('the projects table', () => {
     expect(screen.getAllByRole('button', { name: 'Remove' })).toHaveLength(1);
     expect(screen.getByText('Added here')).toBeInTheDocument();
     expect(screen.getByText('From the configuration file')).toBeInTheDocument();
+    expect(screen.getAllByText('Check setup')).toHaveLength(2);
   });
 
   it('shows a dash for a project without a folder', () => {

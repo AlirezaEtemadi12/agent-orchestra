@@ -28,6 +28,7 @@ export function ProjectsTable({ rows, onRemove }: ProjectsTableProps) {
           <TableHead />
           <TableHead />
           <TableHead />
+          <TableHead />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -53,6 +54,16 @@ export function ProjectsTable({ rows, onRemove }: ProjectsTableProps) {
               </TableCell>
               <TableCell>
                 <DateTimeText value={project.lastImport?.finishedAt ?? null} />
+              </TableCell>
+              <TableCell>
+                {project.rootPath ? (
+                  <Link
+                    className="text-xs underline underline-offset-4"
+                    href={{ pathname: '/settings/projects/setup/', query: { id: project.id } } as never}
+                  >
+                    {t('table.check')}
+                  </Link>
+                ) : null}
               </TableCell>
               <TableCell>
                 {dashboard ? (

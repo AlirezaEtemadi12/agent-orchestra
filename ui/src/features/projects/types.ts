@@ -57,8 +57,6 @@ export type EffectiveConfigDto = {
   configPath: string;
 };
 
-export type { Hosting } from '@/lib/hosting/queries';
-
 export type FolderEntry = {
   name: string;
   path: string;
@@ -73,11 +71,44 @@ export type FolderList = {
   folders: FolderEntry[];
 };
 
-/** `GET api/projects/{id}/connect` (plan 0009 D8). */
-export type Connect = {
-  reportBlock: string;
-  localKeys: string;
-  agentPrompt: string;
-  /** False when the dashboard cannot tell its profiles folder in host form (D8). */
-  hasProfilesPath: boolean;
+/** `POST api/projects/setup/plan` and `/apply`: the form's values, and the owner's ticks and commands. */
+export type SetupRequest = {
+  rootPath: string;
+  name: string;
+  id: string;
+  repos: string[];
+  // One list per repo, one command per entry: the API binds string[] (plan 0012 §6.3.1).
+  verifyCommands: Record<string, string[]> | null;
+  skip: string[] | null;
+};
+
+export type SetupAction = 'create' | 'add' | 'update' | 'exists';
+
+/** One row of the checklist; `id` is the same across calls, so a removed tick stays removed. */
+export type SetupItem = {
+  id: string;
+  path: string;
+  action: SetupAction;
+  optional: boolean;
+  detail: string | null;
+};
+
+export type SetupPlan = {
+  engineFound: boolean;
+  isSingleRepo: boolean;
+  items: SetupItem[];
+  verifyCommands: Record<string, string[]>;
+};
+
+export type SetupResultItem = {
+  id: string;
+  ok: boolean;
+  error: string | null;
+  detail: string | null;
+};
+
+export type SetupResult = {
+  items: SetupResultItem[];
+  project: SavedProject;
+  knowledgePrompt: string;
 };

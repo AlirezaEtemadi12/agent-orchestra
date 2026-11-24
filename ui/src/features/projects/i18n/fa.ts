@@ -1,4 +1,4 @@
-// Plan 0003 §6.5 strings kept; the field hints, hosting and connect copy are plan 0009 §6.7 and §6.8.
+// Plan 0003 §6.5 strings kept; the setup copy is plan 0012 §6.6.
 // Never retype or "improve" these strings.
 export const projectsFa = {
   "title": "پروژه‌ها",
@@ -22,11 +22,6 @@ export const projectsFa = {
     "repos": "ریپوهای git داخل پوشه. پیداشده‌ها تیک خورده‌اند؛ برای اضافه کردن، اسم پوشه‌اش را بنویسید.",
     "runsPath": "جایی که ارکستر runها را نگه می‌دارد. معمولاً .orchestra\\runs داخل پروژه."
   },
-  "hosting": {
-    "docker": "در داکر اجرا می‌شود. این پوشه‌ها را می‌بیند: {roots}",
-    "dockerNone": "در داکر اجرا می‌شود، اما هیچ پوشه‌ای به آن وصل نیست. در deploy/.env خط ORCHESTRA_HOST_ROOT را با پوشه‌ای که پروژه‌هایتان در آن است (مثلاً F:/Projects) اضافه کنید و دوباره اجرا کنید.",
-    "direct": "مستقیم روی همین کامپیوتر اجرا می‌شود؛ هر پوشه‌ای که بتوانید باز کنید قابل استفاده است."
-  },
   "form": {
     "notVisible": "داشبورد این پوشه را نمی‌بیند.",
     "ready": "آماده برای ارکستر؛ راه‌اندازی لازم نیست.",
@@ -40,26 +35,38 @@ export const projectsFa = {
     "inEachRepo": "در هر ریپو",
     "advanced": "پیشرفته"
   },
-  "connect": {
-    "title": "اتصال {name}",
-    "block": "۱. این بلوک را به .orchestra/orchestrator.json اضافه کنید",
-    "orPrompt": "یا این پرامپت را به ایجنت خود بدهید:",
-    "local": "۲. این کلیدها را خودتان به .orchestra/orchestrator.local.json اضافه کنید. توکن داخل آن‌هاست، پس به ایجنت داده نمی‌شوند. enginePath را دست نزنید.",
-    "noProfilesPath": "profilesPath اضافه نشده، چون داشبورد نمی‌داند پوشه‌ی پروفایل‌ها روی کامپیوتر شما کجاست. اگر دارید همان را نگه دارید؛ فقط وقتی لازم است که پروژه یک پروفایل نام ببرد.",
-    "waiting": "۳. منتظر اولین رویداد — یک run از این پروژه شروع کنید.",
-    "connected": "۳. وصل است — آخرین رویداد {time}.",
-    "board": "باز کردن Runs board",
-    "back": "بازگشت به پروژه‌ها",
-    "copy": "کپی",
-    "copied": "کپی شد"
+  "table": {
+    "check": "بررسی راه‌اندازی"
+  },
+  "setup": {
+    "title": "راه‌اندازی {name}",
+    "continue": "ادامه",
+    "apply": "راه‌اندازی",
+    "back": "بازگشت",
+    "action": {
+      "create": "ساخته می‌شود",
+      "add": "اضافه می‌شود",
+      "update": "به‌روز می‌شود",
+      "exists": "هست"
+    },
+    "commands": "دستورهای build و test (هر خط یک دستور)",
+    "nothing": "همه‌چیز از قبل راه‌اندازی شده است.",
+    "noEngine": "پوشه‌ی موتور پیدا نشد. مقدار Orchestra:EnginePath را تنظیم کنید.",
+    "waiting": "منتظر اولین رویداد",
+    "connected": "وصل است — آخرین رویداد {time}.",
+    "knowledge": "پر کردن دانش پروژه با یک ایجنت (اختیاری)",
+    "errors": {
+      "WriteFailed": "این فایل نوشته نشد.",
+      "GitInitFailed": "دستور git init انجام نشد؛ کارهای بعد از آن انجام نشدند.",
+      "InvalidJson": "این فایل JSON خوانده نشد و دست‌نخورده ماند.",
+      "Skipped": "انجام نشد: یک قدم قبلی خطا داد."
+    }
   },
   "check": "بررسی پوشه",
   "checkAgain": "بررسی دوباره",
   "found": "پیدا شد",
   "missing": "نیست",
   "folderMissing": "این پوشه وجود ندارد.",
-  "promptTitle": "پرامپت برای ایجنت شما",
-  "promptHint": "این را به ایجنتی بدهید که با آن در این پوشه کار می‌کنید. فایل‌ها را ایجنت می‌سازد و داشبورد هیچ‌وقت در پروژه‌ی شما نمی‌نویسد.",
   "copy": "کپی",
   "copied": "کپی شد",
   "save": "ذخیره",

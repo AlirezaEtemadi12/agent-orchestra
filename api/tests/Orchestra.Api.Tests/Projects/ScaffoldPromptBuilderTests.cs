@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
 using Orchestra.Api.Modules.Projects.Features.ScaffoldPrompt;
 
@@ -9,10 +8,11 @@ public sealed class ScaffoldPromptBuilderTests
     [Fact]
     public void Nothing_missing_is_one_line()
     {
-        var check = Check(".ai/", ".orchestra/", "AGENTS.md");
+        // Plan 0012 D14: the config no longer counts; .ai/ and AGENTS.md are the whole question.
+        var check = Check(".ai/", "AGENTS.md");
 
         ScaffoldPromptBuilder.Build("MyShop", "/shop", [], check)
-            .Should().Be("Nothing to create: .ai/, AGENTS.md and .orchestra/orchestrator.json are already there.");
+            .Should().Be("Nothing to create: .ai/ and AGENTS.md are already there.");
     }
 
     [Fact]
@@ -25,9 +25,8 @@ public sealed class ScaffoldPromptBuilderTests
         text.Should().Contain("2. Create .ai/ — the project's knowledge tree, for any agent:");
         text.Should().Contain("1. Read what already instructs agents here: AGENTS.md.");
         text.Should().NotContain("3. Create AGENTS.md");
-        text.Should().NotContain("4. Create .orchestra/");
-        text.Should().NotContain("orchestrator.json — the engine reads this file");
-        text.Should().EndWith("5. Commit nothing. Tell me what you created and what you could not verify.");
+        text.Should().NotContain("orchestrator.json");
+        text.Should().EndWith("4. Commit nothing. Tell me what you created and what you could not verify.");
     }
 
     [Fact]
@@ -56,36 +55,10 @@ public sealed class ScaffoldPromptBuilderTests
     }
 
     [Fact]
-    public void The_embedded_config_is_the_engines_orchestrator_json()
+    public void The_last_line_is_numbered_4()
     {
-        // The folder exists but the config file does not: the one case that asks for the file alone.
-        var check = Check("AGENTS.md", ".orchestra/") with { IsReady = false };
-
-        var text = ScaffoldPromptBuilder.Build("MyShop", "/shop", ["api"], check);
-
-        var start = text.IndexOf('{');
-        var json = text[start..(text.LastIndexOf('}') + 1)];
-
-        using var document = JsonDocument.Parse(json);
-
-        document.RootElement.GetProperty("profile").GetString().Should().Be("default");
-        document.RootElement.GetProperty("root").GetString().Should().Be("..");
-        document.RootElement.GetProperty("plansDir").GetString().Should().Be(".orchestra/plans/{repo}");
-        document.RootElement.GetProperty("repos").GetProperty("api").GetString().Should().Be("api");
-        document.RootElement.GetProperty("verifyCommands").ValueKind.Should().Be(JsonValueKind.Object);
-        text.Should().Contain("Create .orchestra/orchestrator.json — the engine reads this file:");
-        text.Should().Contain("Fill verifyCommands with each repo's build and test commands.");
-        text.Should().NotContain("project.json");
-    }
-
-    [Fact]
-    public void A_missing_orchestra_folder_embeds_the_config_and_the_folder_work()
-    {
-        var text = ScaffoldPromptBuilder.Build("MyShop", "/shop", ["api"], Check(".ai/", "AGENTS.md"));
-
-        text.Should().Contain("4. Create .orchestra/ — the orchestrator's working folder, in git:");
-        text.Should().Contain("\"verifyCommands\": {");
-        text.Should().Contain("add .orchestra/evidence/ and .orchestra/runs/ to .gitignore.");
+        ScaffoldPromptBuilder.Build("MyShop", "/shop", ["."], Check())
+            .Should().EndWith("\n4. Commit nothing. Tell me what you created and what you could not verify.");
     }
 
     private static FolderCheckDto Check(params string[] found)

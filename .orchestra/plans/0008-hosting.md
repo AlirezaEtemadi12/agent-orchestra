@@ -1,7 +1,7 @@
 # Plan 0008 — Hosting on the personal server: sign-in, HTTPS, backups, sync
 
-**Status:** Draft — waiting for the owner's answers in §8 (question 1 decides what the server can show), then the plan review (gate 2)
-**Created:** 2026-11-19 · **Updated:** 2026-11-20 · **Done:** —
+**Status:** Dropped — the owner wants no server (2026-11-24, [ADR 0009](../../.ai/decisions/0009-local-app-sets-projects-up.md)); hosting is an idea again ([`../ideas/hosting.md`](../ideas/hosting.md))
+**Created:** 2026-11-19 · **Updated:** 2026-11-24 · **Done:** —
 **Preview:** none of its own — the roadmap's phase 3 (approved 2026-11-19)
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-19. **Executor:** another agent, ideally a cheaper model.

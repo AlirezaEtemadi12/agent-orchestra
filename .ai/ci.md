@@ -38,6 +38,7 @@ that passed only on that rerun (timing under load). It prints a total and the wa
 
 | When | Tests |
 |---|---|
+| after plan 0012 — project templates, no hosting (2026-11-24) | 146; 289 s |
 | after plan 0011 — one git call per repo per snapshot (2026-11-24) | 142; 25 git calls per `new` (was 61); 320 s |
 | suite sped up — one config, four shards, workspaces copied from one template (2026-11-23) | 140; ~7 min (was ~37 for two configs) |
 | after plan 0009 — the report token from `orchestrator.local.json` (2026-11-23) | 140 per config |
@@ -46,6 +47,14 @@ that passed only on that rerun (timing under load). It prints a total and the wa
 | after the Project A gaps in the engine — `**Branch:**` line, `contractDoc`, planner phase name (2026-11-22) | 127 per config, 254 across `number` and `slug` |
 | after plan 0004 phase D — the reporter in the engine (2026-11-21) | 124 per config, 248 across `number` and `slug`; ~18 min per config |
 | after plan 0005 phase A+B — engine move, both filing styles (2026-11-20) | 121 per config, 242 across `number` and `slug`; ~18 min per config |
+
+## Baseline after plan 0012 — the local app sets projects up (2026-11-24)
+
+| Side | Tests |
+|---|---|
+| `api` | 300 |
+| `ui` | 83 |
+| `engine` (offline suite, Windows only — its own section above) | 146 |
 
 ## Baseline after plan 0009 — easy onboarding (2026-11-23)
 
@@ -67,6 +76,7 @@ that passed only on that rerun (timing under load). It prints a total and the wa
 
 | When | `api` | `ui` |
 |---|---|---|
+| after plan 0012 — the local app sets projects up (2026-11-24) | 300 | 83 |
 | after plan 0009 — easy onboarding (2026-11-23) | 269 | 77 |
 | after plan 0006 — profiles (2026-11-22) | 246 | 64 |
 | after plan 0004 phase D — the reporter in the engine (2026-11-21) | 217 | 56 |

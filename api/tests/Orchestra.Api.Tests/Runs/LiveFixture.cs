@@ -50,7 +50,7 @@ internal sealed class LiveFixture : IDisposable
         Now = now ?? new DateTime(2026, 11, 20, 7, 0, 0, DateTimeKind.Utc);
         Clock = new FixedClock(new DateTimeOffset(Now, TimeSpan.Zero));
 
-        Board = new BoardHandler(Database, Registry, Settings, Clock);
+        Board = new BoardHandler(Database, Registry, Clock);
         Pools = new PoolsHandler(Database, Clock);
     }
 

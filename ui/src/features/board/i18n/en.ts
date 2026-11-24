@@ -16,6 +16,5 @@ export const boardEn = {
   },
   "elapsed": "Elapsed",
   "lastLine": "Latest line",
-  "empty": "No run had an event in the last 24 hours.",
-  "reporterOff": "Live events are off. Set Orchestra:ReportToken and configure the reporter."
+  "empty": "No run had an event in the last 24 hours."
 };

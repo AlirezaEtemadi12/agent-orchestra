@@ -4,9 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
 import type { Locale } from '@/lib/i18n/config';
 import { projectsApi } from './api';
-import type { FolderCheck, ProjectBody } from './types';
-
-export { useHosting } from '@/lib/hosting/queries';
+import type { ProjectBody, SetupRequest } from './types';
 
 /** Plan 0009 §6.6: the browser opens on the roots and walks down from there. */
 export function useFolders(path: string | null, enabled = true) {
@@ -16,17 +14,6 @@ export function useFolders(path: string | null, enabled = true) {
     queryKey: ['projects', 'folders', locale, path],
     queryFn: () => projectsApi.folders(locale, path),
     enabled,
-  });
-}
-
-/** The two pastes do not change; the connect page polls the project list for its first event instead. */
-export function useConnect(id: string | null) {
-  const locale = useLocale() as Locale;
-
-  return useQuery({
-    queryKey: ['projects', id, 'connect', locale],
-    queryFn: () => projectsApi.connect(locale, id as string),
-    enabled: Boolean(id),
   });
 }
 
@@ -57,12 +44,22 @@ export function useCheckFolder() {
   });
 }
 
-export function useScaffoldPrompt() {
+/** Plan 0012 §6.5: the plan is asked again on every tick and every command edit. */
+export function useSetupPlan() {
   const locale = useLocale() as Locale;
 
   return useMutation({
-    mutationFn: (body: { name: string; rootPath: string; repos: string[]; check: FolderCheck }) =>
-      projectsApi.prompt(locale, body),
+    mutationFn: (body: SetupRequest) => projectsApi.setupPlan(locale, body),
+  });
+}
+
+export function useSetupApply() {
+  const locale = useLocale() as Locale;
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (body: SetupRequest) => projectsApi.setupApply(locale, body),
+    onSuccess: () => client.invalidateQueries({ queryKey: ['projects'] }),
   });
 }
 

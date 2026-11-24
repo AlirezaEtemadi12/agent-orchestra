@@ -58,7 +58,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
     [Fact]
     public async Task Update_refuses_a_config_project_and_an_unknown_id()
     {
-        var handler = new UpdateProjectHandler(_fixture.Registry, _fixture.Imports, _fixture.Mapper);
+        var handler = new UpdateProjectHandler(_fixture.Registry, _fixture.Imports);
 
         var config = await handler.HandleAsync(
             ProjectsFixture.ConfigProject,
@@ -80,7 +80,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
 
         var renamed = Input("shop", root) with { Name = "Renamed" };
 
-        var (saved, error) = await new UpdateProjectHandler(_fixture.Registry, _fixture.Imports, _fixture.Mapper)
+        var (saved, error) = await new UpdateProjectHandler(_fixture.Registry, _fixture.Imports)
             .HandleAsync("shop", renamed, CancellationToken.None);
 
         error.Should().BeNull();
@@ -170,7 +170,7 @@ public sealed class CreateUpdateDeleteTests : IDisposable
             .Code.Should().Be(Error.ProjectNotFound.Code);
     }
 
-    private CreateProjectHandler Create => new(_fixture.Registry, _fixture.Imports, _fixture.Mapper, TimeProvider.System);
+    private CreateProjectHandler Create => new(_fixture.Registry, _fixture.Imports, TimeProvider.System);
 
     private DeleteProjectHandler Handler()
     {

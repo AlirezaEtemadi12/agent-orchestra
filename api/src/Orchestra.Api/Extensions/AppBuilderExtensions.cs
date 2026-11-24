@@ -24,8 +24,11 @@ internal static class AppBuilderExtensions
         // Every clock in the API comes from here; DateTime.Now never appears outside the import clock.
         builder.Services.AddSingleton(TimeProvider.System);
 
+        // Plan 0012 §6.7: the published app is one file, and there MVC's dependency-context discovery
+        // finds no application part, so every controller 404s. Name the assembly it lives in.
         builder.Services
             .AddControllers()
+            .AddApplicationPart(typeof(AppBuilderExtensions).Assembly)
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;

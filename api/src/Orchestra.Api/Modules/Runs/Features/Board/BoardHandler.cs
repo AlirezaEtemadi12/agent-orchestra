@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
 using Orchestra.Api.Data;
@@ -15,7 +14,6 @@ namespace Orchestra.Api.Modules.Runs.Features.Board;
 public sealed class BoardHandler(
     OrchestraDbContext database,
     ProjectRegistry registry,
-    IOptions<OrchestraOptions> options,
     TimeProvider clock)
 {
     private static readonly TimeSpan NeedsYouWindow = TimeSpan.FromDays(30);
@@ -71,9 +69,7 @@ public sealed class BoardHandler(
             Lane(cards, "done"),
             Lane(cards, "failed"));
 
-        var reporter = string.IsNullOrWhiteSpace(options.Value.ReportToken) ? "off" : "on";
-
-        return (new BoardDto(reporter, lanes), null);
+        return (new BoardDto(lanes), null);
     }
 
     private static IReadOnlyList<BoardCardDto> Lane(List<Card> cards, string lane)

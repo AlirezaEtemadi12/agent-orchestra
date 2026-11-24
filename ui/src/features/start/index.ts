@@ -7,7 +7,6 @@ import { startManifest } from './start.manifest';
 export const startMessages = { fa: startFa, en: startEn } as const;
 
 export { StartPage } from './components/start-page';
-export { useHosting } from './queries';
 
 export const startFeature = defineFeature({
   key: 'start',

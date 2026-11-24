@@ -79,7 +79,7 @@ public sealed class ProjectRegistryTests : IDisposable
 
     private ProjectRegistry Registry()
     {
-        return new ProjectRegistry(_fixture.Settings, _fixture.Store, _fixture.Mapper, NullLogger<ProjectRegistry>.Instance);
+        return new ProjectRegistry(_fixture.Settings, _fixture.Store, NullLogger<ProjectRegistry>.Instance);
     }
 
     public void Dispose()

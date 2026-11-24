@@ -11,11 +11,6 @@ internal sealed partial class OrchestraOptionsValidator : IValidateOptions<Orche
     {
         var failures = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(options.DatabasePath))
-        {
-            failures.Add("Orchestra:DatabasePath must not be empty.");
-        }
-
         if (string.IsNullOrWhiteSpace(options.UiPath))
         {
             failures.Add("Orchestra:UiPath must not be empty.");

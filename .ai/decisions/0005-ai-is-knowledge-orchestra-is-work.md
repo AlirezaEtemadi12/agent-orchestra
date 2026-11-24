@@ -1,6 +1,7 @@
 # 0005 — `.ai/` is the knowledge, `.orchestra/` is the work; the dashboard never writes into a project
 
 **Status:** Accepted
+**Amended:** 2026-11-24 — writing into a project is allowed through setup ([0009](0009-local-app-sets-projects-up.md))
 **Date:** 2026-11-19
 **Decided by:** Alireza (the split, the folder name, the agent-written scaffold), in the plan 0001 preview
 
@@ -24,9 +25,10 @@ The dashboard may run in Docker or on a server, where project folders are mounte
   shared profile), `roles/` and `runs/`. `evidence/` and `runs/` are git-ignored.
 - **Files are the source of truth.** The dashboard's database only indexes them (and keeps its own
   logs); it can be dropped and rebuilt. A file the owner deletes disappears from the dashboard.
-- **The dashboard never writes into a project folder.** When a project lacks `.ai/` or `.orchestra/`,
-  the dashboard shows a prompt — with the file contents it needs, such as `project.json` — for the
-  owner's own agent to run. The dashboard writes only its own data (its project list, its database).
+- **The dashboard never writes into a project folder**, except through setup
+  ([ADR 0009](0009-local-app-sets-projects-up.md)). When a project lacks `.ai/` or `.orchestra/`, the
+  dashboard shows a prompt — with the file contents it needs, such as `project.json` — for the owner's own
+  agent to run. Outside setup it writes only its own data (its project list, its database).
 - Orchestra's own repository follows the same layout.
 
 ## Consequences

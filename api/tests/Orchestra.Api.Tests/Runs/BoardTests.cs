@@ -129,18 +129,6 @@ public sealed class BoardTests : IDisposable
         board.Lanes.Running.Should().ContainSingle().Which.WaitingFor.Should().Be("pool");
     }
 
-    [Fact]
-    public async Task The_reporter_says_whether_a_token_is_configured()
-    {
-        (await BoardAsync()).Reporter.Should().Be("off");
-
-        using var configured = new LiveFixture(reportToken: "a-token");
-        var (board, error) = await configured.Board.HandleAsync(null, CancellationToken.None);
-
-        error.Should().BeNull();
-        board!.Reporter.Should().Be("on");
-    }
-
     private async Task<BoardDto> BoardAsync()
     {
         var (board, error) = await _fixture.Board.HandleAsync(null, CancellationToken.None);

@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Options;
+using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
 using Orchestra.Api.Common.Hosting;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
@@ -8,48 +10,39 @@ public sealed record FolderEntryDto(string Name, string Path, bool IsReady, bool
 
 public sealed record FolderListDto(string? Path, string? Parent, IReadOnlyList<FolderEntryDto> Folders);
 
-/// <summary>Plan 0009 D5: folder names only, inside the browse roots, never files, dot-folders
-/// skipped, unreadable folders left out, at most 500, sorted case-insensitively.</summary>
-public sealed class FoldersHandler(HostingInfo hosting)
+/// <summary>Plan 0009 D5, plan 0012 D5: folder names only, inside the browse roots, never files,
+/// dot-folders skipped, unreadable folders left out, at most 500, sorted case-insensitively. Paths are
+/// used as typed — the folder browser and the dashboard see the same disk.</summary>
+public sealed class FoldersHandler(IOptions<OrchestraOptions> options)
 {
     private const int MaxFolders = 500;
 
     public (FolderListDto? Page, Error? Error) Handle(string? path)
     {
-        var mapper = hosting.Mapper;
-        var roots = hosting.BrowseRoots();
+        var roots = BrowseRoots();
 
         if (string.IsNullOrWhiteSpace(path))
         {
-            return (new FolderListDto(
-                null,
-                null,
-                [.. roots.Select(root => Entry(RootName(root), root, mapper))]), null);
+            return (new FolderListDto(null, null, [.. roots.Select(root => Entry(RootName(root), root))]), null);
         }
 
-        // Resolve ".." before the root check, and compare in one form (forward slashes): a direct
-        // install keeps Windows backslashes, a container map produces forward slashes.
-        var server = Full(mapper.ToServer(path));
+        var full = Full(path);
 
-        if (server is null)
+        if (full is null)
         {
             return (null, Error.FolderOutsideRoots);
         }
 
-        var value = PathMapper.Normalize(server);
-        var serverRoots = roots
-            .Select(root => Full(mapper.ToServer(root)))
-            .OfType<string>()
-            .Select(root => PathMapper.Normalize(root))
-            .ToList();
-        var isRoot = serverRoots.Exists(root => string.Equals(root, value, StringComparison.OrdinalIgnoreCase));
+        var value = LocalPaths.Normalize(full);
+        var normalizedRoots = roots.Select(LocalPaths.Normalize).ToList();
+        var isRoot = normalizedRoots.Exists(root => string.Equals(root, value, StringComparison.OrdinalIgnoreCase));
 
-        if (!serverRoots.Exists(root => PathMapper.Covers(value, root)))
+        if (!normalizedRoots.Exists(root => LocalPaths.Covers(value, root)))
         {
             return (null, Error.FolderOutsideRoots);
         }
 
-        if (!Directory.Exists(server))
+        if (!Directory.Exists(full))
         {
             return (null, Error.FolderMissing);
         }
@@ -58,7 +51,7 @@ public sealed class FoldersHandler(HostingInfo hosting)
 
         try
         {
-            var names = Directory.EnumerateDirectories(server)
+            var names = Directory.EnumerateDirectories(full)
                 .Select(Path.GetFileName)
                 .Where(name => !string.IsNullOrEmpty(name) && !name.StartsWith('.'))
                 .Order(StringComparer.OrdinalIgnoreCase)
@@ -66,7 +59,7 @@ public sealed class FoldersHandler(HostingInfo hosting)
 
             foreach (var name in names)
             {
-                folders.Add(Entry(name!, mapper.ToHost(Path.Combine(server, name!)), mapper));
+                folders.Add(Entry(name!, Path.Combine(full, name!)));
             }
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
@@ -74,7 +67,35 @@ public sealed class FoldersHandler(HostingInfo hosting)
             // A folder that cannot be read is shown empty; its parents stay navigable.
         }
 
-        return (new FolderListDto(mapper.ToHost(server), isRoot ? null : Parent(server, mapper), folders), null);
+        return (new FolderListDto(full, isRoot ? null : Path.GetDirectoryName(full), folders), null);
+    }
+
+    /// <summary><c>Orchestra:BrowseRoots</c>, else every fixed drive — acceptable only because the app
+    /// listens on loopback (plan 0012 D13).</summary>
+    private IReadOnlyList<string> BrowseRoots()
+    {
+        var configured = options.Value.BrowseRoots
+            .Where(root => !string.IsNullOrWhiteSpace(root))
+            .ToList();
+
+        if (configured.Count > 0)
+        {
+            return configured;
+        }
+
+        try
+        {
+            return
+            [
+                .. DriveInfo.GetDrives()
+                    .Where(drive => drive.DriveType == DriveType.Fixed && drive.IsReady)
+                    .Select(drive => drive.RootDirectory.FullName),
+            ];
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
     }
 
     /// <summary>The absolute form with ".." resolved, or null for a path that is not rooted or not valid.</summary>
@@ -95,23 +116,14 @@ public sealed class FoldersHandler(HostingInfo hosting)
         }
     }
 
-    private static FolderEntryDto Entry(string name, string hostPath, PathMapper mapper)
+    private static FolderEntryDto Entry(string name, string fullPath)
     {
-        var server = mapper.ToServer(hostPath);
-
-        return new FolderEntryDto(name, hostPath, FolderCheck.IsReady(server), FolderCheck.IsRepo(server));
-    }
-
-    private static string? Parent(string server, PathMapper mapper)
-    {
-        var parent = Path.GetDirectoryName(server);
-
-        return string.IsNullOrEmpty(parent) ? null : mapper.ToHost(parent);
+        return new FolderEntryDto(name, fullPath, FolderCheck.IsReady(fullPath), FolderCheck.IsRepo(fullPath));
     }
 
     private static string RootName(string root)
     {
-        var trimmed = PathMapper.Normalize(root);
+        var trimmed = LocalPaths.Normalize(root);
         var separator = trimmed.LastIndexOf('/');
         var name = separator < 0 ? trimmed : trimmed[(separator + 1)..];
 

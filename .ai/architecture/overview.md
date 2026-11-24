@@ -8,23 +8,27 @@
 ## The pieces
 
 ```
- Windows machine (where the repos are)                 Docker — local, or the personal server
-┌──────────────────────────────────────┐              ┌───────────────────────────────────────┐
-│ orchestrator/run.ps1 shim per project│  phase 1:    │ api/  ASP.NET Core (.NET 10)          │
-│   writes runs/<id>/task.json,        │  POST events │   /api/*  JSON                        │
-│   progress.json, _ledger.md, _pool   │ ───────────► │   importer (phase 0, reads files)     │
-│                                      │  report-only │   EF Core → SQLite  (/data/orch.db)   │
-│                                      │  token       │   serves ui/ static files at /        │
-└──────────────────────────────────────┘              └───────────────────────────────────────┘
-        ▲ phase 0: the API reads these folders (mounted read-only)       ▲
-        └────────────────────────────────────────────────────────────────┘ browser
+ Orchestra.exe — Photino.NET window (plan 0012)
+┌───────────────────────────────────────────────────────────────────────────────┐
+│ api/  ASP.NET Core (.NET 10) on http://localhost:3500                          │
+│   /api/*  JSON                                                                 │
+│   importer (phase 0) reads the project folders                                 │
+│   EF Core → SQLite  (%LOCALAPPDATA%\Orchestra\orchestra.db)                     │
+│   serves ui/ (the static export) at /                                          │
+└───────────────────────────────────────────────────────────────────────────────┘
+    ▲ POST api/events (report-only token)          ▲ phase 0: reads runs/, _ledger.md
+    │                                              │
+┌──────────────────────────────────────┐   ┌───────┴───────────────────────────────┐
+│ <project>/.orchestra/run.ps1 shim    │   │ <project>/.orchestra/                 │
+│   runs/..., plans/, knowledge        │   │   orchestrator.json, runs/, plans/    │
+└──────────────────────────────────────┘   └───────────────────────────────────────┘
 ```
 
 - **api/** — one ASP.NET Core app, a small **modular monolith** after Project B's Web: modules
   `Projects`, `Runs`, `Usage`, `Events`, `Profiles`, `Setup`, later `Settings`. `Setup` (order 15) owns
-  `api/system/hosting` and `api/system/folders`, the hosting mode and the folder browser. EF Core with
-  SQLite; migrations in the repo.
-- **ui/** — Next.js 16, **static export** (`output: 'export'`), served by the API: one container, one
+  `api/system/folders`, the folder browser; `Projects` owns the two setup routes that write into a project
+  (plan 0012). EF Core with   SQLite; migrations in the repo.
+- **ui/** — Next.js 16, **static export** (`output: 'export'`), served by the API: one process, one
   port, no Node at runtime. Stack and rules follow Project B's Ui (shadcn/ui from the official
   registry, Tailwind v4, TanStack Query, vertical slices, tokens only), in **fa (RTL) and en (LTR)**
   ([ADR 0004](../decisions/0004-persian-and-english.md)) — plan 0001 writes the trimmed rules in
@@ -38,10 +42,15 @@
   in `engine/lib/report.ps1`, which reads the token from the env variable or from the project's
   `orchestrator.local.json`; it is fire-and-forget — 2 s timeout, no retry, one warning line per run — so
   a run behaves the same with the dashboard down.
-- **host paths** (plan 0009) — `Orchestra:PathMap` translates the Windows path the owner types into the
-  path this process can open, and back for every response: `projects.json` keeps the typed value, the
-  importer and the indexer get the mapped one, and one `${ORCHESTRA_HOST_ROOT}:/host:ro` mount covers every
-  project in Docker.
+- **the window** (plan 0012) — `Orchestra.Desktop` builds the same host through `OrchestraHost.Create`,
+  starts it, and shows `http://localhost:3500` in a Photino.NET window; the host's content root is the exe's
+  folder, so `wwwroot/` and `engine/` beside it are found. Data is `%LOCALAPPDATA%\Orchestra\`. `Browse` in
+  the project form asks the host for the Windows folder dialog through `window.external.sendMessage`; in a
+  plain browser it falls back to the in-app folder browser.
+- **setup** (plan 0012, [ADR 0009](../decisions/0009-local-app-sets-projects-up.md)) — `POST
+  api/projects/setup/plan` (a dry run) and `/apply` (recomputes the plan, then writes): the project's
+  `.orchestra/` files from `engine/templates/project/`, its `orchestrator.json` and git-ignored
+  `orchestrator.local.json`, then the project entry and import. This is the only write into a project folder.
 - **engine/** — the orchestrator itself, once for every project: `run.ps1`, `lib/` (agents, bus,
   gates, pools), `refresh-graph.ps1`, the offline suite and the conductor docs. A project keeps its
   `orchestrator.json`, its `runs/`, a git-ignored `orchestrator.local.json` with `enginePath` (and
@@ -56,19 +65,20 @@
    from them; it can always be dropped and re-imported.
 2. **The runner never reads from the dashboard** while a run is in flight. Settings reach it as an
    exported file (`<profilesPath>/<id>.json`), before the run starts (plan 0006).
-3. **The dashboard never writes to a project folder**; mounts are read-only. What a project lacks is
-   created by the owner's agent from a prompt the dashboard shows
-   ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)). The database indexes files;
-   it is never their only copy.
+3. **The dashboard writes into a project folder only through setup** (plan 0012), and only what §4 D7 of
+   that plan allows. Everything else about a project stays the owner's, and the optional knowledge prompt
+   is still an agent's job ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)). The
+   database indexes files; it is never their only copy.
 
 ## Hosting and security
 
-| | Local (phases 0–2) | Personal server (phase 3) |
-|---|---|---|
-| Access | `http://localhost:<port>` only | HTTPS behind the server's reverse proxy |
-| Sign-in | none (bound to localhost) | one user, password or passkey |
-| Runner → API | not needed (import reads files) | report-only bearer token, from an env var or `orchestrator.local.json` |
-| Data | `data/orch.db` (git-ignored) | a Docker volume, backed up |
+| | Today |
+|---|---|
+| Access | `http://localhost:3500` only, in the app's window; `AllowedHosts` is the three loopback names |
+| Sign-in | none (bound to localhost) |
+| Runner → API | not needed (import reads files); the report-only bearer token comes from the project's `orchestrator.local.json` |
+| Data | `%LOCALAPPDATA%\Orchestra\orchestra.db` |
 
-What leaves the Windows machine in phase 3 (metadata only, or plan and review text too) is decided in
-that phase's plan.
+Hosting — a server, HTTPS, sign-in from another machine — is an idea again
+([`hosting.md`](../../.orchestra/ideas/hosting.md)) and needs a new ADR
+([0009](../decisions/0009-local-app-sets-projects-up.md)).

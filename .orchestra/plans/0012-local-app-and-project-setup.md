@@ -1,7 +1,7 @@
 # Plan 0012 — A local app that sets a project up by itself
 
-**Status:** Approved
-**Created:** 2026-11-24 · **Updated:** 2026-11-24 · **Done:** —
+**Status:** Done
+**Created:** 2026-11-24 · **Updated:** 2026-11-24 · **Done:** 2026-11-24
 **Preview:** none — the owner asked for the plan directly (2026-11-24); the screens are described in §6.5. If
 the reviewer finds them too vague to build without guessing, the preview is made before phase D.
 **Run:** —
@@ -10,12 +10,21 @@ the reviewer finds them too vague to build without guessing, the preview is made
 **Decided by:** owner in the chat, 2026-11-24 (plan approved after the gate-2 fixes; "no server", "simple for me first", "adding a project must do
 every step itself"). Every choice below is already decided — **decide nothing new.** If reality contradicts
 this plan, STOP and ask.
-**Branch:** `alireza/local-app`. The implementer creates it.
-**Base:** `main` after the plan 0011 merge (`f75781b`, 2026-11-24) — record the exact hash when you start. Phase C edits the offline suite,
+**Branch:** `alireza/local-app`. The implementer creates it. **Commit:** not yet — the diff is uncommitted for the owner.
+**Merge:** —
+**Base:** `bdc8840` (the plan's own commit on `main`, after the plan 0011 merge `f75781b`), 2026-11-24. Phase C edits the offline suite,
 so do not start before that work is merged; record the base hash here when you start.
 **Companion:** None. Project A and Project B are set up again from the app (phase D, owner checks), not by
 a companion plan.
 **Steps changed:** no preview (see above).
+**Verified:** Claude Opus 5.5, 2026-11-24, after the implementation. Gates were re-run: api 300 tests with 0 warnings; ui typecheck, lint, 83 tests and build; engine 146/146. `scripts/publish.ps1` ran and the zip holds the four files of §7. Through the published exe, the following were checked:
+health and HTML; one instance; Origin → 403; `C:\Windows` and `%TEMP%` refused; setup of a single repo and of a two-repo workspace (all rows created, a second plan all `exists`, `run.ps1 agents` exit 0, `.orchestra/` a repo with no commit, the local json git-ignored); a `-DryRun` event reached the dashboard; closing the window stops the app.
+**Fixed in verification:** `EngineLocator.TemplatesRoot` pointed at `<root>/templates/project` instead of `<root>/engine/templates/project`. As a result, setup found no templates and answered `engineFound: false`, both in the exe and in `dotnet run`. `EngineLocatorTests` had asserted the wrong path; it now asserts the right one.
+The owner's first "Check setup" on Project A turned up three more bugs, all fixed:
+(1) The setup screen sent each repo's commands as the textarea text instead of a list, so every plan after the first, and every apply, failed with `400 One or more validation errors`. The type is now `Record<string, string[]>`, and `setup.test.tsx` covers it.
+(2) `.orchestra/` counted as a repo once D8 made it one, so setup planned `.orchestra/AGENTS.md` and `plans/.orchestra/`. `FolderCheck` and `SetupPlanner.NormalizeRepos` now leave it out; tests in `FolderCheckTests` and `SetupPlannerTests`.
+(3) The runs board still showed "Live events are off" when `Orchestra:ReportToken` was unset, but since plan 0009 D6 the dashboard keeps its own token, so the reporter is always on. The `reporter` field, its banner, its two strings and `The_reporter_says_whether_a_token_is_configured` are removed.
+**Left for the owner:** the window checks of «نتیجه» (folder dialog, both languages and themes), and "Check setup" for Project A and Project B, which also closes plan 0007. The data folder's `projects.json` holds **one** project; the checklist expects two. The publish prints one SDK warning, `NETSDK1236` (`Orchestra.Api.runtimeconfig.json` left out of the bundle); the exe runs anyway.
 
 ---
 
