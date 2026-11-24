@@ -38,12 +38,6 @@ export function Board() {
         />
       ) : null}
 
-      {board.data?.reporter === 'off' ? (
-        <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-warning">
-          {t('reporterOff')}
-        </p>
-      ) : null}
-
       {board.data ? <BoardLanes lanes={board.data.lanes} /> : null}
     </div>
   );

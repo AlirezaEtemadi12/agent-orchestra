@@ -8,7 +8,7 @@ export const projectsMessages = { fa: projectsFa, en: projectsEn } as const;
 
 export { ProjectsPage } from './components/projects-page';
 export { ProjectForm } from './components/project-form';
-export { ConnectPage } from './components/connect-page';
+export { SetupStep } from './components/setup-step';
 export { ProjectEffectiveConfig } from './components/project-effective-config';
 
 export const projectsFeature = defineFeature({

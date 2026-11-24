@@ -9,18 +9,22 @@
 | **0** | Skeleton, **import**, library, new-project flow — the dashboard reads files the orchestrators already write | No | 0001 · 0002 · 0003 |
 | **1** | **Live**: the runner reports events to the API as they happen | Yes — a fire-and-forget reporter | 0004 |
 | **2** | **One engine**: the orchestrator moves into `engine/`; profiles and per-project overrides | Yes — the engine relocates | 0005 · 0006 · 0007 |
-| **3** | **Hosting**: Docker on the personal server, sign-in, HTTPS | Yes — `sync` and `profile pull` commands | 0008 |
 
 **Order (owner, 2026-11-20):** 0005 (engine move) runs **before** 0004 (live), so the reporter is
 written once, in `engine/`; then 0004, 0006, 0007. Then [0009](../../.orchestra/plans/0009-easy-onboarding.md)
-(easy onboarding: host paths, the dashboard's own token, connect and Getting-started pages) and
-[0010](../../.orchestra/plans/0010-gridify-tables.md) (server-side Gridify tables). 0008 waits — the owner
-runs locally in Docker for now.
+(easy onboarding), [0010](../../.orchestra/plans/0010-gridify-tables.md) (server-side Gridify tables),
+[0011](../../.orchestra/plans/0011-fewer-git-calls.md) (one git call per repo per snapshot) and
+[0012](../../.orchestra/plans/0012-local-app-and-project-setup.md) (a local app that sets a project up by
+itself).
+
+**No server (owner, 2026-11-24):** the dashboard runs on the same Windows machine as the engine, in the
+desktop app of plan 0012. [0008](../../.orchestra/plans/0008-hosting.md) is `Dropped`; hosting is an idea
+again ([hosting.md](../../.orchestra/ideas/hosting.md)) and would need a new ADR.
 
 ## Phase 0 — read what exists
 
-Value from day one with **no risk to running work**. Runs locally (`dotnet run`, or Docker on
-Windows with one parent folder mounted read-only — plan 0009 replaced the per-project mounts).
+Value from day one with **no risk to running work**. Runs locally (`dotnet run`, or the desktop app of
+plan 0012).
 
 | Plan | What |
 |---|---|
@@ -52,13 +56,6 @@ back-fill. Screens: a runs board with lanes *Running / Needs you / Done / Failed
 - Project A and Project B move from `orchestrator/` to `.ai/` + `.orchestra/` — a **companion plan
   in each of those repos** ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)).
 - A third project is the first real test of profiles.
-
-## Phase 3 — hosting
-
-`deploy/docker-compose.yml` on the personal server: one container (API serving the static UI) and a
-volume for the SQLite file. Sign-in for one user, HTTPS through the server's reverse proxy, backups of
-the database file. The Windows runner reports to the server's URL. This phase's plan decides what
-leaves the Windows machine: numbers and metadata only, or plan and review text too.
 
 ## Later — Linux and macOS
 

@@ -25,6 +25,5 @@ export type BoardLanes = {
 };
 
 export type BoardResponse = {
-  reporter: 'on' | 'off';
   lanes: BoardLanes;
 };

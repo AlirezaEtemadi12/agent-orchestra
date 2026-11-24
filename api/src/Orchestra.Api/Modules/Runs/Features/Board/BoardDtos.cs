@@ -1,7 +1,8 @@
 namespace Orchestra.Api.Modules.Runs.Features.Board;
 
-/// <summary><c>GET api/runs/board</c>: the lanes and whether the reporter is configured (D13).</summary>
-public sealed record BoardDto(string Reporter, BoardLanesDto Lanes);
+/// <summary><c>GET api/runs/board</c>: the lanes. The reporter is always on since the dashboard keeps its
+/// own token (plan 0009 D6), so the board no longer says whether it is configured.</summary>
+public sealed record BoardDto(BoardLanesDto Lanes);
 
 public sealed record BoardLanesDto(
     IReadOnlyList<BoardCardDto> Running,

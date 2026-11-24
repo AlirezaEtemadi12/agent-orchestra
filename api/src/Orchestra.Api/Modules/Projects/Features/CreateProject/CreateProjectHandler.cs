@@ -1,5 +1,4 @@
 using Orchestra.Api.Common.Errors;
-using Orchestra.Api.Common.Hosting;
 using Orchestra.Api.Modules.Import;
 
 namespace Orchestra.Api.Modules.Projects.Features.CreateProject;
@@ -7,14 +6,13 @@ namespace Orchestra.Api.Modules.Projects.Features.CreateProject;
 public sealed class CreateProjectHandler(
     ProjectRegistry registry,
     ImportService imports,
-    PathMapper mapper,
     TimeProvider clock)
 {
     public async Task<(ProjectSavedDto? Saved, Error? Error)> HandleAsync(
         ProjectInput input,
         CancellationToken cancellationToken)
     {
-        var (valid, error) = ProjectValidation.Validate(input, mapper);
+        var (valid, error) = ProjectValidation.Validate(input);
 
         if (valid is null)
         {
@@ -47,7 +45,7 @@ public sealed class CreateProjectHandler(
         }
 
         // Saved first, imported second: the dashboard lists it even when its folder has nothing yet.
-        await imports.ImportOneAsync(entry.ToOptions(mapper), cancellationToken);
+        await imports.ImportOneAsync(entry.ToOptions(), cancellationToken);
 
         return (new ProjectSavedDto(entry.Id, entry.Name, entry.RootPath, entry.RunsPath, entry.Repos, entry.Profile), null);
     }

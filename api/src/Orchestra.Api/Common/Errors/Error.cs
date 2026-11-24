@@ -15,9 +15,11 @@ public sealed record Error(string Code, int Status)
 
     public static Error ProjectStoreUnreadable => new("Projects.Store.Unreadable", 409);
 
-    public static Error ProjectPathNotVisible => new("Projects.Path.NotVisible", 400);
+    public static Error SetupPathRefused => new("Projects.Setup.PathRefused", 400);
 
-    public static Error ProjectRunsPathNotVisible => new("Projects.RunsPath.NotVisible", 400);
+    public static Error SetupEngineNotFound => new("Projects.Setup.EngineNotFound", 400);
+
+    public static Error SetupOrigin => new("Projects.Setup.Origin", 403);
 
     public static Error FolderOutsideRoots => new("System.Folder.OutsideRoots", 400);
 

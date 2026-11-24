@@ -19,7 +19,7 @@ The orchestrated way of working — the gates, ideas, research, previews, plans,
 | Doing | Read |
 |---|---|
 | Anything at all, first time here | [`vision/roadmap.md`](vision/roadmap.md), [`architecture/overview.md`](architecture/overview.md) |
-| How the pieces talk (runner, API, UI, hosting, security) | [`architecture/overview.md`](architecture/overview.md) — **AUTHORITATIVE** |
+| How the pieces talk (runner, the desktop window, API, UI, security) | [`architecture/overview.md`](architecture/overview.md) — **AUTHORITATIVE** |
 | Tables, what is stored, what is imported | [`architecture/data-model.md`](architecture/data-model.md) |
 | Why something is the way it is | [`decisions/`](decisions/README.md) |
 | Code in `api/` | [`api/conventions.md`](api/conventions.md), [`api/naming.md`](api/naming.md), [`api/testing.md`](api/testing.md) |

@@ -1,6 +1,7 @@
 # 0001 — One repo; .NET 10 + SQLite; Next.js static export served by the API
 
 **Status:** Accepted — 2026-11-19 (plan 0001's gate 2)
+**Amended:** 2026-11-24 — one local process instead of one container ([0009](0009-local-app-sets-projects-up.md))
 **Date:** 2026-11-19
 **Decided by:** Alireza (stack: "the architecture we use for our projects"); repo shape proposed by the planner
 
@@ -17,14 +18,15 @@ consumer.
 
 ## Decision
 
-- **One repository** with `api/`, `ui/`, later `engine/`, and `deploy/`. One branch covers a change
+- **One repository** with `api/`, `ui/`, later `engine/`, and `deploy/` (deleted by [ADR 0009](0009-local-app-sets-projects-up.md); `scripts/` holds the publish). One branch covers a change
   that crosses the wire; no companion plans between repos.
 - **api/**: .NET 10 ASP.NET Core, EF Core, **SQLite**. A small modular monolith (`Projects`, `Runs`,
   `Usage`, later `Settings`), with the module boundaries and conventions of Project B's Web, trimmed:
   no multi-tenant, no permissions system beyond one user.
 - **ui/**: Next.js 16, **`output: 'export'`** — a static site served by the API. Same building blocks
   as Project B's Ui (shadcn/ui, Tailwind v4, TanStack Query, vertical slices, tokens, Persian RTL).
-- **One container** in production: the API image contains the exported UI.
+- **One local process** in production: the API serves the exported UI inside the desktop app's window
+  ([ADR 0009](0009-local-app-sets-projects-up.md)).
 
 ## Consequences
 

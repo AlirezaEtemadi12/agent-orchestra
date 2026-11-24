@@ -1,11 +1,9 @@
-using Orchestra.Api.Common.Hosting;
-
 namespace Orchestra.Api.Modules.Projects.Features.CheckFolder;
 
-public sealed class CheckFolderHandler(HostingInfo hosting)
+public sealed class CheckFolderHandler
 {
     public FolderCheckDto Handle(string? rootPath)
     {
-        return FolderCheck.Run(rootPath, hosting.Mapper);
+        return FolderCheck.Run(rootPath);
     }
 }

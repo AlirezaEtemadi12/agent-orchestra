@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
-using Orchestra.Api.Modules.Projects.Features.Connect;
 using Orchestra.Api.Modules.Projects.Features.CreateProject;
 using Orchestra.Api.Modules.Projects.Features.DeleteProject;
 using Orchestra.Api.Modules.Projects.Features.ListProjects;
-using Orchestra.Api.Modules.Projects.Features.ScaffoldPrompt;
+using Orchestra.Api.Modules.Projects.Features.Setup;
 using Orchestra.Api.Modules.Projects.Features.StoreState;
 using Orchestra.Api.Modules.Projects.Features.UpdateProject;
 
@@ -36,7 +35,14 @@ public sealed class ProjectsModuleInstaller : IModuleInstaller
         services.AddScoped<UpdateProjectHandler>();
         services.AddScoped<DeleteProjectHandler>();
         services.AddScoped<CheckFolderHandler>();
-        services.AddScoped<ConnectHandler>();
-        services.AddScoped<ScaffoldPromptHandler>();
+
+        // Plan 0012: setup reads the templates and the engine folder at request time, so the published
+        // app finds its own copy and a developer's Orchestra:EnginePath wins (D12).
+        services.AddScoped<EngineLocator>();
+        services.AddScoped(provider => new TemplateSet(
+            provider.GetRequiredService<EngineLocator>().TemplatesRoot ?? string.Empty));
+        services.AddScoped<SetupGuard>();
+        services.AddScoped<SetupPlanner>();
+        services.AddScoped<SetupApplier>();
     }
 }

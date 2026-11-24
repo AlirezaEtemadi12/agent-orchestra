@@ -4,7 +4,8 @@
 
 - xunit + FluentAssertions **7.0.0** (8.x is under a commercial licence). No mocking library.
 - No test starts a server or opens a socket: controllers are not tested over HTTP, handlers and
-  parsers are tested directly.
+  parsers are tested directly. The exception is `OrchestraHostTests`, which builds the host on a temp
+  content root and never starts it (plan 0012).
 - SQLite **in-memory** (`DataSource=:memory:` with the connection kept open) is the real provider and
   is allowed. Nothing else is faked that could be real.
 - Fixtures are synthetic: invented task ids (`T-DEMO-*`), invented text. A real ledger or `task.json`

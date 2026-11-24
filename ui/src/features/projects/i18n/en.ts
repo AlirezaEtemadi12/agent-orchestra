@@ -1,4 +1,4 @@
-// Plan 0003 §6.5 strings kept; the field hints, hosting and connect copy are plan 0009 §6.7 and §6.8.
+// Plan 0003 §6.5 strings kept; the setup copy is plan 0012 §6.6.
 // Never retype or "improve" these strings.
 export const projectsEn = {
   "title": "Projects",
@@ -22,11 +22,6 @@ export const projectsEn = {
     "repos": "The git repositories inside the folder. Found ones are ticked; add one by its folder name.",
     "runsPath": "Where the orchestrator keeps its runs. Usually .orchestra\\runs inside the project."
   },
-  "hosting": {
-    "docker": "Running in Docker. It can see: {roots}",
-    "dockerNone": "Running in Docker, but no folder is shared with it. Add ORCHESTRA_HOST_ROOT to deploy/.env (the folder that holds your projects, e.g. F:/Projects) and restart.",
-    "direct": "Running directly on this computer; any folder you can open works."
-  },
   "form": {
     "notVisible": "The dashboard cannot see this folder.",
     "ready": "Ready for the orchestrator — no setup needed.",
@@ -40,26 +35,38 @@ export const projectsEn = {
     "inEachRepo": "in each repo",
     "advanced": "Advanced"
   },
-  "connect": {
-    "title": "Connect {name}",
-    "block": "1. Add this block to .orchestra/orchestrator.json",
-    "orPrompt": "Or give this prompt to your agent:",
-    "local": "2. Add these keys to .orchestra/orchestrator.local.json yourself. They hold the token, so they never go to an agent. Keep enginePath as it is.",
-    "noProfilesPath": "profilesPath is not included: the dashboard cannot tell where its profiles folder is on your computer. Keep yours; it is needed only when the project names a profile.",
-    "waiting": "3. Waiting for the first event — start any run of this project.",
-    "connected": "3. Connected — last event {time}.",
-    "board": "Open Runs board",
-    "back": "Back to projects",
-    "copy": "Copy",
-    "copied": "Copied"
+  "table": {
+    "check": "Check setup"
+  },
+  "setup": {
+    "title": "Set up {name}",
+    "continue": "Continue",
+    "apply": "Set up",
+    "back": "Back",
+    "action": {
+      "create": "will be created",
+      "add": "will be added",
+      "update": "will be updated",
+      "exists": "already there"
+    },
+    "commands": "Build and test commands (one per line)",
+    "nothing": "Everything is already set up.",
+    "noEngine": "The engine folder was not found. Set Orchestra:EnginePath.",
+    "waiting": "Waiting for the first event",
+    "connected": "Connected — last event {time}.",
+    "knowledge": "Fill the knowledge with an agent (optional)",
+    "errors": {
+      "WriteFailed": "Could not write this file.",
+      "GitInitFailed": "git init failed; nothing after it was done.",
+      "InvalidJson": "This JSON file could not be read, so it was left unchanged.",
+      "Skipped": "Not done: an earlier step failed."
+    }
   },
   "check": "Check folder",
   "checkAgain": "Check again",
   "found": "found",
   "missing": "missing",
   "folderMissing": "This folder does not exist.",
-  "promptTitle": "Prompt for your agent",
-  "promptHint": "Give this to the agent you work with in this folder. It creates the files; the dashboard never writes into your project.",
   "copy": "Copy",
   "copied": "Copied",
   "save": "Save",

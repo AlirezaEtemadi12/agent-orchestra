@@ -45,6 +45,15 @@
 - Latin values (task ids, models, branches, session ids, money) render with `data-ltr` and
   `tabular-nums`, so they line up in both directions.
 
+## The project screens
+
+- The form's **Browse** button asks the desktop host for the Windows folder dialog through
+  `lib/desktop/bridge.ts` when `window.external.sendMessage` exists; in a plain browser it opens the
+  in-app folder browser, which walks `api/system/folders`. One button, two ways to pick a folder.
+- The setup screen lists one row per file or job with its action chip, the path in mono and the detail
+  under it; its primary button stays off while the engine is missing or nothing is left to do, and the
+  reason sits beside it.
+
 ## Density
 
 - The dashboard is read, not filled: compact tables, one accent per screen, numbers right-aligned in

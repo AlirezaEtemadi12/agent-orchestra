@@ -36,5 +36,5 @@ graphify-out/
 /artifacts/
 .freebuff/
 
-# Docker's profile exports (deploy/.env ORCHESTRA_PROFILES_DIR=./profiles)
-deploy/profiles/
+# The published app and its zip (scripts/publish.ps1)
+dist/

@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 import { EmptyState } from '@/components/app/empty-state';
@@ -12,16 +12,15 @@ import { TableSkeleton } from '@/components/app/table-skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRouter } from '@/i18n/navigation';
+import { isDesktop, pickFolder } from '@/lib/desktop/bridge';
 import { useProjects, type ProjectDto } from '@/lib/projects/queries';
 import { CheckResult } from './check-result';
 import { FolderBrowser } from './folder-browser';
-import { HostingLine } from './hosting-line';
 import { RepoPicker } from './repo-picker';
-import { copyPrompt, selectText } from '../clipboard';
 import { fillFromCheck } from '../form-autofill';
 import { projectSchema, slugOf, type ProjectFormValues } from '../project-schema';
-import { errorText, isIdTaken } from '../projects-errors';
-import { useCheckFolder, useCreateProject, useScaffoldPrompt, useUpdateProject } from '../queries';
+import { errorText } from '../projects-errors';
+import { useCheckFolder, useUpdateProject } from '../queries';
 import type { FolderCheck } from '../types';
 
 const INPUT = 'h-9 w-full rounded-md border bg-background px-2 text-sm disabled:opacity-60';
@@ -62,10 +61,8 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
   const t = useTranslations('projects');
   const common = useTranslations('common');
   const router = useRouter();
-  const create = useCreateProject();
   const update = useUpdateProject();
   const check = useCheckFolder();
-  const prompt = useScaffoldPrompt();
 
   const schema = projectSchema({
     required: t('errors.required'),
@@ -84,13 +81,10 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
   });
 
   const [checkResult, setCheckResult] = useState<FolderCheck | null>(null);
-  const [promptText, setPromptText] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [idTouched, setIdTouched] = useState(false);
   const [browserOpen, setBrowserOpen] = useState(false);
   const [browsePath, setBrowsePath] = useState<string | null>(null);
-  const promptRef = useRef<HTMLPreElement | null>(null);
   const [checkedPath, setCheckedPath] = useState(project?.rootPath ?? '');
   const [reposTouched, setReposTouched] = useState((project?.repos ?? []).length > 0);
 
@@ -112,6 +106,28 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
 
   const back = (): void => {
     router.push('/settings/projects/' as never);
+  };
+
+  // Plan 0012 §6.5: the system dialog in the desktop window, the in-app browser in a plain browser.
+  const browse = async (): Promise<void> => {
+    const start = form.getValues('rootPath').trim();
+
+    if (!isDesktop()) {
+      setBrowsePath(start.length > 0 ? start : null);
+      setBrowserOpen(true);
+      return;
+    }
+
+    try {
+      const path = await pickFolder(start);
+
+      if (path) {
+        form.setValue('rootPath', path, { shouldValidate: true });
+        void runCheck(path);
+      }
+    } catch (error) {
+      setMessage(errorText(error, common('errors.unexpected')));
+    }
   };
 
   const runCheck = async (path: string): Promise<FolderCheck | null> => {
@@ -151,19 +167,6 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
 
       setCheckResult(result);
       setCheckedPath(path);
-      setPromptText(null);
-
-      if (result.visible && !result.isReady) {
-        const generated = await prompt.mutateAsync({
-          name: form.getValues('name'),
-          rootPath: path,
-          repos: form.getValues('repos'),
-          check: result,
-        });
-
-        setPromptText(generated.text);
-        setCopied(false);
-      }
 
       return result;
     } catch (error) {
@@ -172,48 +175,41 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
     }
   };
 
-  const copy = async (): Promise<void> => {
-    if (!promptText) {
+  // Plan 0012 D11: nothing is written here. A new project goes on to the setup step with these values;
+  // only an existing card is saved, because its folder is already set up.
+  const submit = form.handleSubmit(async (values) => {
+    setMessage(null);
+
+    if (!project) {
+      router.push({
+        pathname: '/settings/projects/setup/',
+        query: {
+          id: values.id,
+          name: values.name,
+          rootPath: values.rootPath,
+          repos: values.repos.join(','),
+        },
+      } as never);
+
       return;
     }
 
-    const done = await copyPrompt(promptText);
-
-    setCopied(done);
-
-    if (!done) {
-      selectText(promptRef.current);
-    }
-  };
-
-  const submit = form.handleSubmit(async (values) => {
-    const body = {
-      id: values.id,
-      name: values.name,
-      rootPath: values.rootPath,
-      runsPath: values.runsPath,
-      repos: values.repos,
-      profile: 'default',
-    };
-
-    setMessage(null);
-
     try {
-      const saved = project
-        ? await update.mutateAsync({ id: project.id, body })
-        : await create.mutateAsync(body);
+      await update.mutateAsync({
+        id: project.id,
+        body: {
+          id: values.id,
+          name: values.name,
+          rootPath: values.rootPath,
+          runsPath: values.runsPath,
+          repos: values.repos,
+          profile: 'default',
+        },
+      });
 
       toast.success(t('saved'));
-      router.push({
-        pathname: '/settings/projects/connect/',
-        query: { id: saved.id },
-      } as never);
+      back();
     } catch (error) {
-      if (!project && isIdTaken(error)) {
-        form.setError('id', { message: t('errors.IdTaken') });
-        return;
-      }
-
       setMessage(errorText(error, common('errors.unexpected')));
     }
   });
@@ -226,8 +222,6 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
         title={title}
         actions={readOnly ? <Badge variant="outline">{t('origin.config')}</Badge> : undefined}
       />
-
-      {!readOnly ? <HostingLine /> : null}
 
       <Field label={t('fields.rootPath')} hint={t('hints.rootPath')} error={errors.rootPath?.message}>
         <div className="flex items-center gap-2">
@@ -248,10 +242,7 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => {
-                setBrowsePath(form.getValues('rootPath').trim() || null);
-                setBrowserOpen(true);
-              }}
+              onClick={() => void browse()}
             >
               {t('form.browse')}
             </Button>
@@ -298,7 +289,7 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
 
       <details className="rounded-xl border bg-card/40 p-4">
         <summary className="cursor-pointer text-sm font-medium">{t('form.advanced')}</summary>
-        <div className="pt-3">
+        <div className="space-y-3 pt-3">
           <Field label={t('fields.runsPath')} hint={t('hints.runsPath')} error={errors.runsPath?.message}>
             <input {...form.register('runsPath')} className={INPUT} data-ltr disabled={readOnly} />
           </Field>
@@ -319,29 +310,10 @@ function ProjectFormFields({ project, readOnly, title }: FieldsProps) {
         </div>
       ) : null}
 
-      {promptText ? (
-        <section className="space-y-2">
-          <h2 className="text-sm font-medium">{t('promptTitle')}</h2>
-          <p className="text-xs text-muted-foreground">{t('promptHint')}</p>
-          <pre
-            ref={promptRef}
-            data-ltr
-            className="max-h-80 overflow-auto rounded-lg border bg-muted/40 p-3 text-xs whitespace-pre-wrap"
-          >
-            {promptText}
-          </pre>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
-              {copied ? t('copied') : t('copy')}
-            </Button>
-          </div>
-        </section>
-      ) : null}
-
       <div className="flex items-center gap-2">
         {!readOnly ? (
-          <Button type="submit" disabled={create.isPending || update.isPending}>
-            {t('save')}
+          <Button type="submit" disabled={update.isPending}>
+            {project ? t('save') : t('setup.continue')}
           </Button>
         ) : null}
         <Button type="button" variant="ghost" onClick={back}>

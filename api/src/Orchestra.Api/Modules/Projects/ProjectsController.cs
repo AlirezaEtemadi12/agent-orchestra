@@ -2,12 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
 using Orchestra.Api.Modules.Projects.Features.CheckFolder;
-using Orchestra.Api.Modules.Projects.Features.Connect;
 using Orchestra.Api.Modules.Projects.Features.CreateProject;
 using Orchestra.Api.Modules.Projects.Features.DeleteProject;
 using Orchestra.Api.Modules.Projects.Features.EffectiveConfig;
 using Orchestra.Api.Modules.Projects.Features.ListProjects;
-using Orchestra.Api.Modules.Projects.Features.ScaffoldPrompt;
+using Orchestra.Api.Modules.Projects.Features.Setup;
 using Orchestra.Api.Modules.Projects.Features.StoreState;
 using Orchestra.Api.Modules.Projects.Features.UpdateProject;
 
@@ -85,25 +84,51 @@ public sealed class ProjectsController : ControllerBase
         return Ok(handler.Handle(input?.RootPath));
     }
 
-    /// <summary>Plan 0009 D8: the two texts the owner pastes and the prompt for an agent.</summary>
-    [HttpGet("{id}/connect")]
-    public IActionResult Connect(
-        [FromServices] ConnectHandler handler,
-        string id)
+    /// <summary>Plan 0012 D6: the checklist, without writing anything.</summary>
+    [HttpPost("setup/plan")]
+    public IActionResult SetupPlan(
+        [FromServices] SetupPlanner planner,
+        [FromServices] SetupGuard guard,
+        [FromBody] SetupRequest input)
     {
-        var (connect, error) = handler.Handle(id, $"{Request.Scheme}://{Request.Host}");
+        if (guard.CheckOrigin(Request) is { } origin)
+        {
+            return Failure(origin);
+        }
 
-        return error is null ? Ok(connect) : Failure(error);
+        var check = guard.CheckRoot(input?.RootPath);
+
+        if (check.Refusal is { } refusal)
+        {
+            return Failure(Error.SetupPathRefused, SetupRefusalText.For(refusal, Cultures()));
+        }
+
+        return Ok(planner.Plan(input!, check.Root!));
     }
 
-    [HttpPost("scaffold-prompt")]
-    public IActionResult Prompt(
-        [FromServices] ScaffoldPromptHandler handler,
-        [FromBody] ScaffoldPromptRequest input)
+    /// <summary>Plan 0012 D6: the same input, recomputed and executed.</summary>
+    [HttpPost("setup/apply")]
+    public async Task<IActionResult> SetupApply(
+        [FromServices] SetupApplier applier,
+        [FromServices] SetupGuard guard,
+        [FromBody] SetupRequest input,
+        CancellationToken cancellationToken)
     {
-        var (prompt, error) = handler.Handle(input);
+        if (guard.CheckOrigin(Request) is { } origin)
+        {
+            return Failure(origin);
+        }
 
-        return error is null ? Ok(prompt) : Failure(error);
+        var (result, error, refusal) = await applier.HandleAsync(input, cancellationToken);
+
+        return error is null
+            ? Ok(result)
+            : Failure(error, refusal is { } value ? SetupRefusalText.For(value, Cultures()) : null);
+    }
+
+    private IReadOnlyList<System.Globalization.CultureInfo> Cultures()
+    {
+        return ErrorMessages.CulturesFrom(Request.Headers.AcceptLanguage.ToString());
     }
 
     private IActionResult Failure(Error error, string? detail = null)

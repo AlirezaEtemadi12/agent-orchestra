@@ -39,6 +39,11 @@ public sealed class FolderCheckTests : IDisposable
         }
 
         FolderCheck.Run(_root).Repos.Should().Equal("api", "web");
+
+        // Setup makes .orchestra a repo in a workspace (plan 0012 D8); it never counts as one of the repos.
+        Directory.CreateDirectory(Path.Combine(_root, ".orchestra", ".git"));
+
+        FolderCheck.Run(_root).Repos.Should().Equal("api", "web");
     }
 
     [Fact]

@@ -1,12 +1,11 @@
 using Microsoft.Extensions.Options;
 using Orchestra.Api.Common;
-using Orchestra.Api.Common.Hosting;
 
 namespace Orchestra.Api.Modules.Projects;
 
 /// <summary>Config projects first, then the dashboard's own; the configuration wins a shared id. One
 /// immutable snapshot serves every request and is swapped only after a successful write (plan 0003 D8).
-/// The snapshot keeps each dashboard entry's stored (host) paths beside the mapped options (plan 0009 D3).</summary>
+/// The snapshot keeps each dashboard entry's stored paths beside the options it builds from them.</summary>
 public sealed class ProjectRegistry
 {
     private sealed record Snapshot(
@@ -17,19 +16,16 @@ public sealed class ProjectRegistry
     private readonly object _write = new();
     private readonly IOptions<OrchestraOptions> _options;
     private readonly ProjectStore _store;
-    private readonly PathMapper _mapper;
     private readonly ILogger<ProjectRegistry> _logger;
     private Snapshot _snapshot;
 
     public ProjectRegistry(
         IOptions<OrchestraOptions> options,
         ProjectStore store,
-        PathMapper mapper,
         ILogger<ProjectRegistry> logger)
     {
         _options = options;
         _store = store;
-        _mapper = mapper;
         _logger = logger;
 
         var read = store.Read();
@@ -49,8 +45,8 @@ public sealed class ProjectRegistry
         return Current.Projects.GetValueOrDefault(id);
     }
 
-    /// <summary>Plan 0009 D3: the entry as the owner typed it, for the edit form and the list. Null for a
-    /// config project (its paths are already server paths — show those).</summary>
+    /// <summary>The entry as the owner typed it, for the edit form and the list. Null for a config
+    /// project (its paths are already what the file says).</summary>
     public StoredProject? Stored(string id)
     {
         return Current.Stored.GetValueOrDefault(id);
@@ -156,10 +152,11 @@ public sealed class ProjectRegistry
 
         foreach (var entry in stored)
         {
-            if (projects.TryAdd(entry.Id, entry.ToOptions(_mapper)))
+            if (projects.TryAdd(entry.Id, entry.ToOptions()))
             {
                 origins[entry.Id] = ProjectOrigin.Dashboard;
                 entries[entry.Id] = entry;
+
             }
             else
             {

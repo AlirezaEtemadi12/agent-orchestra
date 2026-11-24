@@ -4,11 +4,13 @@ public sealed class OrchestraOptions
 {
     public const string SectionName = "Orchestra";
 
-    public string DatabasePath { get; init; } = "data/orchestra.db";
+    /// <summary>Plan 0012 D3: empty means <c>%LOCALAPPDATA%\Orchestra\orchestra.db</c> — the app's own
+    /// folder. A relative value resolves against the content root, which is how development keeps
+    /// <c>data/orchestra.db</c>.</summary>
+    public string DatabasePath { get; init; } = string.Empty;
 
     /// <summary>Where profile exports live (plan 0006 D5). A relative value sits beside the database —
-    /// <c>&lt;data&gt;/profiles</c> — which is what makes the Docker bind mount at <c>/data/profiles</c>
-    /// work without a second setting.</summary>
+    /// <c>&lt;data&gt;/profiles</c> — so the profiles follow the database wherever it is.</summary>
     public string ProfilesPath { get; init; } = "profiles";
 
     public string UiPath { get; init; } = "wwwroot";
@@ -21,22 +23,28 @@ public sealed class OrchestraOptions
     /// is unset the dashboard makes and keeps one (plan 0009 D6): the reporter is always on.</summary>
     public string? ReportToken { get; init; }
 
-    /// <summary>Plan 0009 D2/D13: host path to server path, for a container that sees the owner's
-    /// folders through one read-only parent mount.</summary>
-    public List<PathMapEntry> PathMap { get; init; } = [];
-
     /// <summary>Plan 0009 D5: the folders the browser may list in a direct install. Empty means every
     /// fixed drive — acceptable only on loopback until plan 0008 (D16).</summary>
     public List<string> BrowseRoots { get; init; } = [];
 
-    /// <summary>Plan 0009 D8: the origin the report block points at, when it is not the origin the
-    /// browser used (behind IIS or a proxy).</summary>
-    public string? PublicUrl { get; init; }
+    /// <summary>Plan 0012 D12: the engine folder, when it is not the one found by walking up from the
+    /// content root. A developer editing the engine sets this so the published app does not repoint
+    /// existing projects to its own copy.</summary>
+    public string? EnginePath { get; init; }
 
     public List<ProjectOptions> Projects { get; init; } = [];
 
     public string ResolveDatabasePath(string contentRootPath)
     {
+        if (string.IsNullOrWhiteSpace(DatabasePath))
+        {
+            var local = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Orchestra");
+
+            return Path.GetFullPath(Path.Combine(local, "orchestra.db"));
+        }
+
         return Path.GetFullPath(Path.Combine(contentRootPath, DatabasePath));
     }
 
@@ -45,9 +53,8 @@ public sealed class OrchestraOptions
         return Path.GetFullPath(Path.Combine(contentRootPath, UiPath));
     }
 
-    /// <summary>A relative ProfilesPath resolves against the database file's folder, not the content root:
-    /// the image keeps the database at <c>/data/orchestra.db</c> but its content root is <c>/app</c>
-    /// (deploy/Dockerfile), so content-root resolution would write the export inside the image.</summary>
+    /// <summary>A relative ProfilesPath resolves against the database file's folder, not the content
+    /// root: the app's data folder is the one place its own files live.</summary>
     public string ResolveProfilesPath(string contentRootPath)
     {
         if (Path.IsPathRooted(ProfilesPath))
@@ -60,14 +67,6 @@ public sealed class OrchestraOptions
 
         return Path.GetFullPath(Path.Combine(folder, ProfilesPath));
     }
-}
-
-/// <summary>One plan 0009 D2 entry: a folder as the owner sees it, and where this process sees it.</summary>
-public sealed class PathMapEntry
-{
-    public string Host { get; init; } = string.Empty;
-
-    public string Server { get; init; } = string.Empty;
 }
 
 public sealed class ProjectOptions

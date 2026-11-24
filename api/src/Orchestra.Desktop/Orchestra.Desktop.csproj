@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>Orchestra</AssemblyName>
+    <RootNamespace>Orchestra.Desktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Photino.NET" />
+    <ProjectReference Include="../Orchestra.Api/Orchestra.Api.csproj" />
+  </ItemGroup>
+
+</Project>

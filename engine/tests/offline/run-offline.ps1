@@ -3168,6 +3168,114 @@ try {
 }
 catch { Fail-Scenario 'T-TOK' 'report token resolver' ("exception: " + $_.Exception.Message) }
 
+# ------------------------------------- T-SU1..T-SU4: a project the app set up runs (plan 0012 phase C)
+# engine/templates/project/ is what setup copies, and the config here is what setup writes (§6.3.4).
+# The shim, the workflow, the role sections and the prompts must be enough for `agents` and `new -DryRun`:
+# neither calls a model, so no mock agent is needed.
+try {
+    $templates = Join-Path $Orch 'templates\project'
+    $checkout = Split-Path -Parent $Orch
+    $owner = Get-Content -LiteralPath $script:activeConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+
+    function New-Scaffold {
+        param([string]$Tag, [bool]$Single)
+
+        $root = Join-Path $env:TEMP ("project-a-orch-setup-$Tag-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        New-Item -ItemType Directory -Path $root | Out-Null
+        [void]$script:workspaces.Add($root)
+        $profiles = Join-Path $env:TEMP ("project-a-orch-setup-prof-$Tag-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+        New-Item -ItemType Directory -Force -Path $profiles | Out-Null
+        [void]$script:workspaces.Add($profiles)
+        Copy-Item -LiteralPath (Join-Path $Here 'profile-fixtures\profile.json') -Destination (Join-Path $profiles 'default.json')
+
+        $repos = if ($Single) { @('.') } else { @('Ui', 'Web') }
+        # @() around the if: an if statement emits a one-element array as the string itself, and then
+        # $repoNames[0] indexes the string ('A').
+        $repoNames = @(if ($Single) { 'App' } else { 'Ui', 'Web' })
+        $repoMap = [pscustomobject]@{}
+        $verify = [pscustomobject]@{}
+        for ($i = 0; $i -lt $repoNames.Count; $i++) {
+            $folder = if ($Single) { $root } else { Join-Path $root $repoNames[$i] }
+            New-Item -ItemType Directory -Force -Path $folder | Out-Null
+            [void](& git -C $folder init -q 2>&1)
+            [void](& git -C $folder config user.name 'alireza' 2>&1)
+            [void](& git -C $folder config user.email 'alireza@example.com' 2>&1)
+            Set-Content -LiteralPath (Join-Path $folder 'README.md') -Value "# $($repoNames[$i])" -Encoding UTF8
+            [void](& git -C $folder add -A 2>&1)
+            [void](& git -C $folder commit -q -m 'init' 2>&1)
+            # The name is read into a variable first: PowerShell indexes the string itself when the
+            # parameter is written as $repoNames[$i] and the key comes out as its first letter.
+            $repoName = $repoNames[$i]
+            $repoMap | Add-Member -NotePropertyName $repoName -NotePropertyValue $(if ($Single) { '.' } else { $repoName })
+            $verify | Add-Member -NotePropertyName $repoName -NotePropertyValue @('echo ok')
+        }
+
+        $orchestra = Join-Path $root '.orchestra'
+        New-Item -ItemType Directory -Force -Path $orchestra | Out-Null
+        Copy-Item -Path (Join-Path $templates '*') -Destination $orchestra -Recurse -Force
+
+        $config = [pscustomobject]@{
+            profile       = 'default'
+            root          = '..'
+            description   = [pscustomobject]@{
+                title = 'Scaffolded'
+                repos = $(if ($Single) { '  - Repo: App' } else { '  - Repos: Ui, Web' })
+            }
+            planFiling    = 'number'
+            repos         = $repoMap
+            plansDir      = $(if ($Single) { '.orchestra/plans' } else { '.orchestra/plans/{repo}' })
+            workflow      = [pscustomobject]@{
+                gatesPath   = '.orchestra/workflow.md'
+                rolesPath   = '.orchestra/roles'
+                rolesIndex  = '.orchestra/roles/README.md'
+                promptsPath = '.orchestra/prompts'
+                agentsDoc   = $(if ($Single) { 'AGENTS.md' } else { '{repo}/AGENTS.md' })
+                indexDoc    = $(if ($Single) { '.ai/README.md' } else { '{repo}/.ai/README.md' })
+                planTemplate = '.orchestra/plans/TEMPLATE.md'
+            }
+            verifyCommands = $verify
+            roles          = [pscustomobject]@{
+                implementer = $owner.roles.implementer
+                verifier    = $owner.roles.verifier
+            }
+            adapters       = $owner.adapters
+            tiers          = $owner.tiers
+            report         = [pscustomobject]@{
+                enabled = $false; url = 'http://127.0.0.1:9/api/events'; project = 'scaffolded'
+                tokenEnv = 'ORCHESTRA_REPORT_TOKEN'; timeoutSec = 1; progressEverySec = 10
+            }
+        }
+        if ($owner.roles.PSObject.Properties['readback']) {
+            $config.roles | Add-Member -NotePropertyName readback -NotePropertyValue $owner.roles.readback -Force
+        }
+        ($config | ConvertTo-Json -Depth 12) | Set-Content -LiteralPath (Join-Path $orchestra 'orchestrator.json') -Encoding UTF8
+        ([pscustomobject]@{ enginePath = $checkout; profilesPath = $profiles } | ConvertTo-Json) |
+            Set-Content -LiteralPath (Join-Path $orchestra 'orchestrator.local.json') -Encoding UTF8
+
+        return [pscustomobject]@{ Root = $root; Shim = (Join-Path $orchestra 'run.ps1'); Orchestra = $orchestra }
+    }
+
+    foreach ($shape in @(@{ Tag = 'single'; Single = $true; Repo = 'App'; Id = 'T-SU-1' }, @{ Tag = 'multi'; Single = $false; Repo = 'Ui'; Id = 'T-SU-2' })) {
+        $p = New-Scaffold -Tag $shape.Tag -Single $shape.Single
+        $tag = if ($shape.Single) { 'T-SU1' } else { 'T-SU3' }
+        $tagNew = if ($shape.Single) { 'T-SU2' } else { 'T-SU4' }
+
+        $agents = & powershell -NoProfile -ExecutionPolicy Bypass -File $p.Shim agents 2>&1 | Out-String
+        $agentsCode = $LASTEXITCODE
+        Check $tag ('{0}: the shim, the template workflow and the profile load: agents exits 0' -f $(if ($shape.Single) { 'single repo' } else { 'two repos' })) `
+            ($agentsCode -eq 0 -and $agents -match 'engine:') ("code=$agentsCode")
+
+        $dry = & powershell -NoProfile -ExecutionPolicy Bypass -File $p.Shim new $shape.Id $shape.Repo 'scaffold check' -DryRun 2>&1 | Out-String
+        $dryCode = $LASTEXITCODE
+        $promptFile = Join-Path $p.Orchestra ("runs\{0}\artifacts\preview.plan.prompt.md" -f $shape.Id)
+        $prompt = if (Test-Path -LiteralPath $promptFile) { Get-Content -LiteralPath $promptFile -Raw -Encoding UTF8 } else { '' }
+        Check $tagNew ('{0}: new -DryRun writes the planner prompt with the template workflow and its role section' -f $(if ($shape.Single) { 'single repo' } else { 'two repos' })) `
+            ($dryCode -eq 0 -and $prompt -match 'the four gates' -and $prompt -match "Turns the owner's request into a plan") `
+            ("code=$dryCode prompt=$($prompt.Length) chars workflow=$([bool]($prompt -match 'the four gates')) role=$([bool]($prompt -match "Turns the owner's request"))")
+    }
+}
+catch { Fail-Scenario 'T-SU1' 'a project the app set up runs' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------------------------------- report
 Write-Host ''
 $script:results | Format-Table -AutoSize | Out-String -Width 400 | Write-Host

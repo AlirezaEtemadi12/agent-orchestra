@@ -1,6 +1,7 @@
 <Solution>
 
   <Project Path="src/Orchestra.Api/Orchestra.Api.csproj" />
+  <Project Path="src/Orchestra.Desktop/Orchestra.Desktop.csproj" />
   <Project Path="tests/Orchestra.Api.Tests/Orchestra.Api.Tests.csproj" />
 
 </Solution>

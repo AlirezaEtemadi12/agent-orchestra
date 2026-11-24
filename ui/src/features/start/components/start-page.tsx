@@ -7,57 +7,41 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { startSteps } from '../start-steps';
-import { useHosting, useProjects, useStartRuns } from '../queries';
+import { useProjects } from '../queries';
 
-/** Plan 0009 D15: five steps, each with a mark computed from what the dashboard can see right now. */
+/** Plan 0012 D16: the dashboard runs, then the first project is set up; no hosting question. */
 export function StartPage() {
   const t = useTranslations('start');
   const projects = useProjects();
-  const hosting = useHosting();
-  const runs = useStartRuns();
 
-  const state = startSteps({
-    hosting: hosting.data,
-    projects: projects.data ?? [],
-    runCount: runs.data?.length ?? 0,
-  });
-
-  const docker = state.docker;
+  const state = startSteps({ projects: projects.data ?? [] });
 
   return (
     <div className="space-y-6">
       <PageHeader title={t('title')} />
 
       <ol className="grid gap-4">
-        <Step index={1} title={t('s1.title')} done={state.dashboard} labels={{ done: t('done'), todo: t('todo') }}>
-          <p className="text-xs text-muted-foreground" data-ltr>
-            {docker ? t('s1.docker') : t('s1.iis')}
-          </p>
-        </Step>
+        <Step index={1} title={t('running')} done labels={{ done: t('done'), todo: t('todo') }} />
 
         <Step
           index={2}
-          title={t('s2.title')}
-          done={state.project}
+          title={t('firstProject')}
+          done={state.connected}
           labels={{ done: t('done'), todo: t('todo') }}
           action={
             <Button asChild size="sm" variant="outline">
-              <Link href={'/settings/projects/edit/' as never}>{t('s2.action')}</Link>
+              <Link href={'/settings/projects/edit/' as never}>{t('action')}</Link>
             </Button>
           }
         >
-          <p className="text-xs text-muted-foreground">{t('s2.body')}</p>
-        </Step>
-
-        <Step index={3} title={t('s3.title')} done={state.connected} labels={{ done: t('done'), todo: t('todo') }}>
-          <p className="text-xs text-muted-foreground">{t('s3.body')}</p>
+          <p className="text-xs text-muted-foreground">{t('body')}</p>
           {state.pending.length > 0 ? (
             <ul className="space-y-1 text-sm">
               {state.pending.map((project) => (
                 <li key={project.id}>
                   <Link
                     className="underline-offset-4 hover:underline"
-                    href={{ pathname: '/settings/projects/connect/', query: { id: project.id } } as never}
+                    href={{ pathname: '/settings/projects/setup/', query: { id: project.id } } as never}
                   >
                     {project.id}
                   </Link>
@@ -65,14 +49,6 @@ export function StartPage() {
               ))}
             </ul>
           ) : null}
-        </Step>
-
-        <Step index={4} title={t('s4.title')} done={state.run} labels={{ done: t('done'), todo: t('todo') }}>
-          <p className="text-xs text-muted-foreground">{t('s4.body')}</p>
-        </Step>
-
-        <Step index={5} title={t('s5.title')} labels={{ done: t('done'), todo: t('todo') }}>
-          <p className="text-xs text-muted-foreground">{t('s5.body')}</p>
         </Step>
       </ol>
     </div>
