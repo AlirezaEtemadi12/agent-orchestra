@@ -59,3 +59,11 @@ back-fill. Screens: a runs board with lanes *Running / Needs you / Done / Failed
 volume for the SQLite file. Sign-in for one user, HTTPS through the server's reverse proxy, backups of
 the database file. The Windows runner reports to the server's URL. This phase's plan decides what
 leaves the Windows machine: numbers and metadata only, or plan and review text too.
+
+## Later — Linux and macOS
+
+Owner, 2026-11-24: Windows first; multi-platform comes after plan 0012. Plan 0012's app adds nothing
+Windows-only (Photino.NET runs on all three), so the work is in the engine and the publish script: the
+engine on PowerShell 7 (`pwsh`), a shim that picks `pwsh` or `powershell`, the offline suite on Linux,
+then `linux-x64` and `osx-arm64` builds and project setup on those systems. Details:
+[`engine-cross-platform.md`](../../.orchestra/ideas/engine-cross-platform.md).

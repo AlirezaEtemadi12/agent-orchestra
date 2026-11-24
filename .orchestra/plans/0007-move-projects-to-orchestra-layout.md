@@ -1,6 +1,6 @@
 # Plan 0007 — Move Project A and Project B to `.ai/` + `.orchestra/`
 
-**Status:** Running — phases A–C implemented 2026-11-22/23; the two companions are done in their workspaces, uncommitted, and their dashboard switch (D9) is the owner's
+**Status:** Running — phases A–C implemented 2026-11-22/23; both companions done and committed (Project A earlier, Project B 2026-11-24, one commit per repo); left: the owner's dashboard check (D9: re-import, compare counts), which plan 0012's "Check setup" replaces
 **Created:** 2026-11-19 · **Updated:** 2026-11-23 · **Done:** —
 **Preview:** none of its own — preview 0001 §2 (approved 2026-11-19)
 **Run:** —

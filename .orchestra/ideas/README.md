@@ -23,3 +23,7 @@ File name: kebab-case of the title.
 | [Skill library](skill-library.md) | raw |
 | [Session named after the task](session-named-after-task.md) | raw |
 | [A read-only API agents may ask](agent-query-api.md) | raw |
+| [Answer an agent's question remotely](remote-answers.md) | raw |
+| [Hosting on a server](hosting.md) | raw |
+| [A window of its own](desktop-window.md) | planned |
+| [Orchestra on Linux and macOS](engine-cross-platform.md) | ready |
