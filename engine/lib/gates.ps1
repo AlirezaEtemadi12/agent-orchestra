@@ -17,6 +17,14 @@ function Test-RepoKnown {
 
 function Invoke-Git {
     param([string]$RepoPath, [string[]]$GitArgs)
+    # D8 (plan 0011): a test hook. With ORCHESTRA_GIT_COUNT_FILE set to an absolute path, every call
+    # appends one line, so a test can hold the number of git processes an engine command starts instead of
+    # guessing it. Unset means no file and no cost; the try keeps counting from failing a real run.
+    try {
+        $countFile = $env:ORCHESTRA_GIT_COUNT_FILE
+        if ($countFile) { Add-Content -LiteralPath $countFile -Value ([string]$GitArgs[0]) -Encoding UTF8 }
+    }
+    catch { }
     $res = Invoke-External -Exe 'git' -ArgList (@('-C', $RepoPath) + $GitArgs) -TimeoutSec 60
     [pscustomobject]@{ Ok = ($res.ExitCode -eq 0); Stdout = $res.Stdout.Trim(); Stderr = $res.Stderr.Trim() }
 }
@@ -27,6 +35,42 @@ function Get-GitHead { param([string]$RepoPath) return (Invoke-Git $RepoPath @('
 function Get-GitUser { param([string]$RepoPath) return (Invoke-Git $RepoPath @('config', 'user.name')).Stdout }
 function Get-GitStatus { param([string]$RepoPath) return (Invoke-Git $RepoPath @('status', '--short', '--branch')).Stdout }
 function Get-GitPorcelain { param([string]$RepoPath) return (Invoke-Git $RepoPath @('status', '--porcelain', '--untracked-files=all')).Stdout }
+
+function Split-PorcelainV2 {
+    # Plan 0011 D4/D5: the one parser for `status --porcelain=v2 --branch`. v2 does not quote a path that
+    # contains spaces, so a path is neither "the last space-separated field" nor a split on every space.
+    # Each kind splits with a fixed field limit and the rest stays whole in the last part:
+    #   1 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <path>                             9 parts
+    #   2 <XY> <sub> <mH> <mI> <mW> <hH> <hI> <X><score> <path><TAB><origPath>  10 parts
+    #   u <XY> <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>                 11 parts
+    #   ? <path>                                                               everything after "? "
+    # Only "1 ", "2 ", "u " and "? " are entries. "# branch.oid" gives the commit (the literal
+    # "(initial)" before the first one) and "# branch.head" the branch; the other "#" lines, such as
+    # branch.upstream and branch.ab, are not returned - a fetch must not look like a change.
+    param([string]$Text)
+    $oid = ''; $head = ''; $entries = @()
+    foreach ($line in @("$Text" -split "`n")) {
+        $line = $line.TrimEnd("`r")
+        if (-not $line) { continue }
+        if ($line.StartsWith('# ')) {
+            if ($line.StartsWith('# branch.oid ')) { $oid = $line.Substring(13).Trim() }
+            elseif ($line.StartsWith('# branch.head ')) { $head = $line.Substring(14).Trim() }
+            continue
+        }
+        # if/elseif, not switch: a switch case is a wildcard pattern, so "'?'" would also match every other
+        # one-character line kind and turn it into an untracked entry.
+        $kind = $line.Substring(0, 1)
+        $path = $null
+        if ($kind -eq '1') { $p = @($line -split ' ', 9);  if ($p.Count -eq 9) { $path = $p[8] } }
+        elseif ($kind -eq '2') { $p = @($line -split ' ', 10); if ($p.Count -eq 10) { $path = ($p[9] -split "`t")[0] } }
+        elseif ($kind -eq 'u') { $p = @($line -split ' ', 11); if ($p.Count -eq 11) { $path = $p[10] } }
+        elseif ($kind -eq '?') { $path = $line.Substring(2) }
+        else { continue }
+        if (-not $path) { continue }
+        $entries += [pscustomobject]@{ Kind = $kind; Path = $path.Trim('"'); Line = $line }
+    }
+    return [pscustomobject]@{ Oid = $oid; Head = $head; Entries = @($entries) }
+}
 function Test-GitBranchExists { param([string]$RepoPath, [string]$Branch) return (Invoke-Git $RepoPath @('rev-parse', '--verify', '--quiet', "refs/heads/$Branch")).Ok }
 
 function Get-GitChangedFiles {
@@ -116,38 +160,42 @@ function Get-RepoState {
 }
 
 function Test-FingerprintIgnoredLine {
-    # True when a porcelain line names a path under one of $Ignore (cleanTree.ignore prefixes).
-    param([string]$Line, [string[]]$Ignore)
-    if (-not $Ignore -or -not $Ignore.Count -or $Line.Length -lt 4) { return $false }
-    $path = $Line.Substring(3).Trim()
-    if ($path -like '* -> *') { $path = ($path -split ' -> ')[-1].Trim() }   # rename/copy: the new path
-    $path = $path.Trim('"') -replace '\\', '/'
+    # True when a parsed porcelain path is under one of $Ignore (cleanTree.ignore prefixes). Plan 0011:
+    # the path arrives already parsed, so the v1 raw-line trimming and its "a -> b" split are gone.
+    param([string]$Path, [string[]]$Ignore)
+    if (-not $Ignore -or -not $Ignore.Count -or -not $Path) { return $false }
+    $path = $Path.Trim('"') -replace '\\', '/'
     foreach ($i in $Ignore) { if ($path.StartsWith($i, [System.StringComparison]::OrdinalIgnoreCase)) { return $true } }
     return $false
 }
 
 function Get-RepoFingerprint {
-    # HEAD + branch + porcelain + content hash of the tracked diff + size/mtime of untracked files.
-    # Two fingerprints differ iff something in the repo changed (commit, branch switch, edit, new file).
+    # Plan 0011 D2-D6: one `git status --porcelain=v2 --branch` carries the commit, the branch and every
+    # changed path; the content of those paths is hashed from disk instead of `git diff HEAD`. Two
+    # fingerprints differ iff something in the repo changed (commit, branch switch, edit, new file,
+    # deleted file); a file over 4 MB is compared by length and mtime instead (D3).
     # Paths under $Ignore (cleanTree.ignore: plans and session logs) are left out on purpose: gate 3
     # already ignores them, and another session writing its own plan file must not look like a
     # read-only role editing the repo - which is exactly what made read-back hops fail.
+    # The "v2:" prefix marks the shape, so a value saved by an older engine is recognisable (D7).
     param([string]$RepoPath, [string[]]$Ignore = @())
     if (-not (Test-Path -LiteralPath $RepoPath)) { return '(missing)' }
-    $head = (Invoke-Git $RepoPath @('rev-parse', 'HEAD')).Stdout
-    $branch = (Invoke-Git $RepoPath @('branch', '--show-current')).Stdout
-    $porcelain = @((Get-GitPorcelain $RepoPath) -split "`n" | Where-Object { $_ -and -not (Test-FingerprintIgnoredLine -Line $_ -Ignore $Ignore) })
-    $pathspec = @('diff', 'HEAD', '--')
-    foreach ($i in $Ignore) { $pathspec += ":(exclude,glob)$i**" }
-    $diff = (Invoke-Git $RepoPath $pathspec).Stdout
-    $untracked = foreach ($l in @($porcelain | Where-Object { $_ -like '`?`? *' })) {
-        $rel = $l.Substring(3).Trim('"')
-        $p = Join-Path $RepoPath $rel
-        if (Test-Path -LiteralPath $p) { $i = Get-Item -LiteralPath $p; "$rel|$($i.Length)|$($i.LastWriteTimeUtc.Ticks)" }
+    $st = Split-PorcelainV2 ((Invoke-Git $RepoPath @('status', '--porcelain=v2', '--branch', '--untracked-files=all')).Stdout)
+    $kept = @($st.Entries | Where-Object { -not (Test-FingerprintIgnoredLine -Path $_.Path -Ignore $Ignore) })
+    $lines = New-Object System.Collections.Generic.List[string]
+    $content = New-Object System.Collections.Generic.List[string]
+    foreach ($e in $kept) {
+        $lines.Add($e.Line)
+        $full = Join-Path $RepoPath $e.Path
+        if (-not (Test-Path -LiteralPath $full)) { $content.Add("$($e.Path)|deleted"); continue }
+        if (Test-Path -LiteralPath $full -PathType Container) { $content.Add("$($e.Path)|dir"); continue }
+        $f = Get-Item -LiteralPath $full
+        if ($f.Length -gt 4194304) { $content.Add("$($e.Path)|big|$($f.Length)|$($f.LastWriteTimeUtc.Ticks)"); continue }
+        $content.Add("$($e.Path)|$((Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash)")
     }
-    $raw = "$head`n$branch`n$($porcelain -join "`n")`n$diff`n$($untracked -join "`n")"
+    $raw = "v2`n$($st.Oid)`n$($st.Head)`n$($lines -join "`n")`n$($content -join "`n")"
     $sha = [System.Security.Cryptography.SHA256]::Create()
-    return [BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($raw))).Replace('-', '')
+    return 'v2:' + [BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($raw))).Replace('-', '')
 }
 
 function Get-WorkspaceFingerprint {

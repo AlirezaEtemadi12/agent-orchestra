@@ -757,6 +757,122 @@ try {
 }
 catch { Fail-Scenario 'S8' 'dirty tree guard' ("exception: " + $_.Exception.Message) }
 
+# ---------------------------------------------------------------- T-GIT1: git processes one new starts
+# Plan 0011: the fingerprint's cost is a number, not a guess. ORCHESTRA_GIT_COUNT_FILE (D8) makes every
+# Invoke-Git append one line, and this section counts them for one `new` that reaches gate 2. Phase 1 sets
+# the ceiling to the measured count; phase 3 lowers it to the new count plus headroom.
+try {
+    $ws = New-WorkSpace 'gitcount'
+    $countFile = Join-Path $ws 'git-calls.txt'
+    $count = -1
+    $env:ORCHESTRA_GIT_COUNT_FILE = $countFile
+    try {
+        [void](Invoke-New $ws 'T-GIT-001' 'Ui')
+        $count = if (Test-Path -LiteralPath $countFile) { @(Get-Content -LiteralPath $countFile).Count } else { 0 }
+    }
+    finally {
+        Remove-Item Env:\ORCHESTRA_GIT_COUNT_FILE -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $countFile) { Remove-Item -LiteralPath $countFile -Force }
+    }
+    $ceiling = 28
+    Check 'T-GIT1' "one new starts at most $ceiling git processes" `
+        ($count -ge 0 -and $count -le $ceiling) `
+        ("git calls: $count (ceiling $ceiling)")
+}
+catch { Fail-Scenario 'T-GIT1' 'git call count of one new' ("exception: " + $_.Exception.Message) }
+
+# ---------------------------------------------------------------- T-GIT2: the fingerprint is one call, and it sees content
+# Plan 0011: a unit test of Get-RepoFingerprint in a scratch repo whose changed path has a space in it, so
+# the porcelain-v2 parser (D4) and the content hash (D3) are held by something other than an end-to-end
+# section. One Check; the detail names every case that failed.
+try {
+    $dir = Join-Path $env:TEMP ("orch-fp-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    [void]$script:workspaces.Add($dir)
+    [void](& git -C $dir init -q 2>&1)
+    [void](& git -C $dir checkout -q -b work 2>&1)
+    [void](& git -C $dir config user.name 'alireza' 2>&1)
+    [void](& git -C $dir config user.email 'alireza@example.com' 2>&1)
+    New-Item -ItemType Directory -Path (Join-Path $dir 'dir with space') -Force | Out-Null
+    $spaceFile = Join-Path $dir 'dir with space\file one.txt'
+    [System.IO.File]::WriteAllText($spaceFile, 'one')
+    $aFile = Join-Path $dir 'a.txt'
+    [System.IO.File]::WriteAllText($aFile, 'A')
+    $delFile = Join-Path $dir 'del.txt'
+    [System.IO.File]::WriteAllText($delFile, 'gone')
+    [void](& git -C $dir add -A 2>&1)
+    [void](& git -C $dir commit -q -m 'init' 2>&1)
+
+    $fails = @()
+    $fp = { param([string[]]$Ignore = @()) Get-RepoFingerprint -RepoPath $dir -Ignore $Ignore }
+
+    # Same repo, nothing in between: same value, and it carries the v2 shape.
+    $f1 = & $fp
+    $f2 = & $fp
+    if (-not $f1.StartsWith('v2:')) { $fails += 'v2 prefix' }
+    if ($f1 -ne $f2) { $fails += 'stable' }
+
+    # D2/D8: one snapshot is one git process.
+    $cntFile = Join-Path $env:TEMP ("orch-fp-count-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    $calls = -1
+    $env:ORCHESTRA_GIT_COUNT_FILE = $cntFile
+    try {
+        [void](& $fp)
+        $calls = if (Test-Path -LiteralPath $cntFile) { @(Get-Content -LiteralPath $cntFile).Count } else { 0 }
+    }
+    finally {
+        Remove-Item Env:\ORCHESTRA_GIT_COUNT_FILE -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $cntFile) { Remove-Item -LiteralPath $cntFile -Force }
+    }
+    if ($calls -ne 1) { $fails += "git calls ($calls)" }
+
+    # D3: re-editing a file that is already modified, with its size and its mtime put back, still changes
+    # the value - only the content can tell the two apart.
+    [System.IO.File]::WriteAllText($aFile, 'B')
+    $mtime = (Get-Item -LiteralPath $aFile).LastWriteTimeUtc
+    $f3 = & $fp
+    [System.IO.File]::WriteAllText($aFile, 'C')
+    (Get-Item -LiteralPath $aFile).LastWriteTimeUtc = $mtime
+    $f4 = & $fp
+    if ($f3 -eq $f4) { $fails += 're-edit with size and mtime restored' }
+
+    # D4: a path with a space is the whole path, not its last word.
+    [System.IO.File]::WriteAllText($spaceFile, 'two')
+    $f5 = & $fp
+    if ($f5 -eq $f4) { $fails += 'space path edit' }
+
+    # A deleted tracked file, then a new untracked one.
+    Remove-Item -LiteralPath $delFile -Force
+    $f6 = & $fp
+    if ($f6 -eq $f5) { $fails += 'deleted file' }
+    [System.IO.File]::WriteAllText((Join-Path $dir 'new.txt'), 'new')
+    $f7 = & $fp
+    if ($f7 -eq $f6) { $fails += 'untracked file' }
+
+    # A commit with a clean tree before and after, then a branch switch.
+    [void](& git -C $dir add -A 2>&1)
+    [void](& git -C $dir commit -q -m 'two' 2>&1)
+    $f8 = & $fp
+    if ($f8 -eq $f7) { $fails += 'commit' }
+    [void](& git -C $dir switch -q -c other 2>&1)
+    $f9 = & $fp
+    if ($f9 -eq $f8) { $fails += 'branch switch' }
+
+    # D5: a path under an ignored prefix is left out, before and after an edit.
+    $ign = @('ignored')
+    New-Item -ItemType Directory -Path (Join-Path $dir 'ignored') -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $dir 'ignored\note.md'), 'x')
+    $f10 = & $fp $ign
+    [System.IO.File]::WriteAllText((Join-Path $dir 'ignored\note.md'), 'y')
+    $f11 = & $fp $ign
+    if ($f10 -ne $f11) { $fails += 'ignored prefix' }
+
+    Check 'T-GIT2' 'one git call sees content, spaces, commits, branches, deletions and new files' `
+        ($fails.Count -eq 0) `
+        ($(if ($fails.Count) { 'failed: ' + ($fails -join ', ') } else { "ok (one call, $($f1.Substring(0, 3))...)" }))
+}
+catch { Fail-Scenario 'T-GIT2' 'fingerprint unit test' ("exception: " + $_.Exception.Message) }
+
 # ---------------------------------------------------------------- S9: read-only role that writes
 try {
     $ws = New-WorkSpace 'readonly'

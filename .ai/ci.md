@@ -38,6 +38,7 @@ that passed only on that rerun (timing under load). It prints a total and the wa
 
 | When | Tests |
 |---|---|
+| after plan 0011 — one git call per repo per snapshot (2026-11-24) | 142; 25 git calls per `new` (was 61); 320 s |
 | suite sped up — one config, four shards, workspaces copied from one template (2026-11-23) | 140; ~7 min (was ~37 for two configs) |
 | after plan 0009 — the report token from `orchestrator.local.json` (2026-11-23) | 140 per config |
 | after plan 0007 phase A — `close` by `plansDir` and `Status: Done` (2026-11-22) | 139 per config, 278 across `number` and `slug`; ~19 min per config |

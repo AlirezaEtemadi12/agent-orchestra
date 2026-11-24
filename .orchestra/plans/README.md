@@ -28,4 +28,5 @@ without deciding anything. The process is [`../workflow.md`](../workflow.md); th
 | [0008](0008-hosting.md) | Server mode: sign-in, HTTPS, sync, profile pull, backups (§8 deferred) | Draft | 2026-11-19 | 2026-11-20 |
 | [0009](0009-easy-onboarding.md) | Adding a project by its Windows path: path map, folder browser, auto-fill, own report token, connect page, getting started | Done | 2026-11-23 | 2026-11-23 |
 | [0010](0010-gridify-tables.md) | Every growing table (runs, import log, library, profile versions) is a server-side Gridify table | Draft | 2026-11-23 | 2026-11-23 |
-| [0011](0011-fewer-git-calls.md) | One git call per repo per snapshot instead of four; the before/after check stays | Approved | 2026-11-23 | 2026-11-24 |
+| [0011](0011-fewer-git-calls.md) | One git call per repo per snapshot instead of four; the before/after check stays | Done | 2026-11-23 | 2026-11-24 |
+| [0012](0012-local-app-and-project-setup.md) | A desktop app (Photino.NET exe, Windows + Linux builds, no Docker) that sets a project up by itself: setup screen, templates, folder dialog | Draft | 2026-11-24 | 2026-11-24 |

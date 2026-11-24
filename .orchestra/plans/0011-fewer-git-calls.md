@@ -1,9 +1,10 @@
 # Plan 0011 — One git call per repo per snapshot
 
-**Status:** Approved
-**Created:** 2026-11-23 · **Updated:** 2026-11-24 · **Done:** —
+**Status:** Done
+**Created:** 2026-11-23 · **Updated:** 2026-11-24 · **Done:** 2026-11-24
 **Preview:** none — no screen; the engine does the same checks with fewer `git` processes
-**Run:** —
+**Run:** — (implemented by an agent in the chat, phases 1–3)
+**Commit:** `a2f36bf` on `alireza/fewer-git-calls` · **Merge:** — (branch pushed, not merged yet)
 **Planned by:** Claude Opus 5.5, 2026-11-23. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** gate 2 by another model family (pasted by the owner, 2026-11-24): 4 must-fix, 7 should-fix. All are applied in v2 (D2–D9, §6, §7, §9). One correction to the review is recorded in D4: the field counts before the path are 9 for `2` and 10 for `u`, checked against git 2.56 output. Second pass (same reviewer, 2026-11-24): all fixes confirmed against the code and git; three small points applied (line numbers in §0, the v1 leftovers in §6.1, the printed baseline in §0 and §9).
 **Decided by:** owner in the chat, 2026-11-23 ("four git calls is really too many; nobody touches the repo at that moment". The check stays and its cost goes; see D1.) Approved for execution by the owner, 2026-11-24.
@@ -216,7 +217,7 @@ check is edited. S11, T-W1, T13, T6 and the read-only guard checks must pass as 
 1. Add the D8 counter to `Invoke-Git`.
 2. Add T-GIT1, with its ceiling set to the measured current count.
 3. Measure with `-Shards 1` so that nothing else is running, and write the number here:
-   **phase-1 count: ___**.
+   **phase-1 count: 61** (one `new` through gate 2, measured alone on 2026-11-24).
 
 **Gate:** the offline suite, all green (141 checks). If the printed baseline was not 140, every count in
 §0, §7 and §9 moves by the same difference: write the real numbers here before going on.
@@ -229,7 +230,7 @@ Stop here — show the owner the diff.
 
 **Steps:** §6.1 (except the counter), §6.2, §6.3, and T-GIT2.
 
-**Gate:** the offline suite, all green (142 checks). Record the new count and the wall time.
+**Gate:** the offline suite, all green (142 checks). **phase-2 count: 25** (from 61) and **wall time: 320 s**, measured 2026-11-24; both also in `.ai/ci.md`.
 
 **Owner checks:** items 2 and 3 of the checklist above.
 
