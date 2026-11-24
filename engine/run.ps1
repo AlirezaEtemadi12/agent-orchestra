@@ -1765,6 +1765,15 @@ function Cmd-Implement {
 
         # Post-checks the agent cannot talk its way past.
         $after = Get-WorkspaceFingerprint $Ctx
+        # Plan 0011 D7: a value saved by an older engine (no "v2:" prefix) cannot be compared with a fresh
+        # one, so that repo counts as unchanged. The target repo says so with a note; a sibling stays
+        # silent, because a sibling's snapshot is only a note anyway.
+        foreach ($k in @($before.Keys)) {
+            $v = [string]$before[$k]
+            if (-not $v -or $v -eq '(missing)' -or $v.StartsWith('v2:')) { continue }
+            if ($after.ContainsKey($k)) { $before[$k] = $after[$k] }
+            if ($k -eq $state.repo) { Write-Host '  note: fingerprint from an older engine, not compared' -ForegroundColor Yellow }
+        }
         $violations = @()
         $siblings = @(Compare-WorkspaceFingerprint $before $after | Where-Object { $_ -ne $state.repo })
         if ($siblings.Count) {

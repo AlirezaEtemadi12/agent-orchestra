@@ -1,6 +1,6 @@
 # Plan 0011 — One git call per repo per snapshot
 
-**Status:** Approved
+**Status:** Running — phases 1–3 implemented 2026-11-24; the diff is uncommitted on the branch and the offline suite is green (142 checks), 25 git calls per `new` instead of 61
 **Created:** 2026-11-23 · **Updated:** 2026-11-24 · **Done:** —
 **Preview:** none — no screen; the engine does the same checks with fewer `git` processes
 **Run:** —
@@ -216,7 +216,7 @@ check is edited. S11, T-W1, T13, T6 and the read-only guard checks must pass as 
 1. Add the D8 counter to `Invoke-Git`.
 2. Add T-GIT1, with its ceiling set to the measured current count.
 3. Measure with `-Shards 1` so that nothing else is running, and write the number here:
-   **phase-1 count: ___**.
+   **phase-1 count: 61** (one `new` through gate 2, measured alone on 2026-11-24).
 
 **Gate:** the offline suite, all green (141 checks). If the printed baseline was not 140, every count in
 §0, §7 and §9 moves by the same difference: write the real numbers here before going on.
@@ -229,7 +229,7 @@ Stop here — show the owner the diff.
 
 **Steps:** §6.1 (except the counter), §6.2, §6.3, and T-GIT2.
 
-**Gate:** the offline suite, all green (142 checks). Record the new count and the wall time.
+**Gate:** the offline suite, all green (142 checks). **phase-2 count: 25** (from 61) and **wall time: 320 s**, measured 2026-11-24; both also in `.ai/ci.md`.
 
 **Owner checks:** items 2 and 3 of the checklist above.
 

@@ -549,7 +549,14 @@ function Invoke-Manual {
         $now = if ($RepoPath) { Get-RepoFingerprint $RepoPath } else { '' }
         $then = if (Test-Path -LiteralPath $fpFile) { (Get-Content -LiteralPath $fpFile -Raw).Trim() } else { '' }
         if (-not $isImpl -and $then -and $now -ne $then) {
-            return [pscustomobject]@{ ExitCode = -3; Stdout = ''; Stderr = 'manual: the repo changed after the prompt was written'; TimedOut = $false; TimeoutKind = $null }
+            # Plan 0011 D7: a value written by an older engine (no "v2:" prefix) is not comparable with a
+            # fresh one; accept the human's answer with a note instead of refusing it over an upgrade.
+            if ($then -ne '(missing)' -and -not $then.StartsWith('v2:')) {
+                Write-Host '  note: fingerprint from an older engine, not compared' -ForegroundColor Yellow
+            }
+            else {
+                return [pscustomobject]@{ ExitCode = -3; Stdout = ''; Stderr = 'manual: the repo changed after the prompt was written'; TimedOut = $false; TimeoutKind = $null }
+            }
         }
         # ReadAllText, not Get-Content: a Get-Content string carries PSPath/PSDrive/PSProvider note
         # properties, and serializing it into a transcript drags the whole provider object graph along
