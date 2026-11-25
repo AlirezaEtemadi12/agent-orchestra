@@ -60,6 +60,13 @@ working tree, and D7 renames the repo key its run uses.
   13. skill `orchestrate` می‌گوید «هر بار یک فاز، بعد verify». برای همین 0010 بعد از هر فاز verify شد، در حالی که
       قاعده‌ی کانداکتر یک verify در آخر است. skill هم همین را می‌گوید: همه‌ی فازها پشت‌سرهم، بعد یک verify.
       (توقف بین فازها هم از همین جمله‌ی skill می‌آمد.) این هم روی main و در همه‌ی پروژه‌های ثبت‌شده انجام شد، پیش از این پلن.
+  14. import لجر هیچ run ای را که شناسه‌اش نام پوشه‌ی پلن است (`0010-gridify-tables`) نمی‌خواند: الگوی عنوان بلوک
+      فقط شناسه‌هایی مثل `T-AGENT-015` را می‌پذیرد و بقیه را بی‌صدا رد می‌کند. برای همین 0010 بعد از Re-import هم
+      Sessions و Cost ندارد. از این به بعد هر شناسه‌ای خوانده می‌شود؛ ریپوی فاصله‌دار در خط `repo` و چند فاز در یک
+      خط (`phase 1 2 3`) هم خوانده می‌شوند؛ و عنوانی که خوانده نشود خطا در Import log است، نه سکوت.
+  15. جدول Runs و صفحه‌ی یک run، شناسه‌ی engine را با «.1» عنوان می‌کنند (`0010-gridify-tables.1`، `T-AGENT-015.1`)
+      و شماره‌ی پلن را با «v» می‌نویسند (`v0010`) که شبیه نسخه‌ی پلن است. از این به بعد عنوان مثل board است:
+      `0010 · Every growing table …`؛ شناسه‌ی run کوچک زیرش می‌آید. run ای که شماره‌ی پلن ندارد همان شناسه را عنوان دارد.
 
 **کارهایی که این پلن انجام نمی‌دهد:**
 - صفحه‌ی Runs خودش را مثل board هر چند ثانیه تازه نمی‌کند؛ داده‌ی دیتابیس به‌روز می‌شود و صفحه با باز شدن دوباره آن را نشان می‌دهد.
@@ -72,8 +79,8 @@ working tree, and D7 renames the repo key its run uses.
 ## جریان کار
 
 1. **فاز ۱، API.** بررسی پوشه، prompt راه‌اندازی، import بدون پوشه‌ی runs، نام ریپو و تشخیص فرمان‌های وریفای،
-   import خودکار بعد از رویدادها، health نه روی board و نه در جدول Runs، هزینه‌ی نامعلوم «—»، شاخه‌ی «-» و زمان شروع run.
-2. **فاز ۲، UI.** فهرست بررسی با گروه «این‌ها هم پیدا شد» و متن «خود این پوشه ریپو است»؛ خلاصه‌ی Runs هزینه‌ی خالی را می‌پذیرد.
+   import خودکار بعد از رویدادها، health نه روی board و نه در جدول Runs، هزینه‌ی نامعلوم «—»، شاخه‌ی «-»، زمان شروع run و خواندن لجر runهای با پوشه‌ی پلن.
+2. **فاز ۲، UI.** فهرست بررسی با گروه «این‌ها هم پیدا شد» و متن «خود این پوشه ریپو است»؛ خلاصه‌ی Runs هزینه‌ی خالی را می‌پذیرد؛ عنوان run در جدول Runs و صفحه‌ی run مثل board.
 3. **فاز ۳، قاعده و این ریپو.** ADR 0005، `AGENTS.md`، `.gitignore`، نام ریپو در `orchestrator.json`.
 
 فازها پشت‌سرهم اجرا می‌شوند؛ بررسی‌های مالک بعد از فاز آخر است.
@@ -96,6 +103,10 @@ working tree, and D7 renames the repo key its run uses.
       می‌دهد، نه `$0.000`. Project B همان `$5.406` را نشان می‌دهد.
 - [ ] **Project B بعد از Re-import:** در صفحه‌ی Runs، T-AGENT-015، 020، 023 تا 026 و T-AGENT-002 هر کدام یک ردیف دارند
       (منبع Both)، و هیچ ردیفی زمان شروعش بعد از زمان آخرین تغییرش نیست.
+- [ ] **لجر Orchestra:** Re-import را بزنید؛ ردیف 0010 در Runs، Sessions را ۳ و Cost را `$1.714` نشان می‌دهد و Import log
+      برای Orchestra بلوک‌های خوانده‌شده را بیشتر از صفر می‌گوید.
+- [ ] **عنوان run:** در Runs، ردیف 0010 عنوانش `0010 · Every growing table is a server-side Gridify table` است و زیرش
+      `0010-gridify-tables.1`؛ هیچ‌جا «v0010» نیست. صفحه‌ی همان run هم همین عنوان را دارد.
 
 ## 0. Ground rules for the executor
 
@@ -156,7 +167,8 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 | D15 | **A run starts at the earliest time any source gives.** `RunAssembler.MergeLiveRuns` and `MergeArchives` (the `else` branch, where the target already exists): `target.CreatedAt` becomes the earlier of itself and the source's `CreatedAt` (when the source has one). `UpdatedAt` rules are unchanged, so the Cost page still dates a run as today |
 | D16 | **No stop between phases.** Already done on `main` (2026-11-25, before this plan): both `TEMPLATE.md` copies say phases run back to back and owner checks come once, after the last phase. Nothing to do here; this plan follows it (§9) |
 | D17 | **One verify, at the end.** Already done on `main` (2026-11-25, before this plan): the `orchestrate` skill's step 4, in this repo, in `engine/templates/` and in every registered project, says every phase back to back, then one `verify`. Nothing to do here |
-
+| D18 | **The ledger reads every run id.** `LedgerParser`'s heading accepts any run id without spaces (`0010-gridify-tables` as well as `T-AGENT-015`); its repo line accepts a repo name with spaces; its phase line accepts a list of numbers (`phase 1 2 3`, phases run together), which gives **one** row whose `Phase` is the first number. A trimmed line that starts with `## ` and does not match the heading is a `LedgerError` ("Unrecognised ledger heading.") and ends the current block, so nothing after it is read into the wrong block. A leading BOM on the file does not stop its first heading from matching. The exact patterns are in §6.1 item 12 |
+| D19 | **A run is titled like its board card.** In `ui/src/features/runs/components/runs-list.tsx` (the `runKey` column) and `run-detail.tsx` (`PageHeader`): when `planNumber` is set, the title is `` `${planNumber} · ${planTitle ?? task ?? ''}` `` and the run key is a muted line under it (`data-ltr`); otherwise the title is the run key and the muted line is `task` when there is one. No `v` before the plan number anywhere: the detail description becomes the project name alone. The run key in URLs and the column id stay as they are |
 ## 5. File manifest
 
 | # | File | Change | Phase |
@@ -169,10 +181,11 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 | 5 | `api/tests/Orchestra.Api.Tests/Projects/{FolderCheckTests,ScaffoldPromptBuilderTests}.cs`, `Import/ImportServiceTests.cs`, the setup tests that cover D7/D8 (new file `Projects/SetupKeysTests.cs` if none fits) | EDIT/NEW — §7 | 1 |
 | 5a | `api/src/Orchestra.Api/Modules/Import/{ImportQueue,ImportQueueService}.cs` (NEW), `ImportModuleInstaller.cs`, `api/src/Orchestra.Api/Common/OrchestraOptions.cs`, `api/src/Orchestra.Api/Modules/Events/{EventKinds,Features/ReceiveEvent/ReceiveEventHandler}.cs`, `api/src/Orchestra.Api/Modules/Import/RunAssembler.cs` | EDIT/NEW — D9 helper, D11, D12 | 1 |
 | 5b | `api/tests/Orchestra.Api.Tests/Events/{EventsFixture,ReceiveEventTests}.cs`, `Import/ImportQueueTests.cs` (NEW), `Import/RunAssemblerEventsTests.cs` | EDIT/NEW — §7 | 1 |
-| 5c | `api/src/Orchestra.Api/Common/Money.cs` (NEW), `Modules/Usage/Features/CostSummary/CostSummaryHandler.cs`, `Modules/Projects/Features/ListProjects/ListProjectsHandler.cs`, `Modules/Runs/Features/RunsTable/RunsSummaryHandler.cs`, `Modules/Import/Ledger/LedgerParser.cs`, `Modules/Import/RunAssembler.cs` | EDIT/NEW — D13, D14, D15 | 1 |
+| 5c | `api/src/Orchestra.Api/Common/Money.cs` (NEW), `Modules/Usage/Features/CostSummary/CostSummaryHandler.cs`, `Modules/Projects/Features/ListProjects/ListProjectsHandler.cs`, `Modules/Runs/Features/RunsTable/RunsSummaryHandler.cs`, `Modules/Import/Ledger/LedgerParser.cs`, `Modules/Import/RunAssembler.cs` | EDIT/NEW — D13, D14, D15, D18 | 1 |
 | 5d | `api/tests/Orchestra.Api.Tests/Import/{LedgerParserTests,RunAssemblerTests}.cs`, the cost-summary, project-list and runs-summary tests (grep for `CostUsd`), `MoneyTests.cs` (NEW, beside them) | EDIT/NEW — §7 | 1 |
 | 6 | `ui/src/features/projects/components/check-result.tsx`, `ui/src/features/projects/types.ts` (`required: boolean`), `ui/src/features/projects/i18n/{en,fa}.ts`, `ui/src/features/projects/projects.test.tsx` | EDIT — D2 | 2 |
 | 6a | `ui/src/features/runs/types.ts` (`RunsSummary.costUsd: number \| null`) and any test fixture that types it | EDIT — D13 | 2 |
+| 6b | `ui/src/features/runs/components/{runs-list,run-detail}.tsx`, `ui/src/features/runs/runs.test.tsx` | EDIT — D19 | 2 |
 | 7 | `.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md`, `AGENTS.md`, `.gitignore`, `.orchestra/orchestrator.json` | EDIT — D4, D5, D7 | 3 |
 | 8 | `.ai/architecture/data-model.md` or `overview.md` — only if one of them lists the folder-check items or the single-repo key; grep first | EDIT | 3 |
 | 9 | `.ai/architecture/overview.md` lines 36–37 (the importer runs "on start and on demand") | EDIT — D11 | 3 |
@@ -212,12 +225,26 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 11. **`RunAssembler`** (D15): in `MergeLiveRuns`, replace `target.CreatedAt = target.CreatedAt == default ? created : target.CreatedAt;`
     with "default → `created`; otherwise the earlier of the two". In `MergeArchives`' `else` branch, add the same
     with `archive.Task.CreatedAt` when it is not null. `ApplyLedgerBlock` and `ApplyEvent` stay as they are.
+12. **`LedgerParser`** (D18): the three patterns become exactly
+
+    ```
+    Header:    ^## (\d{4}-\d{2}-\d{2} \d{2}:\d{2}) - (\S+) - (verify|close)\s*$
+    RepoLine:  ^repo (.+?) \| status (\S+) \| plan v(\d+) \| branch (\S+)$
+    PhaseLine: ^- phase (\d+(?: \d+)*): (\w+) by (\S+) \| changed (\d+) \| not in plan (\d+) \| violations (\d+)$
+    ```
+
+    The phase arm takes the first number of `Groups[1]` (`Split(' ')[0]`). The unmatched-heading check sits right
+    after the heading match: `line.StartsWith("## ", StringComparison.Ordinal)` → `Finish(...)` the current block,
+    add the error with the line number, set `block = null`, `continue`. Strip a leading BOM (U+FEFF) before `Trim()`.
 
 ### 6.2 Phase 2 — UI
 
 1. **`types.ts`**: the folder-check item type gains `required: boolean`. `ui/src/features/runs/types.ts`:
    `RunsSummary.costUsd: number | null` (D13); the Runs page already passes it to `MoneyText`.
-2. **`check-result.tsx`**: render `check.items.filter((item) => item.required)` as today. Then, when
+2. **`runs-list.tsx` / `run-detail.tsx`** (D19): one small helper in `ui/src/features/runs/` —
+   `runTitle(run: { runKey: string; planNumber: string | null; planTitle: string | null; task: string | null })`
+   returning `{ title, subtitle }` — used by both, so they cannot drift.
+3. **`check-result.tsx`**: render `check.items.filter((item) => item.required)` as today. Then, when
    `check.items.some((item) => !item.required)`, a block with `t('form.alsoFound')` as a small heading, the items
    with a `secondary` badge `t('found')` (and `t('form.oldLayout')` after `orchestrator/` in the same muted style
    as `form.inEachRepo`), and `t('form.alsoFoundNote')` as a muted paragraph. The repos line: when
@@ -264,6 +291,13 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
   an archive of the same task with no branch assemble into one run, source `Both`.
 - **Start time (D15):** a ledger run whose first block is later than the archive's (or `task.json`'s) `createdAt`
   gets the earlier `CreatedAt`; a source with a later `createdAt` does not move it.
+- **Ledger ids (D18):** a block headed `## 2026-11-25 14:53 - 0010-gridify-tables - verify` parses with that task
+  id and its sessions and cost; `repo Project Orchestra | status Verified | plan v4 | branch x` gives repo
+  `Project Orchestra`; `- phase 1 2 3: PASS by …` gives one row with `Phase = 1`; a `## something else` line gives
+  one error and the lines after it join no block; a file that starts with a BOM reads its first block. The existing
+  `T-AGENT-…` cases still pass.
+- **Run title (D19, `runs.test.tsx`):** a run with `planNumber '0010'` and a title shows `0010 · <title>` and the
+  run key under it, and no `v0010`; a run without a plan number shows its run key as the title.
 - **UI (`projects.test.tsx`):** the check renders no "missing" badge for `.cursor/`; an optional item shows under
   "Also found" with the note; `repos: ['.']` renders "The folder itself is the repo."
 
@@ -281,7 +315,7 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 | Phase | Files (§5) | Gate |
 |---|---|---|
 | 1 API | 1–5 (with 1a, 5a–5d) | api gates |
-| 2 UI | 6, 6a | ui gates |
+| 2 UI | 6, 6a, 6b | ui gates |
 | 3 Rule and this repo | 7–9 | all gates; §6.3.2 and §6.3.3; `Get-Content .orchestra/orchestrator.json -Raw \| ConvertFrom-Json` succeeds |
 
 Phases run back to back with no stop between them (D16); a run stops only on what §8 names, BLOCKED, a violation, a
