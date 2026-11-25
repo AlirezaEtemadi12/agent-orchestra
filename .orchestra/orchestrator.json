@@ -1,0 +1,41 @@
+{
+    "profile": "default",
+    "root": "..",
+    "description": {
+        "title": "Project Orchestra",
+        "repos": "  - Repo: ."
+    },
+    "planFiling": "number",
+    "repos": {
+        "Project Orchestra": "."
+    },
+    "plansDir": ".orchestra/plans",
+    "workflow": {
+        "gatesPath": ".orchestra/workflow.md",
+        "rolesPath": ".orchestra/roles",
+        "rolesIndex": ".orchestra/roles/README.md",
+        "promptsPath": ".orchestra/prompts",
+        "agentsDoc": "AGENTS.md",
+        "indexDoc": ".ai/README.md",
+        "planTemplate": ".orchestra/plans/TEMPLATE.md"
+    },
+    "verifyCommands": {
+        "Project Orchestra": [
+            "dotnet build api/Orchestra.slnx -warnaserror",
+            "dotnet test api/Orchestra.slnx",
+            "npm --prefix ui run typecheck",
+            "npm --prefix ui run lint",
+            "npm --prefix ui run test",
+            "npm --prefix ui run build",
+            "powershell -NoProfile -File engine/tests/offline/run-offline.ps1"
+        ]
+    },
+    "report": {
+        "enabled": true,
+        "url": "http://localhost:3500/api/events",
+        "project": "project-orchestra",
+        "tokenEnv": "ORCHESTRA_REPORT_TOKEN",
+        "timeoutSec": 2,
+        "progressEverySec": 10
+    }
+}
