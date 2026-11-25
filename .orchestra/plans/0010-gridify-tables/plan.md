@@ -1,13 +1,13 @@
 # Plan 0010 — Every growing table is a server-side Gridify table
 
-**Status:** Running
-**Created:** 2026-11-23 · **Updated:** 2026-11-25 · **Done:** —
+**Status:** Done 2026-11-25 — run 0010-gridify-tables, merged as 4694ec9 (not pushed)
+**Created:** 2026-11-23 · **Updated:** 2026-11-25 · **Done:** 2026-11-25
 **Preview:** none — no new screen; the tables keep their columns and gain a pager and sortable headers
 **Run:** `0010-gridify-tables`
 **Planned by:** Claude Opus 5.5, 2026-11-23. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** v1 reviewed on 2026-11-25 by opencode / DeepSeek V4.1 (a different family): 7 blockers, 16 should, 3 nits. v2 applied them; v3 answered the second round (0 blockers, 4 should, 2 nits); v4 answers the third (0 blockers, 3 should, 8 nits). §11 records the rounds and why three v1 points were not applied. The earlier chat review of 2026-11-23 (3 must-fix, 4 should-fix) is already in v1.
 **Decided by:** owner in the chat, 2026-11-23 ("wherever a table is needed, use Gridify", the Project B pattern)
-**Branch:** `alireza/gridify-tables` — the implementer creates it.
+**Branch:** `alireza/gridify-tables` — created by the orchestrator; deleted on close.
 **Base:** `main` @ `36489e4` (plan 0014 merged)
 **Companion:** None. The pattern is ported from Project B (`Web/Src/01.Framework/Common.Framework/Paging`,
 `Ui/src/components/app/data-grid`, `Ui/src/lib/gridify`); nothing in that workspace changes.
