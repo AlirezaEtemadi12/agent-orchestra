@@ -1,7 +1,7 @@
 # Plan 0014 — One plan shape in Orchestra, two board fixes, a header that stays
 
-**Status:** Draft
-**Created:** 2026-11-25 · **Updated:** 2026-11-25 · **Done:** —
+**Status:** Done 2026-11-25 — implemented by hand (no run), committed as `e25d12c`, merged as `cbec263` (not pushed)
+**Created:** 2026-11-25 · **Updated:** 2026-11-25 · **Done:** 2026-11-25
 **Preview:** none — no new screen; the header keeps its buttons and only moves two of them
 **Run:** `0014-tidy-plans`
 **Planned by:** Claude Opus 5.5, 2026-11-25. **Executor:** another agent, ideally a cheaper model.
@@ -317,4 +317,4 @@ items need a run, so they wait for 0010. Stop after every phase — show the own
 - [x] `plans/` holds `README.md`, `TEMPLATE.md`, `0010-gridify-tables/`, `0013-workspace-plans/`,
       `0014-tidy-plans/` and nothing else; `.orchestra/previews/` is gone.
 - [ ] The owner's checklist passed (the board items after 0010's first run).
-- [ ] `Status: Done`, the `Done:` date, the commit and the merge in the header; the plans README row.
+- [x] `Status: Done`, the `Done:` date, the commit and the merge in the header; the plans README row.
