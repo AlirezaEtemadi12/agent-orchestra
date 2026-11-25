@@ -81,7 +81,7 @@ without `-Retry` skips the automatic hops until the answer is stored.
    report repeats it as the items to confirm. Save it as
    `.orchestra/runs/_drafts/<taskId>.preview.html` (the task id the run will use; `orchestrator/runs/`
    in a workspace that has not run the plan 0007 move) and keep it as the reference the plan follows.
-   When the plan is filed, copy it to `.orchestra/previews/NNNN-topic/index.html` — the dashboard reads
+   When the plan is filed, copy it to `.orchestra/plans/NNNN-topic/preview.html` — the dashboard reads
    previews from there. **Do not write the plan until the user approves the preview**; every change
    they ask for is made in the preview first. When the plan is written, its "Decided by" line names the
    approved preview file. Skip this step only for a change with nothing on screen (a service, a session

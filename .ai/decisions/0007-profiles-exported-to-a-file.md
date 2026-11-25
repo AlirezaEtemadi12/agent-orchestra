@@ -32,7 +32,7 @@ Consequences that follow from it:
 3. The export path is per machine, not per project's git: `profilesPath` sits in the project's
    git-ignored `orchestrator.local.json`, beside `enginePath`.
 4. Losing the database loses the version history and reasons — the current export is still on disk and
-   still drives the runs. Backups matter ([plan 0008](../../.orchestra/plans/0008-hosting.md)).
+   still drives the runs. Backups matter (plan 0008).
 
 ## Alternatives
 

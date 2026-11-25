@@ -1,14 +1,14 @@
 # Plan 0010 — Every growing table is a server-side Gridify table
 
 **Status:** Draft
-**Created:** 2026-11-23 · **Updated:** 2026-11-23 · **Done:** —
+**Created:** 2026-11-23 · **Updated:** 2026-11-25 · **Done:** —
 **Preview:** none — no new screen; the tables keep their columns and gain a pager and sortable headers
-**Run:** —
+**Run:** `0010-gridify-tables`
 **Planned by:** Claude Opus 5.5, 2026-11-23. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** gate 2 by another model family (review pasted by the owner, 2026-11-23): 3 must-fix, 4 should-fix — all applied in this version (Base, D1, D4, D6, D8, D10, D12, manifest rows 4, 7, 8, 9, 10)
 **Decided by:** owner in the chat, 2026-11-23 ("wherever a table is needed, use Gridify", the Project B pattern)
 **Branch:** `alireza/gridify-tables` — the implementer creates it.
-**Base:** `main` @ `3c3ff5d` (the merge of plan 0009) (0009's start page reads the runs count; §6.4 says how)
+**Base:** `main` after plan 0014 is merged — the implementer records the hash
 **Companion:** None. The pattern is ported from Project B (`Web` `Common.Framework/Paging`, `Ui`
 `components/app/data-grid`, `lib/gridify`); nothing in that workspace changes.
 **Steps changed:** no preview (no new screen)
@@ -70,7 +70,7 @@ Model quality (جمع‌ها)، Runs board (ستون‌های زنده) و جد�
 
 ## 0. Ground rules for the executor
 
-1. Follow [`../workflow.md`](../workflow.md): branch before the first edit; never commit/push/merge unless asked
+1. Follow [`../../workflow.md`](../../workflow.md): branch before the first edit; never commit/push/merge unless asked
    in that message; one phase = one uncommitted diff.
 2. **The row DTO is the allow-list** (D3). Never Gridify's default mapper.
 3. Port, don't reinvent: read Project B's `Web/Src/01.Framework/Common.Framework/Paging/*` and

@@ -28,7 +28,7 @@
    the flow of work, and mock-ups of any screen - whichever the work has. The number is reserved by
    creating that folder (the next free one in [`plans/`](plans/)). Open questions are asked here, one at a time.
 3. **Plan.** Only after the owner approves the preview: copy [`plans/TEMPLATE.md`](plans/TEMPLATE.md)
-   to `plans/NNNN-<topic>/plan.md`. Plans 0001-0012 keep their flat file name (plan 0013 D16).
+   to `plans/NNNN-<topic>/plan.md`.
 
 A plan decides everything; an implementer decides nothing. The header names its author on a
 **`Planned by:`** line (the orchestrator reads the author's model family from it).
@@ -37,6 +37,8 @@ A plan decides everything; an implementer decides nothing. The header names its 
 
 The plan is reviewed by a **different model family** than the planner's, or by the owner. Then ask,
 **in so many words**, whether to implement it — and stop.
+
+A reviewer outside the orchestrator starts from [`prompts/review-plan.md`](prompts/review-plan.md).
 
 - A plan is not permission. An approval covers one plan, or one phase of it.
 - «بزن بریم», «پیاده‌سازی کن», «بساز», "do it" are approval. A question or a comment is not.

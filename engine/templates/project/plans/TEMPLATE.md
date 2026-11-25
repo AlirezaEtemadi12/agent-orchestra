@@ -19,7 +19,7 @@ contradicts this plan, STOP and ask.
 ## My understanding of the request
 
 <The understanding the owner confirmed in the chat (gate 1, step 1) — see
-[`../workflow.md`](../workflow.md).>
+[`../../workflow.md`](../../workflow.md).>
 
 ## Flow of work
 
@@ -33,7 +33,7 @@ app: where to go, what to do, what they should see; failure paths included.>
 
 ## 0. Ground rules for the executor
 
-1. Follow [`../workflow.md`](../workflow.md): branch before the first edit; never
+1. Follow [`../../workflow.md`](../../workflow.md): branch before the first edit; never
    commit/push/merge unless asked in that message; one phase = one uncommitted diff.
 2. <anything this plan specifically needs>
 

@@ -4,7 +4,7 @@
 **Amended:** 2026-11-24 — items 1, 2, 3 and 6 and the consequences about Docker, IIS and `PublicUrl` are
 superseded by [0009](0009-local-app-sets-projects-up.md); items 4 and 5 stand
 **Date:** 2026-11-23
-**Decided by:** the owner, in the chat of 2026-11-23 (plan [0009](../../.orchestra/plans/0009-easy-onboarding.md))
+**Decided by:** the owner, in the chat of 2026-11-23 (plan 0009)
 
 ## Context
 

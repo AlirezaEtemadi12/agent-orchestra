@@ -11,7 +11,7 @@ Paste this as the first message of a new session opened **in this folder**
 3. جدیدترین .ai/context/session-*.md
 4. .orchestra/workflow.md
 5. .ai/vision/roadmap.md و .orchestra/ideas/README.md
-6. .orchestra/plans/0001-skeleton-and-import.md
+6. .orchestra/plans/README.md
 
 کار امروز: <کار امروز را اینجا بنویس>
 

@@ -2,8 +2,9 @@
 
 **Status:** Draft — one of `Draft` · `Approved` · `Running` · `Done` · `Dropped`
 **Created:** <YYYY-MM-DD> · **Updated:** <YYYY-MM-DD> · **Done:** —
-**Preview:** [`../previews/NNNN-<topic>/`](../previews/) — what the owner approved before this plan
+**Preview:** [`preview.html`](preview.html) — the page the owner approved before this plan, in this folder
 **Run:** — (the orchestrator task id, filled by the conductor when it starts one)
+**Repos:** <the repos this plan touches, in the order they run — one name for a single-repo project>
 **Planned by:** <model>, <date>. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** <the reviewing model, or the owner> — a **different model family** than the planner's.
 **Decided by:** <who>, <date>. Every choice below is already decided — **decide nothing new.** If reality
@@ -18,7 +19,7 @@ contradicts this plan, STOP and ask.
 ## فهم من از درخواست
 
 <Persian. The understanding the owner confirmed in the chat (gate 1, step 1) — see
-[`../workflow.md`](../workflow.md).>
+[`../../workflow.md`](../../workflow.md).>
 
 ## جریان کار
 
@@ -32,7 +33,7 @@ running app: where to go, what to do, what they should see; failure paths includ
 
 ## 0. Ground rules for the executor
 
-1. Follow [`../workflow.md`](../workflow.md): branch before the first edit; never
+1. Follow [`../../workflow.md`](../../workflow.md): branch before the first edit; never
    commit/push/merge unless asked in that message; one phase = one uncommitted diff.
 2. <anything this plan specifically needs>
 

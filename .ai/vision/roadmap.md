@@ -11,14 +11,14 @@
 | **2** | **One engine**: the orchestrator moves into `engine/`; profiles and per-project overrides | Yes — the engine relocates | 0005 · 0006 · 0007 |
 
 **Order (owner, 2026-11-20):** 0005 (engine move) runs **before** 0004 (live), so the reporter is
-written once, in `engine/`; then 0004, 0006, 0007. Then [0009](../../.orchestra/plans/0009-easy-onboarding.md)
-(easy onboarding), [0010](../../.orchestra/plans/0010-gridify-tables.md) (server-side Gridify tables),
-[0011](../../.orchestra/plans/0011-fewer-git-calls.md) (one git call per repo per snapshot) and
-[0012](../../.orchestra/plans/0012-local-app-and-project-setup.md) (a local app that sets a project up by
+written once, in `engine/`; then 0004, 0006, 0007. Then 0009
+(easy onboarding), [0010](../../.orchestra/plans/0010-gridify-tables/plan.md) (server-side Gridify tables),
+0011 (one git call per repo per snapshot) and
+0012 (a local app that sets a project up by
 itself).
 
 **No server (owner, 2026-11-24):** the dashboard runs on the same Windows machine as the engine, in the
-desktop app of plan 0012. [0008](../../.orchestra/plans/0008-hosting.md) is `Dropped`; hosting is an idea
+desktop app of plan 0012. 0008 is `Dropped`; hosting is an idea
 again ([hosting.md](../../.orchestra/ideas/hosting.md)) and would need a new ADR.
 
 ## Phase 0 — read what exists
@@ -28,9 +28,9 @@ plan 0012).
 
 | Plan | What |
 |---|---|
-| [0001](../../.orchestra/plans/0001-skeleton-and-import.md) | Skeleton (`api/`, `ui/`, `deploy/`), fa + en, light + dark. Import of `_ledger.md` and the open runs' `task.json` from today's `orchestrator/runs`. Screens: runs per project (sessions, calls, cost), run detail, cost (day, month, model, project), model quality (reviewer rounds to PASS and final counts, read-back value, verify FAIL rate, violations and files outside the plan per implementer, time per stage, cache hit rate) |
-| [0002](../../.orchestra/plans/0002-library.md) | **Library**: plans with status and dates and a "copy prompt for the conductor" button; previews, ideas, research and evidence of every registered project |
-| [0003](../../.orchestra/plans/0003-new-project.md) | **New project**: a form (name, path, repos, profile), a check of the folder (`.ai/`, `.orchestra/`, `AGENTS.md`, `.claude/`, `.cursor/`) and a prompt for the owner's agent to create what is missing ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)) |
+| 0001 | Skeleton (`api/`, `ui/`, `deploy/`), fa + en, light + dark. Import of `_ledger.md` and the open runs' `task.json` from today's `orchestrator/runs`. Screens: runs per project (sessions, calls, cost), run detail, cost (day, month, model, project), model quality (reviewer rounds to PASS and final counts, read-back value, verify FAIL rate, violations and files outside the plan per implementer, time per stage, cache hit rate) |
+| 0002 | **Library**: plans with status and dates and a "copy prompt for the conductor" button; previews, ideas, research and evidence of every registered project |
+| 0003 | **New project**: a form (name, path, repos, profile), a check of the folder (`.ai/`, `.orchestra/`, `AGENTS.md`, `.claude/`, `.cursor/`) and a prompt for the owner's agent to create what is missing ([ADR 0005](../decisions/0005-ai-is-knowledge-orchestra-is-work.md)) |
 
 Since 2026-11-19 both orchestrators' `close` writes `runs/_archive/<id>.json` (the run's `task.json`,
 the review / read-back / verify texts and the session usage) before deleting `runs/<id>/`; the
@@ -64,3 +64,10 @@ Windows-only (Photino.NET runs on all three), so the work is in the engine and t
 engine on PowerShell 7 (`pwsh`), a shim that picks `pwsh` or `powershell`, the offline suite on Linux,
 then `linux-x64` and `osx-arm64` builds and project setup on those systems. Details:
 [`engine-cross-platform.md`](../../.orchestra/ideas/engine-cross-platform.md).
+
+## Later — Project B on plan folders
+
+Owner, 2026-11-25: after Orchestra and Project A run on plan folders, Project B moves the same way —
+`NNNN-<topic>/` folders numbered per workspace, the three skills, `plansDir` without `{repo}`. Its numbers
+are per repo today and collide under one numbering, so its open plans are renumbered then. Nothing is
+done there before.

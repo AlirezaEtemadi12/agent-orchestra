@@ -5,7 +5,7 @@
 The runs board on the phone: which runs are running, which wait for the owner, which failed.
 
 How it could work without a server (owner, 2026-11-24: "no server"): the app stays on the Windows machine
-([plan 0012](../plans/0012-local-app-and-project-setup.md)), and a private tunnel (Tailscale, or Cloudflare
+(plan 0012), and a private tunnel (Tailscale, or Cloudflare
 Tunnel with access rules) lets the phone open the same page. The UI is already a web page; it needs a
 narrow layout for the board and nothing else.
 

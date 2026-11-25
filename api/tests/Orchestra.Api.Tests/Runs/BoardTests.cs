@@ -191,6 +191,57 @@ public sealed class BoardTests : IDisposable
         board.Lanes.Running.Should().ContainSingle().Which.WaitingFor.Should().Be("pool");
     }
 
+    [Fact]
+    public async Task A_closed_run_shows_the_status_of_its_close_event()
+    {
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Planning")), _fixture.Now.AddHours(-4));
+        _fixture.AddEvent(EventKinds.Status, Data(("to", "AwaitingApproval")), _fixture.Now.AddHours(-3), seq: 2);
+        _fixture.AddEvent(EventKinds.RunClosed, Data(("status", "Verified")), _fixture.Now.AddHours(-2), seq: 3);
+
+        var board = await BoardAsync();
+
+        var card = board.Lanes.Done.Should().ContainSingle().Subject;
+        card.Status.Should().Be("Verified");
+        card.WaitingFor.Should().BeNull();
+        board.Lanes.NeedsYou.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_run_closed_through_its_row_shows_the_row_status()
+    {
+        _fixture.AddProject();
+        _fixture.AddEvent(EventKinds.Status, Data(("to", "AwaitingApproval")), _fixture.Now.AddHours(-3));
+
+        var run = _fixture.AddRun(
+            "T-LIVE-001",
+            "plan-0159-live",
+            "Verified",
+            "T-LIVE-001.1",
+            _fixture.Now.AddHours(-1));
+        run.ClosedAt = _fixture.Now.AddHours(-1);
+        _fixture.Database.SaveChanges();
+
+        var board = await BoardAsync();
+
+        var card = board.Lanes.Done.Should().ContainSingle().Subject;
+        card.Status.Should().Be("Verified");
+        card.WaitingFor.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task A_closed_run_still_waiting_for_approval_does_not_ask_for_it()
+    {
+        _fixture.AddEvent(EventKinds.Status, Data(("to", "AwaitingApproval")), _fixture.Now.AddHours(-3));
+        _fixture.AddEvent(EventKinds.RunClosed, Data(), _fixture.Now.AddHours(-2), seq: 2);
+
+        var board = await BoardAsync();
+
+        var card = board.Lanes.Done.Should().ContainSingle().Subject;
+        card.Status.Should().Be("AwaitingApproval");
+        card.WaitingFor.Should().BeNull();
+        board.Lanes.NeedsYou.Should().BeEmpty();
+    }
+
     private async Task<BoardDto> BoardAsync()
     {
         var (board, error) = await _fixture.Board.HandleAsync(null, CancellationToken.None);

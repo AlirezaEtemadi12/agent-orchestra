@@ -55,7 +55,7 @@
   gates, pools), `refresh-graph.ps1`, the offline suite and the conductor docs. A project keeps its
   `orchestrator.json`, its `runs/`, a git-ignored `orchestrator.local.json` with `enginePath` (and
   `profilesPath`), and a ten-line `run.ps1` shim that calls the engine with that config (plan 0005
-  [D10](../../.orchestra/plans/0005-engine-move.md)). The engine keeps no state: every setting comes
+  D10). The engine keeps no state: every setting comes
   from the project's `orchestrator.json`, and it never reads the dashboard. A project that names a
   `profile` gets the dashboard's export merged under its own file at every command (plan 0006).
 

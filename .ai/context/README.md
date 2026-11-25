@@ -12,3 +12,7 @@ Sections: *Repository state* (branch, base, committed or not) · *What changed* 
 
 Archiving follows Project B's policy (its `Agent/.ai/context/README.md` §Archiving): the last ten days
 stay raw; older days are collapsed into `summaries/YYYY-MM.md`, one section per day.
+
+Session logs written before 2026-11-25 link to flat plans (`.orchestra/plans/00NN-<topic>.md`) and
+`.orchestra/previews/`, deleted that day. The logs are not rewritten; read those files from git:
+`git show 361658b:<path>`.

@@ -1,6 +1,6 @@
 # Hosting on a server
 
-**Status:** raw · **Added:** 2026-11-24 · **Plan:** — (was [plan 0008](../plans/0008-hosting.md), dropped by plan 0012)
+**Status:** raw · **Added:** 2026-11-24 · **Plan:** — (was plan 0008, dropped by plan 0012)
 
 One person, several machines, one dashboard that shows them all: the runner on each machine reports to a
 server, with sign-in, HTTPS and backups. Plan 0008 had this as phase 3. The owner dropped it on

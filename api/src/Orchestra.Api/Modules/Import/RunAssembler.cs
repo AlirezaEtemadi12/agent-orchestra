@@ -211,7 +211,7 @@ public static class RunAssembler
             target.CreatedAt = target.CreatedAt == default ? created : target.CreatedAt;
             target.UpdatedAt = updated ?? target.UpdatedAt;
 
-            var (number, title) = PlanName.From(task.Task, task.Branch);
+            var (number, title) = PlanName.From(task.Task, task.Branch, target.TaskId);
             target.PlanNumber ??= number;
             target.PlanTitle ??= title;
 
@@ -261,7 +261,7 @@ public static class RunAssembler
             target.PlanTitle ??= archive.Task.PlanTitle;
             target.EffectiveConfigJson = archive.EffectiveConfig ?? target.EffectiveConfigJson;
 
-            var (number, title) = PlanName.From(archive.Task.Task, archive.Task.Branch);
+            var (number, title) = PlanName.From(archive.Task.Task, archive.Task.Branch, target.TaskId);
             target.PlanNumber ??= number;
             target.PlanTitle ??= title;
 
@@ -311,7 +311,7 @@ public static class RunAssembler
                 ApplyEvent(run, item, fromTask);
             }
 
-            var (number, title) = PlanName.From(run.Task, run.Branch);
+            var (number, title) = PlanName.From(run.Task, run.Branch, run.TaskId);
 
             run.PlanNumber ??= number;
             run.PlanTitle ??= title;
@@ -341,7 +341,6 @@ public static class RunAssembler
                     run.Status = data.Text("status") ?? run.Status;
                 }
 
-                run.PlanNumber ??= data.Text("planFamily");
                 break;
 
             case EventKinds.Status:

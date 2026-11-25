@@ -1,15 +1,12 @@
-# Review plan 0001 (gate 2)
+# Review a plan (gate 2)
 
 Paste this as the first message of a session opened **in this folder**
 (`<orchestra>`), in a model whose family differs from the
-planner's (plan 0001 says `Claude Opus 5.5`).
-
-Why: plan 0002 is reviewed and waiting, but its `Base:` line is plan 0001's merge commit and no code
-exists yet. Plan 0001 has to pass gate 2 before anything is implemented.
+planner's (the plan's **Planned by:** line names it).
 
 ```text
 You are a reviewer in the repository at <orchestra>.
-Your job is gate 2 for one plan: .orchestra/plans/0001-skeleton-and-import.md. You review; you do not
+Your job is gate 2 for one plan: <the plan's path>. You review; you do not
 change anything.
 
 Read, in this order:
@@ -18,20 +15,15 @@ Read, in this order:
 3. the newest .ai/context/session-*.md
 4. .orchestra/workflow.md (gates) and .orchestra/plans/README.md
 5. .orchestra/plans/TEMPLATE.md
-6. .orchestra/plans/0001-skeleton-and-import.md — the whole file, every section, not excerpts
+6. <the plan's path> — the whole file, every section, not excerpts
 
 Then only the docs you need to check its claims: .ai/architecture/overview.md,
 .ai/architecture/data-model.md (AUTHORITATIVE for tables), the ADRs in .ai/decisions/,
-.orchestra/previews/0001-skeleton-and-import/index.html, and plans 0002-0008 only where 0001 states
-something about them.
+the plan's own preview.html, and other plans only where this one states something about them.
 
-You may not read anything inside "Project A" or "Project B". Everything plan 0001 says
+You may not read anything inside "Project A" or "Project B". Everything the plan says
 about those two projects (their folders, ledgers, plan headers, branch names, real run data) is
 therefore unverified from here — list it under "not verified", and do not treat it as wrong.
-
-This repository has no code yet: only docs and `.orchestra/`. So there is nothing to build. Judge one
-thing: can an executor who decides nothing follow this plan from an empty repository to a working
-skeleton, and can every claim in it be checked or tested?
 
 Check, in this order:
 1. Contradictions inside the plan — the same thing specified twice with different values (§4 D-numbers,
