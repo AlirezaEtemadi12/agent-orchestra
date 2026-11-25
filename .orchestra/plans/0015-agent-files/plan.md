@@ -1,4 +1,4 @@
-# Plan 0015 — Agent files stay out of git; setup and board fixes found by adding Orchestra
+# Plan 0015 — Agent files stay out of git; setup, board, import and cost fixes found by adding Orchestra; no stop between phases
 
 **Status:** Draft
 **Created:** 2026-11-25 · **Updated:** 2026-11-25 · **Done:** —
@@ -38,17 +38,45 @@ working tree, and D7 renames the repo key its run uses.
   4. زیر فهرست بررسی فقط یک «.» نوشته می‌شود. به‌جایش نوشته می‌شود «خود این پوشه ریپو است».
   5. روی برد یک کارت «health» می‌آید که یک روز در Running می‌ماند؛ health یک run نیست و کارتی نمی‌گیرد.
   6. کارت run تازه تا import بعدی با نام پوشه (`gridify-tables`) نشان داده می‌شود؛ عنوان پلن از همان اول نشان داده می‌شود.
+  7. صفحه‌ی Runs فقط با شروع برنامه، setup و دکمه‌ی Re-import پر می‌شود؛ run ای که در این بین ساخته یا بسته شود
+     آن‌جا نمی‌آید. از این به بعد هر رویدادی که وضعیت یک run را عوض می‌کند (`run.created`، `status`، `history`،
+     `ledger.written`، `run.closed`) چند ثانیه بعد import **همان پروژه** را راه می‌اندازد؛ رویدادهای پشت‌سرهم یک
+     import می‌شوند. `progress` و `pool.*` import راه نمی‌اندازند. engine فرمانی نمی‌دهد و منتظر چیزی نیست.
+  8. health در جدول Runs هم ردیف `health.1` می‌سازد (import از همان رویدادهای `pool.*` یک run می‌سازد). همان قاعده‌ی
+     مورد ۵ در import هم اجرا می‌شود.
+  9. وقتی هزینه‌ی هیچ‌کدام از runها معلوم نیست، صفحه‌ی Cost، جدول Projects و خلاصه‌ی Runs به‌جای «—» عدد `$0.000`
+     نشان می‌دهند (جمع چند مقدار خالی صفر می‌شود). از این به بعد جمع مقدارهای خالی، خالی است و «—» نشان داده می‌شود؛
+     اگر حتی یک run هزینه داشته باشد، جمع همان‌هاست.
+  10. لجر برای run بدون شاخه `branch -` می‌نویسد و import همین «-» را نام شاخه می‌گیرد. برای همین run بسته‌شده‌ی بدون
+      شاخه با archive خودش یکی نمی‌شود و دو ردیف می‌سازد (مثلاً T-AGENT-015 در Project B). «-» یعنی شاخه‌ای
+      نیست.
+  11. وقتی یک run از چند منبع ساخته می‌شود، زمان شروعش زمان اولین منبعی است که خوانده شده، نه زودترین زمان. برای همین
+      runهایی که امروز بسته شدند زمان شروعشان امروز است و زمان آخرین تغییرشان اکتبر. از این به بعد زمان شروع، زودترین
+      زمانی است که یکی از منبع‌ها می‌گوید.
+  12. قالب پلن بعد از هر فاز می‌گوید «این‌جا بایست و diff را به مالک نشان بده». این با قاعده‌ی کانداکتر (همه‌ی فازها
+      پشت‌سرهم، بدون پرسیدن) نمی‌خواند و اجرای 0010 را بین فازها منتظر نگه داشت. پلن مرور و read-back شده است؛
+      فازها پشت‌سرهم اجرا می‌شوند و فقط روی چیزهایی که بخش «Stop and ask» پلن می‌گوید، یا BLOCKED و شکست gate، می‌ایستند.
+      بررسی‌های مالک یک بار در آخر انجام می‌شود. این پلن هم از همین حالا همین‌طور اجرا می‌شود.
+  13. skill `orchestrate` می‌گوید «هر بار یک فاز، بعد verify». برای همین 0010 بعد از هر فاز verify شد، در حالی که
+      قاعده‌ی کانداکتر یک verify در آخر است. skill هم همین را می‌گوید: همه‌ی فازها پشت‌سرهم، بعد یک verify.
+      (توقف بین فازها هم از همین جمله‌ی skill می‌آمد.)
 
 **کارهایی که این پلن انجام نمی‌دهد:**
+- صفحه‌ی Runs خودش را مثل board هر چند ثانیه تازه نمی‌کند؛ داده‌ی دیتابیس به‌روز می‌شود و صفحه با باز شدن دوباره آن را نشان می‌دهد.
+- پوشه‌ی runs را با FileSystemWatcher زیر نظر نمی‌گیرد؛ اگر engine نتواند رویداد بفرستد، import شروع برنامه و Re-import مثل امروز می‌مانند.
+- خط آخر فاز قبل (مثلاً «VERDICT: BLOCKED») روی کارتی که در verify است، عوض نمی‌شود.
 - `.gitignore` پروژه‌های دیگر (Project A، Project B) را عوض نمی‌کند؛ prompt راه‌اندازی از عامل آن پروژه می‌خواهد.
 - هیچ فایل عاملی را پاک نمی‌کند.
 - `.claude/skills/` را از git بیرون نمی‌برد.
 
 ## جریان کار
 
-1. **فاز ۱، API.** بررسی پوشه، prompt راه‌اندازی، import بدون پوشه‌ی runs، نام ریپو و تشخیص فرمان‌های وریفای.
-2. **فاز ۲، UI.** فهرست بررسی با گروه «این‌ها هم پیدا شد» و متن «خود این پوشه ریپو است».
-3. **فاز ۳، قاعده و این ریپو.** ADR 0005، `AGENTS.md`، `.gitignore` و نام ریپو در `orchestrator.json`.
+1. **فاز ۱، API.** بررسی پوشه، prompt راه‌اندازی، import بدون پوشه‌ی runs، نام ریپو و تشخیص فرمان‌های وریفای،
+   import خودکار بعد از رویدادها، health نه روی board و نه در جدول Runs، هزینه‌ی نامعلوم «—»، شاخه‌ی «-» و زمان شروع run.
+2. **فاز ۲، UI.** فهرست بررسی با گروه «این‌ها هم پیدا شد» و متن «خود این پوشه ریپو است»؛ خلاصه‌ی Runs هزینه‌ی خالی را می‌پذیرد.
+3. **فاز ۳، قاعده و این ریپو.** ADR 0005، `AGENTS.md`، `.gitignore`، نام ریپو در `orchestrator.json`، و قالب پلن و skill `orchestrate` بدون توقف بین فازها و با یک verify در آخر.
+
+فازها پشت‌سرهم اجرا می‌شوند؛ بررسی‌های مالک بعد از فاز آخر است.
 
 ## نتیجه و آنچه بعد از پیاده‌سازی تست می‌کنید
 
@@ -61,6 +89,13 @@ working tree, and D7 renames the repo key its run uses.
 - [ ] **New project، یک پوشه‌ی خالی:** همان سه ردیف با «نیست»، و گروه «این‌ها هم پیدا شد» اصلاً نیست.
 - [ ] **Library:** Re-import را بزنید؛ در Import log برای Orchestra خطای «runs folder» نیست.
 - [ ] **setup یک پروژه‌ی آزمایشی تک‌ریپو با فاصله در نام:** در `orchestrator.json`، نام ریپو خط تیره دارد، نه فاصله.
+- [ ] **import خودکار:** یک پلن کوچک را با `run.ps1` شروع کنید و بدون زدن Re-import، چند ثانیه بعد صفحه‌ی Runs را باز
+      کنید: run آن‌جاست. وقتی run بسته شد، Sessions و Cost همان‌جا پر شده‌اند. Import log برای هر کدام یک ردیف دارد.
+- [ ] **health:** `run.ps1 health` را اجرا کنید؛ نه روی board کارتی می‌آید، نه در صفحه‌ی Runs ردیفی.
+- [ ] **هزینه‌ی نامعلوم:** در Cost، پروژه‌ای که هیچ run اش هزینه ندارد (مثلاً یک پروژه‌ی تازه) «—» نشان
+      می‌دهد، نه `$0.000`. Project B همان `$5.406` را نشان می‌دهد.
+- [ ] **Project B بعد از Re-import:** در صفحه‌ی Runs، T-AGENT-015، 020، 023 تا 026 و T-AGENT-002 هر کدام یک ردیف دارند
+      (منبع Both)، و هیچ ردیفی زمان شروعش بعد از زمان آخرین تغییرش نیست.
 
 ## 0. Ground rules for the executor
 
@@ -83,14 +118,14 @@ tests §8 names, which change on purpose.
 ## 1. Goal
 
 The New project check asks only for what Orchestra needs; agent-specific files are named when found and kept out of
-git by rule; and setup and import work for a single-repo project shaped like Orchestra.
+git by rule; setup and import work for a single-repo project shaped like Orchestra; and the Runs page follows the runs without a manual Re-import.
 
 ## 2. Out of scope
 
 - Writing any project's `.gitignore` from the app (the prompt asks the project's own agent).
 - Deleting any agent file, here or elsewhere; taking `.claude/skills/` out of git.
 - Creating `.orchestra/runs/` from setup (D6 makes it unnecessary).
-- The engine; Project A; Project B.
+- The engine's code (D16 and D17 edit only its plan and skill templates, which are documents); Project A; Project B.
 
 ## 3. Rules that apply
 
@@ -111,9 +146,16 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
 | D5 | **This repo's `.gitignore`** gains, after the "Graph output" block: a comment `# Agent-specific files: each person uses their own agent (ADR 0005). Orchestra's skill pointers stay.` and the lines `CLAUDE.md`, `.cursor/`, `.cursorrules`, `.github/copilot-instructions.md`, `.claude/*`, `!.claude/skills/` |
 | D6 | **No runs folder is not an error.** In `ImportService.ImportProjectAsync`, when `RunsPath` is set but the folder does not exist, the file sources under it (ledger, `task.json` files, archives) are read as empty — events from the database are read as today — and the import goes on: the Library is indexed and the log is saved **with no error**. An empty `RunsPath` keeps today's error ("The runs folder does not exist.") — that is a broken config, not a new project |
 | D7 | **A single-repo key has no spaces.** `SetupPlanner` gets `public static string RepoKey(string name)`: every run of characters outside `[A-Za-z0-9_.-]` becomes one `-`, leading and trailing `-` are trimmed, and an empty result is `repo`. `SetupPlanner.VerifyCommands` and `SetupApplier.RenderConfig` use `RepoKey(request.Name)` wherever they use `request.Name` as a key today. Reason: plan 0013 D3 reads a repo name in a phase heading with `[A-Za-z0-9_.-]+`. This repo's `.orchestra/orchestrator.json` renames the key `Project Orchestra` → `Project-Orchestra` in `repos` and in `verifyCommands` (phase 3) |
-| D9 | **`health` is not a run.** `run.ps1 health` takes pool slots with `taskId = 'health'` (`engine/lib/agents.ps1:1112`), and the board makes a "health" card of those `pool.*` events that sits in Running for a day. `BoardHandler` skips a `(project, taskId)` group whose events are all `pool.*` and that matches no run row. The engine is unchanged |
+| D9 | **`health` is not a run.** `run.ps1 health` takes pool slots with `taskId = 'health'` (`engine/lib/agents.ps1:1112`), and the board makes a "health" card of those `pool.*` events that sits in Running for a day. `BoardHandler` skips a `(project, taskId)` group whose events are all `pool.*` and that matches no run row. The engine is unchanged. The test "all `pool.*`" is one helper, `EventKinds.IsPool(string kind)` (`kind` starts with `pool.`), used here and in D12 |
+| D11 | **An event that moves a run imports its project.** New singleton `ImportQueue` (`Modules/Import/ImportQueue.cs`) with `void Request(string projectId)`, and a hosted service `ImportQueueService` beside it. `ReceiveEventHandler` calls `queue.Request(envelope.Project)` after it **stores a new** event (not for a duplicate, not for a refused one) whose kind is `run.created`, `status`, `history`, `ledger.written` or `run.closed`; `progress` and `pool.*` never do. The service waits for a request, then waits until `ImportAfterEventSeconds` pass with no new request (a new request restarts the wait; never longer than 30 s from the first request), takes every pending project id at once and calls `ImportService.ImportOneAsync` for each one `ProjectRegistry.Find` still knows (it waits for the gate, so a running import delays it and nothing is lost). A failed import is logged and the loop goes on, as `ImportHostedService` does. New option `OrchestraOptions.ImportAfterEventSeconds`, `int`, default `3`; `0` turns it off (`Request` does nothing). The engine is unchanged; ADR 0002 holds: the dashboard reacts to what it was told, the engine waits for nothing |
+| D12 | **`health` is not a run in the import either.** `RunAssembler.MergeEvents` skips a `(TaskId, Branch)` group whose events are all `EventKinds.IsPool` and that matches no run from the files — the same rule as D9 — so the Runs table shows no `health.1` row. A group with any other kind, or one that matches a run, is merged as today |
 | D10 | **A card's title from the plan before the import.** When the card's run row is missing or has no `Task`, `BoardHandler` passes the `task` field of the instance's `run.created` event to `PlanName.From` instead of `run?.Task`. So the 0010 card reads `0010 · Every growing table …`, not the slug, before the next import |
 | D8 | **Verify commands one folder down.** `VerifyCommandDetector.Detect(folder)`: when the folder itself has neither a solution nor a `package.json`, look at its direct subfolders, sorted by name, skipping names that start with `.` and `node_modules`, `bin`, `obj`. Each subfolder with a solution adds `dotnet build <sub>/<file>` and `dotnet test <sub>/<file>` (its first `*.slnx` by name, else its first `*.sln`); then each subfolder with a `package.json` adds `npm --prefix <sub> run <script>` for the scripts today's rule picks. .NET subfolders first, then npm (today's order). Paths use `/`. A folder that has its own solution or `package.json` behaves exactly as today |
+| D13 | **An unknown cost stays unknown.** New `Orchestra.Api.Common.Money` (static) with `long? SumMicros(IEnumerable<long?> values)`: `null` when no value has one, otherwise the sum of those that do. Used in `CostSummaryHandler.GroupByRuns` and `ByModel`, and `ListProjectsHandler` (`Cost(runs.Sum(run => run.CostMicros))`), instead of LINQ `Sum`, which turns all-null into `0`. `RunsSummaryDto.CostUsd` becomes `decimal?`: `RunsSummaryHandler` drops `?? 0` from `costMicros`, and `SumAsync` stays (SQL `SUM` over all-null is already `NULL`). UI: `RunsSummary.costUsd` becomes `number \| null`; `MoneyText` already renders `null` |
+| D14 | **`branch -` is no branch.** `LedgerParser`: when the repo line's branch is `-`, `block.Branch` is `null`. So a closed ledger run without a branch merges with its archive (whose branch is empty) instead of making a second row |
+| D15 | **A run starts at the earliest time any source gives.** `RunAssembler.MergeLiveRuns` and `MergeArchives` (the `else` branch, where the target already exists): `target.CreatedAt` becomes the earlier of itself and the source's `CreatedAt` (when the source has one). `UpdatedAt` rules are unchanged, so the Cost page still dates a run as today |
+| D16 | **No stop between phases.** The plan is reviewed and read back before approval, so its phases run back to back (as `engine/docs/CONDUCTOR.md` step 7 already says); a run stops only on what the plan's §8 names, BLOCKED, a violation, a file outside the plan or a failed gate. In both `TEMPLATE.md` copies (`.orchestra/plans/` and `engine/templates/project/plans/`) the §9 placeholder `<Per phase: steps · **Gate** (the build/test commands) · **Owner checks** (runtime, done by the owner) · "Stop here — show the owner the diff.">` becomes `<Per phase: steps · **Gate** (the build/test commands). Phases run back to back, with no stop between them (CONDUCTOR.md step 7). **Owner checks** (runtime, done by the owner) come once, after the last phase.>` This plan follows it from now on (§9) |
+| D17 | **One verify, at the end.** The `orchestrate` skill's step 4 ("**One phase per go.** `implement <id> <phase>`, then `verify <id>`…") is what made 0010 verify after every phase and wait between phases; `engine/docs/CONDUCTOR.md` step 7 already says the opposite and stays the one place for it. In both copies (`.orchestra/skills/orchestrate/SKILL.md` and `engine/templates/project/skills/orchestrate/SKILL.md`) step 4 becomes: `4. **Every phase, then one verify.** \`implement <id> 1\`, 2, 3 … to the last phase with no stop between them, then **one** \`verify <id>\` (engine/docs/CONDUCTOR.md step 7). Show each phase's summary block, not the whole transcript. BLOCKED, a red gate, a \`Violation\` or a file outside the plan stops there: fix by hand, then \`implement <id> <phase> -Force\` and go on.` The engine is unchanged: it never ran verify by itself |
 
 ## 5. File manifest
 
@@ -125,9 +167,17 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
 | 3 | `api/src/Orchestra.Api/Modules/Import/ImportService.cs` | EDIT — D6 | 1 |
 | 4 | `api/src/Orchestra.Api/Modules/Projects/Features/Setup/{SetupPlanner,SetupApplier,VerifyCommandDetector}.cs` | EDIT — D7, D8 | 1 |
 | 5 | `api/tests/Orchestra.Api.Tests/Projects/{FolderCheckTests,ScaffoldPromptBuilderTests}.cs`, `Import/ImportServiceTests.cs`, the setup tests that cover D7/D8 (new file `Projects/SetupKeysTests.cs` if none fits) | EDIT/NEW — §7 | 1 |
+| 5a | `api/src/Orchestra.Api/Modules/Import/{ImportQueue,ImportQueueService}.cs` (NEW), `ImportModuleInstaller.cs`, `api/src/Orchestra.Api/Common/OrchestraOptions.cs`, `api/src/Orchestra.Api/Modules/Events/{EventKinds,Features/ReceiveEvent/ReceiveEventHandler}.cs`, `api/src/Orchestra.Api/Modules/Import/RunAssembler.cs` | EDIT/NEW — D9 helper, D11, D12 | 1 |
+| 5b | `api/tests/Orchestra.Api.Tests/Events/{EventsFixture,ReceiveEventTests}.cs`, `Import/ImportQueueTests.cs` (NEW), `Import/RunAssemblerEventsTests.cs` | EDIT/NEW — §7 | 1 |
+| 5c | `api/src/Orchestra.Api/Common/Money.cs` (NEW), `Modules/Usage/Features/CostSummary/CostSummaryHandler.cs`, `Modules/Projects/Features/ListProjects/ListProjectsHandler.cs`, `Modules/Runs/Features/RunsTable/RunsSummaryHandler.cs`, `Modules/Import/Ledger/LedgerParser.cs`, `Modules/Import/RunAssembler.cs` | EDIT/NEW — D13, D14, D15 | 1 |
+| 5d | `api/tests/Orchestra.Api.Tests/Import/{LedgerParserTests,RunAssemblerTests}.cs`, the cost-summary, project-list and runs-summary tests (grep for `CostUsd`), `MoneyTests.cs` (NEW, beside them) | EDIT/NEW — §7 | 1 |
 | 6 | `ui/src/features/projects/components/check-result.tsx`, `ui/src/features/projects/types.ts` (`required: boolean`), `ui/src/features/projects/i18n/{en,fa}.ts`, `ui/src/features/projects/projects.test.tsx` | EDIT — D2 | 2 |
+| 6a | `ui/src/features/runs/types.ts` (`RunsSummary.costUsd: number \| null`) and any test fixture that types it | EDIT — D13 | 2 |
 | 7 | `.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md`, `AGENTS.md`, `.gitignore`, `.orchestra/orchestrator.json` | EDIT — D4, D5, D7 | 3 |
 | 8 | `.ai/architecture/data-model.md` or `overview.md` — only if one of them lists the folder-check items or the single-repo key; grep first | EDIT | 3 |
+| 9 | `.ai/architecture/overview.md` lines 36–37 (the importer runs "on start and on demand") | EDIT — D11 | 3 |
+| 10 | `.orchestra/plans/TEMPLATE.md`, `engine/templates/project/plans/TEMPLATE.md` | EDIT — D16 | 3 |
+| 11 | `.orchestra/skills/orchestrate/SKILL.md`, `engine/templates/project/skills/orchestrate/SKILL.md` | EDIT — D17 | 3 |
 
 ## 6. Per-file specification
 
@@ -148,10 +198,27 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
    Grep both files for any other `request.Name` used as a key and change those too; a `request.Name` used as the
    project's display name stays.
 5. **`VerifyCommandDetector`** (D8): as written there.
+6. **`ImportQueue` / `ImportQueueService`** (D11): the queue holds a lock-protected `HashSet<string>` of pending
+   project ids, the time of the first and of the last request, and a `SemaphoreSlim(0)` it releases on each
+   `Request`. It takes `IOptions<OrchestraOptions>` and `TimeProvider`; the service waits with
+   `Task.Delay(…, TimeProvider, …)` so a test can drive it with a fake clock. The service makes one DI scope per
+   batch for `ImportService` and `ProjectRegistry`. `ReceiveEventHandler` gains the `ImportQueue` constructor
+   parameter; `EventsFixture` passes a real queue built from a fixed option value. Register both in
+   `ImportModuleInstaller` (`AddSingleton<ImportQueue>()`, `AddHostedService<ImportQueueService>()`).
+7. **`RunAssembler`** (D12): the check sits at the top of the `foreach (var group …)` loop in `MergeEvents`,
+   before `NewRun`: when no run matched and `group.All(item => EventKinds.IsPool(item.Kind))`, `continue`.
+8. **`BoardHandler`** (D9) uses the same `EventKinds.IsPool`.
+9. **`Money.SumMicros`** (D13): one method, no other change to the handlers' shapes. `CostRowDto.CostUsd` and
+   `ProjectDto.CostUsd` are already `decimal?`.
+10. **`LedgerParser`** (D14): `block.Branch = value == "-" ? null : value;` at the repo line. Nothing else reads `-`.
+11. **`RunAssembler`** (D15): in `MergeLiveRuns`, replace `target.CreatedAt = target.CreatedAt == default ? created : target.CreatedAt;`
+    with "default → `created`; otherwise the earlier of the two". In `MergeArchives`' `else` branch, add the same
+    with `archive.Task.CreatedAt` when it is not null. `ApplyLedgerBlock` and `ApplyEvent` stay as they are.
 
 ### 6.2 Phase 2 — UI
 
-1. **`types.ts`**: the folder-check item type gains `required: boolean`.
+1. **`types.ts`**: the folder-check item type gains `required: boolean`. `ui/src/features/runs/types.ts`:
+   `RunsSummary.costUsd: number | null` (D13); the Runs page already passes it to `MoneyText`.
 2. **`check-result.tsx`**: render `check.items.filter((item) => item.required)` as today. Then, when
    `check.items.some((item) => !item.required)`, a block with `t('form.alsoFound')` as a small heading, the items
    with a `secondary` badge `t('found')` (and `t('form.oldLayout')` after `orchestrator/` in the same muted style
@@ -161,11 +228,19 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
 ### 6.3 Phase 3 — rule and this repo
 
 1. D4 in ADR 0005 and `AGENTS.md`; D5 in `.gitignore`; D7's rename in `.orchestra/orchestrator.json` (keep its
-   indentation; it must still parse).
+   indentation; it must still parse); D16 in both `TEMPLATE.md` copies (the same line, so the two still differ only
+   where they differ today).
 2. **Rules about rules:** `grep -rn "CLAUDE.md\|\.cursor" .ai AGENTS.md .orchestra/workflow.md engine/docs engine/templates --include=*.md`,
    leaving out `.ai/context/` and `engine/docs/history/`. On `main` the only hits are `AGENTS.md:7` (D4 changes it)
    and the 0003 row of `.ai/vision/roadmap.md` (history of what plan 0003 built; leave it). Any other hit: STOP and
    ask.
+   For D16: `grep -rn "Stop here\|Stop after every phase\|between phases" .ai .orchestra engine/docs engine/templates --include=*.md`,
+   leaving out `.ai/context/`, `engine/docs/history/` and plans whose status is Done. On `main` the hits are the two
+   `TEMPLATE.md` lines (D16 changes them), `engine/docs/CONDUCTOR.md` step 7 (already says "without asking between
+   phases"; leave it), `.ai/api/testing.md:15` (test counts; leave it) and this plan. Any other hit: STOP and ask.
+   For D17: `grep -rn "One phase per go\|Verify runs after every phase" .orchestra engine/docs engine/templates --include=*.md`.
+   The hits are the two `SKILL.md` lines (D17 changes them) and `engine/docs/REVIEW-BRIEF.md:277` (a record of an
+   earlier fix; leave it). Any other hit: STOP and ask.
 3. After the `.gitignore` edit, `git status --short` shows no new untracked or deleted file from `.claude/skills/`,
    and `git check-ignore -v .claude/settings.local.json` names the new `.claude/*` line.
 
@@ -186,6 +261,19 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
   `package.json` → today's commands only.
 - **Board:** a group with only `pool.acquired`/`pool.released` events and no run row → no card; a run with
   `run.created` `{task: "Plan 0010: Gridify tables"}` and no run row → title `Gridify tables`, number `0010`.
+- **Import after events (D11):** storing a `status` event requests its project; a `progress`, a `pool.acquired`, a
+  duplicate and a refused event request nothing. The queue with `ImportAfterEventSeconds = 0` keeps nothing. Three
+  requests for the same project within the wait give one import; requests for two projects give one import each;
+  a project removed before the wait ends is skipped without error.
+- **Import skips health (D12):** events `pool.acquired`/`pool.released` for `health` and no files → no run; the
+  same events for a task that has a `task.json` → that run, unchanged.
+- **Unknown cost (D13):** `Money.SumMicros([null, null])` = `null`, `([])` = `null`, `([null, 5])` = `5`; the cost
+  summary by project and by model, and the project list, give `CostUsd = null` for a project whose runs all have no
+  cost and the sum of the known ones otherwise; the runs summary over runs with no cost gives `CostUsd = null`.
+- **Ledger branch (D14):** a block with `branch -` parses to `Branch = null`; a closed ledger run with `branch -` and
+  an archive of the same task with no branch assemble into one run, source `Both`.
+- **Start time (D15):** a ledger run whose first block is later than the archive's (or `task.json`'s) `createdAt`
+  gets the earlier `CreatedAt`; a source with a later `createdAt` does not move it.
 - **UI (`projects.test.tsx`):** the check renders no "missing" badge for `.cursor/`; an optional item shows under
   "Also found" with the note; `repos: ['.']` renders "The folder itself is the repo."
 
@@ -202,12 +290,14 @@ git by rule; and setup and import work for a single-repo project shaped like Orc
 
 | Phase | Files (§5) | Gate |
 |---|---|---|
-| 1 API | 1–5 (with 1a) | api gates |
-| 2 UI | 6 | ui gates |
-| 3 Rule and this repo | 7–8 | all gates; §6.3.2 and §6.3.3; `Get-Content .orchestra/orchestrator.json -Raw \| ConvertFrom-Json` succeeds |
+| 1 API | 1–5 (with 1a, 5a–5d) | api gates |
+| 2 UI | 6, 6a | ui gates |
+| 3 Rule and this repo | 7–11 | all gates; §6.3.2 and §6.3.3; `Get-Content .orchestra/orchestrator.json -Raw \| ConvertFrom-Json` succeeds |
 
-**Owner checks:** after phase 2, the first two checklist items (browser build); after phase 3, the last two.
-Stop after every phase — show the owner the diff.
+Phases run back to back with no stop between them (D16); a run stops only on what §8 names, BLOCKED, a violation, a
+file outside the plan or a failed gate.
+
+**Owner checks:** once, after phase 3: the whole checklist (browser build and the running app).
 
 ## 10. Definition of done
 

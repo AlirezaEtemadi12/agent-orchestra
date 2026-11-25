@@ -69,5 +69,6 @@ then `linux-x64` and `osx-arm64` builds and project setup on those systems. Deta
 
 Owner, 2026-11-25: after Orchestra and Project A run on plan folders, Project B moves the same way —
 `NNNN-<topic>/` folders numbered per workspace, the three skills, `plansDir` without `{repo}`. Its numbers
-are per repo today and collide under one numbering, so its open plans are renumbered then. Nothing is
-done there before.
+are per repo today and collide under one numbering, so its open plans are renumbered then. Both
+preconditions held on 2026-11-25; the move is The89Group's plan 0164 (`.orchestra/plans/0164-orchestra-layout/`
+there, Draft): Agent's numbers stay, Ui 0017 and Web 0033 become 0166 and 0165.
