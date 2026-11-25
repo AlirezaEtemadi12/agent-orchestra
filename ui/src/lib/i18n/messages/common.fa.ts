@@ -39,5 +39,18 @@ export const commonFa = {
     "allProjects": "همه‌ی پروژه‌ها",
     "project": "پروژه"
   },
+  "table": {
+    "search": "جستجو",
+    "searchPlaceholder": "جستجو…",
+    "pageSize": "ردیف",
+    "range": "{from}–{to} از {total}",
+    "first": "صفحه‌ی اول",
+    "previous": "صفحه‌ی قبل",
+    "next": "صفحه‌ی بعد",
+    "last": "صفحه‌ی آخر",
+    "sortAsc": "مرتب‌سازی صعودی",
+    "sortDesc": "مرتب‌سازی نزولی",
+    "sortNone": "حذف مرتب‌سازی"
+  },
   "notAvailable": "—"
 };

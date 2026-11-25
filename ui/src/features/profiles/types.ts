@@ -1,3 +1,5 @@
+import type { Paging } from 'gridify-client';
+
 export type ProfileSummary = {
   id: string;
   name: string;
@@ -24,9 +26,16 @@ export type ConfigChange = {
   to: string | null;
 };
 
-export type ProfileVersions = {
-  versions: ProfileVersionSummary[];
-  diff: ConfigChange[] | null;
+export type ProfileDiff = {
+  diff: ConfigChange[];
+};
+
+export type ProfileVersionPage = Paging<ProfileVersionSummary>;
+
+export type ProfileVersionsTableQuery = {
+  page: number;
+  pageSize: number;
+  orderBy: string;
 };
 
 export type ConfigSource = {

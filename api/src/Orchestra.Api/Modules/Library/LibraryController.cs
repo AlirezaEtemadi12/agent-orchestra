@@ -1,3 +1,4 @@
+using Gridify;
 using Microsoft.AspNetCore.Mvc;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
@@ -12,19 +13,17 @@ namespace Orchestra.Api.Modules.Library;
 [Route(ApiRoutes.Controller)]
 public sealed class LibraryController : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> List(
-        [FromServices] ListLibraryHandler handler,
+    [HttpGet("table")]
+    public async Task<IActionResult> Table(
+        [FromServices] LibraryTableHandler handler,
         [FromQuery] string? project,
         [FromQuery] string? category,
-        [FromQuery] string? status,
-        [FromQuery] string? sort,
-        [FromQuery] string? dir,
+        [FromQuery] GridifyQuery query,
         CancellationToken cancellationToken)
     {
-        var (items, error) = await handler.HandleAsync(project, category, status, sort, dir, cancellationToken);
+        var (page, error) = await handler.HandleAsync(project, category, query, cancellationToken);
 
-        return error is null ? Ok(items) : Failure(error);
+        return error is null ? Ok(page) : Failure(error);
     }
 
     [HttpGet("{project}/{category}/item")]

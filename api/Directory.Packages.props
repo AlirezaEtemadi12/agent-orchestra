@@ -3,6 +3,9 @@
   <ItemGroup>
     <!-- Plan 0012 D2: newest stable 3.x; 4.x is not used yet. -->
     <PackageVersion Include="Photino.NET" Version="3.2.3" />
+    <!-- Plan 0010 D1: 2.19.1 is the version Project B pins; 2.20.0 exists but the ported code must behave the same. -->
+    <PackageVersion Include="Gridify" Version="2.19.1" />
+    <PackageVersion Include="Gridify.EntityFramework" Version="2.19.1" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10" />
     <!-- EF 10.0.10 pulls 2.1.11, which NuGet audit reports as a high-severity advisory (GHSA-2m69-gcr7-jv3q) -->

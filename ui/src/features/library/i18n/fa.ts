@@ -19,9 +19,6 @@ export const libraryFa = {
     "run": "run",
     "linkedPlan": "پلن"
   },
-  "sort": {
-    "label": "مرتب‌سازی"
-  },
   "status": {
     "Draft": "پیش‌نویس",
     "Approved": "تأییدشده",

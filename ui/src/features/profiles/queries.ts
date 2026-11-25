@@ -2,8 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
+import { buildGridifyQuery } from '@/lib/gridify/build-query';
 import type { Locale } from '@/lib/i18n/config';
 import { profilesApi } from './api';
+import type { ProfileVersionsTableQuery } from './types';
 
 export function useProfiles() {
   const locale = useLocale() as Locale;
@@ -21,13 +23,28 @@ export function useProfile(id: string | null) {
   });
 }
 
-export function useVersions(id: string | null, diff?: string) {
+export function useVersionsTable(id: string | null, query: ProfileVersionsTableQuery) {
+  const locale = useLocale() as Locale;
+  const built = buildGridifyQuery({
+    page: query.page,
+    pageSize: query.pageSize,
+    orderBy: query.orderBy,
+  });
+
+  return useQuery({
+    queryKey: ['profiles', id, 'versions', 'table', built],
+    queryFn: () => profilesApi.versionsTable(locale, id as string, built),
+    enabled: Boolean(id),
+  });
+}
+
+export function useVersionDiff(id: string | null, diff?: string) {
   const locale = useLocale() as Locale;
 
   return useQuery({
-    queryKey: ['profiles', id, 'versions', diff ?? null],
-    queryFn: () => profilesApi.versions(locale, id as string, diff),
-    enabled: Boolean(id),
+    queryKey: ['profiles', id, 'versions', 'diff', diff ?? null],
+    queryFn: () => profilesApi.diff(locale, id as string, diff as string),
+    enabled: Boolean(id && diff),
   });
 }
 

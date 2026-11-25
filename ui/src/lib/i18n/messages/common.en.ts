@@ -39,5 +39,18 @@ export const commonEn = {
     "allProjects": "All projects",
     "project": "Project"
   },
+  "table": {
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "pageSize": "Rows",
+    "range": "{from}–{to} of {total}",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "sortAsc": "Sort ascending",
+    "sortDesc": "Sort descending",
+    "sortNone": "Clear sort"
+  },
   "notAvailable": "—"
 };

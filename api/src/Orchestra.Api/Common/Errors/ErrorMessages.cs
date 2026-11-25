@@ -32,6 +32,7 @@ public static class ErrorMessages
         ["Events.Kind.Unknown"] = "Unknown event kind.",
         ["Library.Item.NotFound"] = "This item is not in the library.",
         ["Library.File.TooLarge"] = "The file is too large to show.",
+        ["Table.Query.Invalid"] = "This sort or filter is not valid.",
         ["Api.Unexpected"] = "Something went wrong on the server.",
         ["Api.NotFound"] = "No such API route.",
     };
@@ -64,6 +65,7 @@ public static class ErrorMessages
         ["Events.Kind.Unknown"] = "نوع رویداد ناشناخته است.",
         ["Library.Item.NotFound"] = "این مورد در کتابخانه نیست.",
         ["Library.File.TooLarge"] = "فایل برای نمایش خیلی بزرگ است.",
+        ["Table.Query.Invalid"] = "این مرتب‌سازی یا فیلتر معتبر نیست.",
         ["Api.Unexpected"] = "خطایی در سرور رخ داد.",
         ["Api.NotFound"] = "چنین مسیری در API نیست.",
     };

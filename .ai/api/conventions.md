@@ -34,6 +34,20 @@
 - Every clock goes through the registered `TimeProvider`; `DateTime.Now`/`DateTime.UtcNow` outside
   `SourceClock` and the import log stamping is a bug (there is a test for it).
 
+## Tables
+
+- **A list that grows with use is a server-side table** — including the versions of one profile,
+  which grow with every save. It is a `…/table` endpoint through `TableMapper<TEntity, TRow>`,
+  returns Gridify's `Paging<T>` (`{ count, data }`), and refuses an unknown sort or filter as
+  `Table.Query.Invalid` (400, never a 500). The row DTO is the allow-list: a property is mapped only
+  when the entity has a public scalar property with the same name and the same underlying type; a
+  differently named key goes through `Build`'s extra action. The shared defaults live in
+  `Common/Paging/TableQueryDefaults`: 20 rows per page (max 100), the endpoint's default order, and
+  the mapped tiebreak appended so paging stays stable.
+- **The boundary.** A list bounded by configuration (projects, profiles, pools), an aggregate (cost,
+  model quality) or a live view (the board) is not a table. In the UI a table is the shared
+  `DataTable`; evidence is the existing gallery with the same pager under it.
+
 ## Files
 
 - Every project folder is read-only: `FileAccess.Read` with

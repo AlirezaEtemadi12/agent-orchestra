@@ -2,17 +2,46 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
+import { buildGridifyQuery } from '@/lib/gridify/build-query';
 import type { Locale } from '@/lib/i18n/config';
 import { runsApi } from './api';
+import type { RunsQuery } from './types';
+
+const SEARCHABLE_FIELDS = ['taskId', 'planNumber', 'planTitle', 'task'] as const;
+
+function gridify(query: RunsQuery) {
+  return buildGridifyQuery({
+    page: query.page,
+    pageSize: query.pageSize,
+    orderBy: query.orderBy,
+    search: query.search,
+    searchableFields: SEARCHABLE_FIELDS,
+    filters: [
+      ...(query.status ? [{ field: 'status', value: query.status }] : []),
+      ...(query.repo ? [{ field: 'repo', value: query.repo }] : []),
+    ],
+  });
+}
 
 export { useProjects } from '@/lib/projects/queries';
 
-export function useRuns(project: string | null, status: string | null, repo: string | null) {
+export function useRunsTable(query: RunsQuery) {
   const locale = useLocale() as Locale;
+  const built = gridify(query);
 
   return useQuery({
-    queryKey: ['runs', locale, project, status, repo],
-    queryFn: () => runsApi.list(locale, { project, status, repo }),
+    queryKey: ['runs', 'table', locale, query.project, built],
+    queryFn: () => runsApi.table(locale, query.project, built),
+  });
+}
+
+export function useRunsSummary(query: RunsQuery) {
+  const locale = useLocale() as Locale;
+  const built = gridify(query);
+
+  return useQuery({
+    queryKey: ['runs', 'summary', locale, query.project, built.filter],
+    queryFn: () => runsApi.summary(locale, query.project, built.filter),
   });
 }
 

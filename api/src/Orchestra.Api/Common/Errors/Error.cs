@@ -55,6 +55,8 @@ public sealed record Error(string Code, int Status)
 
     public static Error LibraryFileTooLarge => new("Library.File.TooLarge", 413);
 
+    public static Error TableQueryInvalid => new("Table.Query.Invalid", 400);
+
     public static Error Unexpected => new("Api.Unexpected", 500);
 
     public static Error NotFound => new("Api.NotFound", 404);

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
+import { TableSkeleton } from '@/components/app/table-skeleton';
 import { RunsList } from '@/features/runs';
 import type { Locale } from '@/lib/i18n/config';
 import { pageMetadata } from '@/lib/i18n/page-metadata';
@@ -18,5 +20,9 @@ export default async function RunsPage({ params }: PageProps) {
 
   const t = await getTranslations('runs');
 
-  return <RunsList title={t('title')} />;
+  return (
+    <Suspense fallback={<TableSkeleton rows={8} />}>
+      <RunsList title={t('title')} />
+    </Suspense>
+  );
 }

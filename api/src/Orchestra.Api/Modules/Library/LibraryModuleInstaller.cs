@@ -12,7 +12,7 @@ public sealed class LibraryModuleInstaller : IModuleInstaller
 
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<ListLibraryHandler>();
+        services.AddScoped<LibraryTableHandler>();
         services.AddScoped<GetLibraryItemHandler>();
         services.AddScoped<ReadLibraryFileHandler>();
         services.AddScoped<PlanPromptHandler>();

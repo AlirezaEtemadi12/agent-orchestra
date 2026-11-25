@@ -1,4 +1,4 @@
-namespace Orchestra.Api.Modules.Runs.Features.ListRuns;
+namespace Orchestra.Api.Modules.Runs.Features;
 
 public sealed record RunListItemDto(
     string ProjectId,
@@ -111,3 +111,14 @@ public sealed record RunDetailDto(
     RunPlanDto? Plan,
     RunLiveDto? Live,
     string? EffectiveConfig);
+
+public static class RunDtos
+{
+    /// <summary>Money is <c>long CostMicros</c> in the database; DTOs carry decimal USD
+    /// (`.ai/api/conventions.md`). The runs table's <c>costUsd</c> grid key maps to <c>CostMicros</c> for
+    /// ordering only, so a hand-typed <c>filter=costUsd&gt;…</c> compares micros, not dollars.</summary>
+    public static decimal? ToUsd(long? micros)
+    {
+        return micros is null ? null : micros.Value / 1_000_000m;
+    }
+}

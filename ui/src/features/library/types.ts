@@ -1,3 +1,5 @@
+import type { Paging } from 'gridify-client';
+
 export type LibraryCategory = 'Plan' | 'Preview' | 'Idea' | 'Research' | 'Evidence';
 
 export type LibraryItem = {
@@ -36,10 +38,14 @@ export type LibraryItemDetail = {
   evidence: LibraryItem[];
 };
 
-export type LibraryFilter = {
-  project?: string | null;
+export type LibraryTableQuery = {
+  project: string | null;
   category: LibraryCategory;
-  status?: string | null;
-  sort?: string | null;
-  dir?: string | null;
+  status: string | null;
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  search: string;
 };
+
+export type LibraryItemPage = Paging<LibraryItem>;

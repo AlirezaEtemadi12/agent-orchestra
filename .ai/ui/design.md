@@ -28,12 +28,13 @@
 
 ## The library screens
 
-- One tab bar (`?tab=plans|previews|ideas|research|evidence`), a project chip row, a sort select and
-  a direction select; the status filter appears only for plans and ideas, because no other category
-  has a status.
+- One tab bar (`?tab=plans|previews|ideas|research|evidence`), a project chip row, a search box, and
+  sortable column headers; the status filter appears only for plans and ideas, because no other
+  category has a status.
 - Plans, ideas, research and previews are compact tables; evidence is a gallery of cards — images as
   lazy `<img>` from the file endpoint, a `report.md` as a card with an icon and its group. A card
-  opens a dialog: an image at full size, a report as markdown fetched from the file endpoint.
+  opens a dialog: an image at full size, a report as markdown fetched from the file endpoint. The
+  evidence gallery uses the shared pager under it when there are more than 100 rows.
 - The item page holds the header fields, the plan prompt (button, hint as a tooltip, the text itself
   below so a failed copy can be selected), the runs, the plan's evidence and the document body.
 - **The preview frame** is `<iframe sandbox="allow-scripts">` at 70vh with a short note and an "open

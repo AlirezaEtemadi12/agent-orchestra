@@ -8,6 +8,7 @@ export const importsEn = {
   "libraryItems": "Library items",
   "errors": "Errors",
   "columns": {
+    "finishedAt": "Finished",
     "file": "File",
     "location": "Where",
     "message": "Problem"

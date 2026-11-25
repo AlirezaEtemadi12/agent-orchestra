@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Gridify;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -10,7 +11,7 @@ using Orchestra.Api.Modules.Import;
 using Orchestra.Api.Modules.Projects;
 using Orchestra.Api.Modules.Projects.Features.ListProjects;
 using Orchestra.Api.Modules.Runs.Features.GetRun;
-using Orchestra.Api.Modules.Runs.Features.ListRuns;
+using Orchestra.Api.Modules.Runs.Features.RunsTable;
 using Orchestra.Api.Modules.Usage.Features.CostSummary;
 using Orchestra.Api.Modules.Usage.Features.ModelQuality;
 using Orchestra.Api.Tests.Fixtures;
@@ -91,26 +92,25 @@ public sealed class DashboardTests : IDisposable
     }
 
     [Fact]
-    public async Task The_status_filter_ignores_case()
+    public async Task The_status_filter_is_exact()
     {
-        var handler = new ListRunsHandler(_database, _registry);
+        var handler = new RunsTableHandler(_database, _registry);
 
-        var (lower, _) = await handler.HandleAsync("demo", "verified", null, CancellationToken.None);
-        var (upper, _) = await handler.HandleAsync("demo", "Verified", null, CancellationToken.None);
+        var (page, error) = await handler.HandleAsync(
+            "demo", new GridifyQuery { Filter = "status=Verified" }, CancellationToken.None);
 
-        lower.Should().NotBeNull();
-        lower!.Should().NotBeEmpty();
-        lower!.Select(run => run.Status).Should().OnlyContain(status => status == "Verified");
-        upper!.Select(run => run.RunKey).Should().Equal(lower!.Select(run => run.RunKey));
+        error.Should().BeNull();
+        page!.Data.Should().NotBeEmpty();
+        page.Data.Select(run => run.Status).Should().OnlyContain(status => status == "Verified");
     }
 
     [Fact]
     public async Task An_unknown_project_is_a_not_found()
     {
-        var (rows, error) = await new ListRunsHandler(_database, _registry)
-            .HandleAsync("nope", null, null, CancellationToken.None);
+        var (page, error) = await new RunsTableHandler(_database, _registry)
+            .HandleAsync("nope", new GridifyQuery(), CancellationToken.None);
 
-        rows.Should().BeNull();
+        page.Should().BeNull();
         error!.Code.Should().Be(Error.ProjectNotFound.Code);
     }
 

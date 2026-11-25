@@ -3,9 +3,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { commonEn } from '@/lib/i18n/messages/common.en';
+import { libraryApi } from './api';
 import { copyText, selectText } from './clipboard';
 import { EvidenceGallery } from './components/evidence-gallery';
+import { LibraryPage } from './components/library-page';
 import { PreviewFrame } from './components/preview-frame';
 import { LibraryStatusBadge } from './components/status';
 import { libraryEn } from './i18n/en';
@@ -13,8 +16,6 @@ import {
   LIBRARY_TABS,
   detailQuery,
   detailHref,
-  dirFrom,
-  sortFrom,
   statusColumnVisible,
   tabFor,
   tabFrom,
@@ -22,7 +23,49 @@ import {
 } from './library-params';
 import type { LibraryItem } from './types';
 
-const messages = { library: libraryEn, common: { actions: { retry: 'Try again' } } };
+const navigation = vi.hoisted(() => {
+  let search = new URLSearchParams();
+
+  return {
+    push: vi.fn(),
+    replace: vi.fn(),
+    get search() {
+      return search;
+    },
+    set search(value: URLSearchParams) {
+      search = value;
+    },
+  };
+});
+
+const projects = vi.hoisted(() => ({
+  data: [] as { id: string; name: string }[],
+}));
+
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => navigation.search,
+  useRouter: () => ({ push: navigation.push, replace: navigation.replace }),
+  usePathname: () => '/library/',
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
+}));
+
+vi.mock('@/lib/projects/queries', () => ({
+  useProjects: () => ({ data: projects.data }),
+}));
+
+vi.mock('./api', () => ({
+  libraryApi: {
+    table: vi.fn(),
+    item: vi.fn(),
+    prompt: vi.fn(),
+    text: vi.fn(),
+  },
+  fileUrl: vi.fn(() => '/api/library/demo/evidence/file?path=x'),
+  absoluteApiUrl: vi.fn((value: string) => `/api/${value}`),
+}));
+
+const messages = { library: libraryEn, common: commonEn };
 
 function withProviders(ui: ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -68,20 +111,11 @@ describe('library url state', () => {
     expect(tabFor('Research').tab).toBe('research');
   });
 
-  it('keeps the project, sort and direction in a tab link', () => {
-    expect(tabQuery(LIBRARY_TABS[3], 'demo', 'title', 'asc')).toEqual({
+  it('keeps the project in a tab link', () => {
+    expect(tabQuery(LIBRARY_TABS[3], 'demo')).toEqual({
       tab: 'research',
       project: 'demo',
-      sort: 'title',
-      dir: 'asc',
     });
-  });
-
-  it('falls back on unknown sort keys and directions', () => {
-    expect(sortFrom('nope')).toBe('updated');
-    expect(sortFrom('done')).toBe('done');
-    expect(dirFrom('asc')).toBe('asc');
-    expect(dirFrom(null)).toBe('desc');
   });
 
   it('hides the status filter where status has no meaning', () => {
@@ -192,5 +226,40 @@ describe('the status badge', () => {
     );
 
     expect(container.querySelector('[data-slot="badge"]')).toBeNull();
+  });
+});
+
+describe('the library page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    projects.data = [];
+    navigation.search = new URLSearchParams();
+  });
+
+  it('keeps the tab and the project in the table request', async () => {
+    navigation.search = new URLSearchParams('tab=research&project=demo');
+    projects.data = [{ id: 'demo', name: 'Demo' }];
+    vi.mocked(libraryApi.table).mockResolvedValue({
+      count: 1,
+      data: [item({ category: 'Research', title: 'A note' })],
+    });
+
+    withProviders(<LibraryPage />);
+
+    expect(await screen.findByText('A note')).toBeInTheDocument();
+
+    const [, filter] = vi.mocked(libraryApi.table).mock.calls[0];
+
+    expect(filter.project).toBe('demo');
+    expect(filter.category).toBe('Research');
+  });
+
+  it('puts the shared pager under the evidence gallery over one hundred items', async () => {
+    navigation.search = new URLSearchParams('tab=evidence');
+    vi.mocked(libraryApi.table).mockResolvedValue({ count: 150, data: [] });
+
+    withProviders(<LibraryPage />);
+
+    expect(await screen.findByText('1–100 of 150')).toBeInTheDocument();
   });
 });

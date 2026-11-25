@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
+import { TableSkeleton } from '@/components/app/table-skeleton';
 import { ImportLog } from '@/features/imports';
 import type { Locale } from '@/lib/i18n/config';
 import { pageMetadata } from '@/lib/i18n/page-metadata';
@@ -16,5 +18,9 @@ export default async function ImportsPage({ params }: PageProps) {
   const { locale } = await params;
   setRequestLocale(locale as Locale);
 
-  return <ImportLog />;
+  return (
+    <Suspense fallback={<TableSkeleton rows={8} />}>
+      <ImportLog />
+    </Suspense>
+  );
 }
