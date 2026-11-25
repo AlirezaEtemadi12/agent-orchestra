@@ -124,6 +124,18 @@ function Send-OrchestraEvent {
         $project = [string](Get-ReportSetting $Ctx 'project' '')
         if (-not $project) { return }
 
+        # Plan 0013 §6.1.7: progress and status name the repo whose phase is running, so one card can show a
+        # chip per repo. Additive: the schema version stays.
+        if (($Kind -eq 'progress' -or $Kind -eq 'status') -and $State) {
+            try {
+                if ($State.PSObject.Properties['phaseRepo'] -and $State.phaseRepo) {
+                    if (-not $Data) { $Data = [ordered]@{} }
+                    $Data['repo'] = [string]$State.phaseRepo
+                }
+            }
+            catch { }
+        }
+
         $script:ReportSeq++
         $tokenEnv = [string](Get-ReportSetting $Ctx 'tokenEnv' 'ORCHESTRA_REPORT_TOKEN')
         $timeout = [double](Get-ReportSetting $Ctx 'timeoutSec' 2)

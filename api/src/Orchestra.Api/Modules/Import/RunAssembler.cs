@@ -101,7 +101,7 @@ public static class RunAssembler
         run.CostMicros = block.TotalCostMicros ?? run.CostMicros;
         run.Rounds = block.Stages.Where(stage => stage.Stage == StageKind.Review).Max(stage => stage.Round) ?? run.Rounds;
 
-        var (number, title) = PlanName.From(null, run.Branch);
+        var (number, title) = PlanName.From(null, run.Branch, run.TaskId);
         run.PlanNumber = number ?? run.PlanNumber;
         run.PlanTitle = title ?? run.PlanTitle;
 

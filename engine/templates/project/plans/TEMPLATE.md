@@ -2,8 +2,9 @@
 
 **Status:** Draft — one of `Draft` · `Approved` · `Running` · `Done` · `Dropped`
 **Created:** <YYYY-MM-DD> · **Updated:** <YYYY-MM-DD> · **Done:** —
-**Preview:** [`../previews/NNNN-<topic>/`](../previews/) — what the owner approved before this plan
+**Preview:** [`preview.html`](preview.html) — the page the owner approved before this plan, in this folder
 **Run:** — (the orchestrator task id, filled by the conductor when it starts one)
+**Repos:** <the repos this plan touches, in the order they run — one name for a single-repo project>
 **Planned by:** <model>, <date>. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** <the reviewing model, or the owner> — a **different model family** than the planner's.
 **Decided by:** <who>, <date>. Every choice below is already decided — **decide nothing new.** If reality
@@ -61,6 +62,9 @@ app: where to go, what to do, what they should see; failure paths included.>
 
 <Per phase: steps · **Gate** (the build/test commands) · **Owner checks** (runtime, done by the owner) ·
 "Stop here — show the owner the diff.">
+
+Every phase line names its repo: `## Phase N — <repo>`, so a plan that spans repos runs them one after
+another and the owner can see which repo each phase touches.
 
 ## 10. Definition of done
 

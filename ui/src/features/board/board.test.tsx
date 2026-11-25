@@ -32,6 +32,7 @@ function card(overrides: Partial<BoardCard> = {}): BoardCard {
     waitingFor: null,
     pool: null,
     heldBy: null,
+    repos: [],
     ...overrides,
   };
 }
@@ -55,6 +56,22 @@ describe('the runs board', () => {
     withProviders(<BoardCardView card={card({ status: 'AwaitingApproval', waitingFor: 'approval' })} />);
 
     expect(screen.getByText('Waiting for your approval')).toBeInTheDocument();
+  });
+
+  it('shows one chip per repo of the plan', () => {
+    withProviders(
+      <BoardCardView
+        card={card({
+          repos: [
+            { name: 'Web', status: 'Implemented' },
+            { name: 'Ui', status: null },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Web · Implemented')).toBeInTheDocument();
+    expect(screen.getByText('Ui')).toBeInTheDocument();
   });
 
   it('names the pool it waits for', () => {

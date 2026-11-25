@@ -20,11 +20,11 @@
 1. **Understanding.** In the chat, in the planner's own words — never a copy of the owner's message.
    Name every sentence that could mean two things and the reading chosen, and what the owner may have
    meant that this work will **not** do. The owner corrects it; repeat until it is right.
-2. **Preview.** An HTML page in [`previews/NNNN-<topic>/`](previews/): the decisions as a schematic,
-   the flow of work, and mock-ups of any screen — whichever the work has. The plan number is reserved
-   here (the next free one in [`plans/`](plans/)). Open questions are asked here, one at a time.
+2. **Preview.** An HTML page at `plans/NNNN-<topic>/preview.html`: the decisions as a schematic,
+   the flow of work, and mock-ups of any screen - whichever the work has. The number is reserved by
+   creating that folder (the next free one in [`plans/`](plans/)). Open questions are asked here, one at a time.
 3. **Plan.** Only after the owner approves the preview: copy [`plans/TEMPLATE.md`](plans/TEMPLATE.md)
-   to `plans/NNNN-<topic>.md`. Its understanding section is the confirmed text from step 1.
+   to `plans/NNNN-<topic>/plan.md`. Its understanding section is the confirmed text from step 1.
 
 A plan decides everything; an implementer decides nothing. The header names its author on a
 **`Planned by:`** line (the orchestrator reads the author's model family from it).
@@ -56,10 +56,10 @@ being implemented. Leave it untouched and never copy it from the working tree.
 
 The deliverable is a **dirty working tree on the branch**, gates green: the repo's build and test
 commands, as listed in `orchestrator.json` → `verifyCommands`. Screenshots and reports from an agent's
-own checks go to `.orchestra/evidence/NNNN-<topic>/phase-<X>/` (git-ignored). No `commit`, `push`,
+own checks go to `.orchestra/plans/NNNN-<topic>/evidence/phase-<X>/` (git-ignored). No `commit`, `push`,
 `merge`, `rebase` or `branch -d` unless the owner asks for that action in that message. When a commit
-is authorized, stage the exact paths — never `git add -A` / `git add .`. The close is three separate
-questions: commit? merge? delete the branch?
+is authorized, stage the exact paths — never `git add -A` / `git add .`. Saying «close the plan» is the
+yes to all three - commit, merge and delete the branch - and `skills/close-plan/SKILL.md` does it.
 
 ## Rules about rules
 

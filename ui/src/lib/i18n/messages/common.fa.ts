@@ -10,7 +10,8 @@ export const commonFa = {
   "actions": {
     "reimport": "خواندن دوباره",
     "retry": "تلاش دوباره",
-    "back": "بازگشت"
+    "back": "بازگشت",
+    "reload": "تازه‌سازی"
   },
   "theme": {
     "label": "تم",

@@ -1,7 +1,7 @@
 # Plan 0007 — Move Project A and Project B to `.ai/` + `.orchestra/`
 
-**Status:** Running — phases A–C implemented 2026-11-22/23; both companions done and committed (Project A earlier, Project B 2026-11-24, one commit per repo); left: the owner's dashboard check (D9: re-import, compare counts), which plan 0012's "Check setup" replaces
-**Created:** 2026-11-19 · **Updated:** 2026-11-23 · **Done:** —
+**Status:** Done — phases A–C done; both companions committed (Project A earlier, Project B 2026-11-24, one commit per repo). Its last open item, the owner's dashboard check (D9: re-import, compare counts), is replaced by plan 0013's companion plans (0013 D17)
+**Created:** 2026-11-19 · **Updated:** 2026-11-25 · **Done:** 2026-11-25
 **Preview:** none of its own — preview 0001 §2 (approved 2026-11-19)
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-19; revised 2026-11-22. **Executor:** another agent, ideally a cheaper model.

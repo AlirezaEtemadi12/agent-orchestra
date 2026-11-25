@@ -83,8 +83,20 @@ export function BoardLanes({ lanes }: { lanes: Lanes }) {
   );
 }
 
+const STATUS_KEYS = {
+  Planning: 'status.Planning',
+  Reviewing: 'status.Reviewing',
+  AwaitingApproval: 'status.AwaitingApproval',
+  Approved: 'status.Approved',
+  Implemented: 'status.Implemented',
+  Verified: 'status.Verified',
+  VerifyFailed: 'status.VerifyFailed',
+  Violation: 'status.Violation',
+} as const;
+
 export function BoardCardView({ card }: { card: BoardCard }) {
   const t = useTranslations('board');
+  const statusKey = STATUS_KEYS[card.status as keyof typeof STATUS_KEYS];
 
   return (
     <Card size="sm">
@@ -98,10 +110,20 @@ export function BoardCardView({ card }: { card: BoardCard }) {
               {card.projectId} · {card.taskId}
             </p>
           </div>
-          <StatusBadge status={card.status} />
+          <StatusBadge status={card.status} label={statusKey ? t(statusKey) : undefined} />
         </div>
 
         {card.waitingFor ? <WaitingBadge card={card} /> : null}
+
+        {card.repos.length ? (
+          <div className="flex flex-wrap gap-1">
+            {card.repos.map((repo) => (
+              <Badge key={repo.name} variant="outline" className="text-xs" data-ltr>
+                {repo.status ? `${repo.name} · ${repo.status}` : repo.name}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
           {card.stage ? <span data-ltr>{card.stage}</span> : null}

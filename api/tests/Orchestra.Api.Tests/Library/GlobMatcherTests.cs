@@ -31,12 +31,19 @@ public sealed class GlobMatcherTests
     [Fact]
     public void The_fixed_prefix_is_where_the_walk_starts()
     {
-        LibraryDefaults.Plans.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/plans", ".orchestra/plans");
-        LibraryDefaults.Previews.Select(GlobMatcher.FixedPrefix)
-            .Should().Equal(".orchestra/previews", ".orchestra/previews", ".orchestra/runs/_drafts");
+        // Plan 0013 D13: the plan-folder globs are under the same prefix as the flat ones, so the walk of
+        // plans/ is still one walk.
+        LibraryDefaults.Plans.Select(GlobMatcher.FixedPrefix).Distinct()
+            .Should().Equal(".orchestra/plans", ".orchestra/plans/done");
+        LibraryDefaults.Plans.Should().Contain(
+            ".orchestra/plans/*/plan.md", "the plan is a folder with a plan.md");
+        LibraryDefaults.Previews.Select(GlobMatcher.FixedPrefix).Distinct()
+            .Should().Equal(".orchestra/plans", ".orchestra/previews", ".orchestra/runs/_drafts");
         LibraryDefaults.Ideas.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/ideas");
-        LibraryDefaults.Research.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/research");
-        LibraryDefaults.Evidence.Select(GlobMatcher.FixedPrefix).Should().Equal(".orchestra/evidence");
+        LibraryDefaults.Research.Select(GlobMatcher.FixedPrefix).Distinct()
+            .Should().Equal(".orchestra/plans", ".orchestra/research");
+        LibraryDefaults.Evidence.Select(GlobMatcher.FixedPrefix).Distinct()
+            .Should().Equal(".orchestra/plans", ".orchestra/evidence");
 
         GlobMatcher.FixedPrefix("*/.ai/plans/*.md").Should().BeEmpty();
         GlobMatcher.FixedPrefix("*.html").Should().BeEmpty();

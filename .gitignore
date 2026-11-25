@@ -25,8 +25,10 @@ appsettings.Local.json
 # Graph output
 graphify-out/
 
-# Orchestrator work products that never enter git
+# Orchestrator work products that never enter git. Plan 0013 D1 gives every new plan a folder with its own
+# evidence/ (the template's `.gitignore` already ignores any folder named evidence at any depth).
 .orchestra/evidence/
+.orchestra/plans/*/evidence/
 .orchestra/runs/
 
 # Visual Studio

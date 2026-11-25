@@ -310,6 +310,47 @@ function Get-PlanSlug {
     return ''
 }
 
+function Get-RunRepos {
+    # D4/D5 (plan 0013): a run made by `new -PlanFile` carries `repos`; every older run carries one `repo`.
+    param($State)
+    if ($State -and $State.PSObject.Properties['repos']) {
+        $list = @($State.repos | Where-Object { $_ })
+        if ($list.Count) { return $list }
+    }
+    if ($State -and $State.PSObject.Properties['repo'] -and $State.repo) { return @([string]$State.repo) }
+    return @()
+}
+
+function Get-PhaseRepo {
+    # D3 (plan 0013): `### Phase 2 — Ui`. A single-repo run never reads the heading - this repo's plans head
+    # their phases `### Phase 1 — measure`, a topic and not a repo. A multi-repo run uses it, warns when the
+    # heading is absent, and throws when it names a repo the run does not have.
+    param([string]$PlanText, [string[]]$Repos, [string]$Phase)
+    $list = @($Repos | Where-Object { $_ })
+    if (-not $list.Count) { return '' }
+    if ($list.Count -eq 1) { return $list[0] }
+
+    # \u2014 (em), \u2013 (en) or a hyphen; escapes keep this file pure ASCII.
+    $pattern = '(?m)^#{2,3}\s*Phase\s+' + [regex]::Escape([string]$Phase) + '[a-z]?\s*[\u2014\u2013-]\s*([A-Za-z0-9_.-]+)'
+    $m = [regex]::Match([string]$PlanText, $pattern)
+    if ($m.Success) {
+        $named = $m.Groups[1].Value
+        if ($list -contains $named) { return $named }
+        throw ("phase $Phase names repo '$named', which this run does not have (have: $($list -join ', ')). Fix the phase heading in the plan.")
+    }
+
+    Write-Host "note: phase $Phase has no `"### Phase $Phase - <Repo>`" heading; using $($list[0])" -ForegroundColor Yellow
+    return $list[0]
+}
+
+function Get-RepoRunState {
+    # D5: what this run recorded for one repo the first time it touched it; $null when it has not.
+    param($State, [string]$Repo)
+    if (-not $State -or -not $State.PSObject.Properties['repoState'] -or -not $State.repoState) { return $null }
+    if (-not $State.repoState.PSObject.Properties[$Repo]) { return $null }
+    return $State.repoState.$Repo
+}
+
 function Test-Gate2ModelDiffer {
     param($Ctx, [string]$PlannerFamily, [string]$ReviewerFamily)
     if (-not $Ctx.Config.rules.reviewerModelMustDifferFromPlanner) { return $true }

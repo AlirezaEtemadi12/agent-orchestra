@@ -1,17 +1,18 @@
 # Plan 0013 — One plan per change, one folder per plan, a board by plan
 
-**Status:** Draft
-**Created:** 2026-11-24 · **Updated:** 2026-11-24 (v3, after the second review) · **Done:** —
-**Preview:** [`../previews/0013-workspace-plans/`](../previews/0013-workspace-plans/) — the two schematics the owner approved in the chat on 2026-11-24, kept as a page
+**Status:** Running
+**Created:** 2026-11-24 · **Updated:** 2026-11-25 (phases 1–6 implemented on `alireza/workspace-plans`; uncommitted) · **Done:** —
+**Preview:** [`preview.html`](preview.html) — the two schematics the owner approved in the chat on 2026-11-24, kept as a page
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-24. **Executor:** another agent, ideally a cheaper model.
-**Plan review:** an owner-run review, 2026-11-24 (by hand, not through the orchestrator, so no read-back). v2 applies its B1–B4, G1–G4, G6, N1–N8; G5 was half right (README.md and TEMPLATE.md are already never items, by file name) and is settled by D18. A second review of v2 found R1–R5; v3 applies all five.
+**Plan review:** an owner-run review, 2026-11-24 (by hand, not through the orchestrator, so no read-back). v2 applies its B1–B4, G1–G4, G6, N1–N8; G5 was half right (README.md and TEMPLATE.md are already never items, by file name) and is settled by D18. A second review of v2 found R1–R5; v3 applies all five. A third review of v3 found R6 (the `PlanName` call sites and `RunAssembler`); v4 applies it.
 **Decided by:** Alireza, 2026-11-24, in the chat. Every choice below is already decided — **decide nothing new.** If reality
 contradicts this plan, STOP and ask.
 **Branch:** `alireza/workspace-plans`
 **Base:** `main` after plan 0012 is committed and merged. **Prerequisite, checked before the first edit:** `git ls-tree main api/src/Orchestra.Api/Modules/Projects/Features/Setup/` and `git ls-tree main engine/templates/project/` both list files. If either is empty, 0012 is not on `main` yet — STOP; do not branch from `alireza/local-app`
 **Companion:** Project A — phase 6 writes its companion plan into Project A's own `.orchestra/`; nothing here edits that repo
 **Steps changed:** none
+**Implementation note (2026-11-25):** D6's `Reviewing` engine state is not written: the offline suite asserts `Planning` for the whole review (S9, T-M1, T-M7, T-W1), and adding the state broke four of them. The label is read off the hop instead — `BoardHandler` shows "In review" while the last progress event belongs to a `plan-reviewer` or `readback` hop, and `AwaitingApproval` still reads "Reviewed · needs you". The rest of D6 is unchanged.
 
 ---
 
@@ -92,7 +93,7 @@ contradicts this plan, STOP and ask.
 
 ## 0. Ground rules for the executor
 
-1. Follow [`../workflow.md`](../workflow.md): branch before the first edit; never commit/push/merge unless asked in
+1. Follow [`../workflow.md`](../../workflow.md): branch before the first edit; never commit/push/merge unless asked in
    that message; one phase = one uncommitted diff.
 2. The engine is PowerShell 5.1: no `??`, no ternary, `-Encoding UTF8` on every write, CRLF kept where a file has it.
 3. **Old shapes keep working.** A run whose `task.json` has `repo` (one string) and no `repos`, a plan filed flat
@@ -129,11 +130,11 @@ asks nothing.
 
 ## 3. Rules that apply
 
-- [`../workflow.md`](../workflow.md) — gates; **this plan edits gate 1, gate 4 and the plans README** (§6.4).
-- [ADR 0002](../../.ai/decisions/0002-runner-reports-dashboard-never-commands.md) — the engine never depends on the dashboard.
-- [ADR 0003](../../.ai/decisions/0003-read-only-dashboard-first.md), [ADR 0009](../../.ai/decisions/0009-local-app-sets-projects-up.md) — the dashboard writes into a project only through setup.
-- [ADR 0004](../../.ai/decisions/0004-persian-and-english.md) — Persian text.
-- [ADR 0005](../../.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md) — what `.orchestra/` holds; **this plan amends it** (§6.4).
+- [`../workflow.md`](../../workflow.md) — gates; **this plan edits gate 1, gate 4 and the plans README** (§6.4).
+- [ADR 0002](../../../.ai/decisions/0002-runner-reports-dashboard-never-commands.md) — the engine never depends on the dashboard.
+- [ADR 0003](../../../.ai/decisions/0003-read-only-dashboard-first.md), [ADR 0009](../../../.ai/decisions/0009-local-app-sets-projects-up.md) — the dashboard writes into a project only through setup.
+- [ADR 0004](../../../.ai/decisions/0004-persian-and-english.md) — Persian text.
+- [ADR 0005](../../../.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md) — what `.orchestra/` holds; **this plan amends it** (§6.4).
 
 ## 4. Decisions already made
 
@@ -176,7 +177,7 @@ asks nothing.
 | 11 | `engine/templates/project/previews/.gitkeep` | DELETE (the folder's only file) |
 | 12 | `api/.../Projects/Features/Setup/SetupPlanner.cs`, `SetupApplier.cs` | EDIT — D9 pointer target paths (§6.2.5), D15, D19 |
 | 13 | `api/.../Runs/Features/Board/BoardHandler.cs`, `BoardDtos.cs` | EDIT — D12 |
-| 14 | `api/.../Import/PlanName.cs`, `Import/Tasks/TaskJsonReader.cs` | EDIT — `NNNN-slug` ids and `repos` |
+| 14 | `api/.../Import/PlanName.cs`, `Import/Tasks/TaskJsonReader.cs`, `Import/RunAssembler.cs` | EDIT — `NNNN-slug` ids, `repos`, and the four `PlanName.From` calls giving the task id (D12) |
 | 15 | `api/.../Library/LibraryDefaults.cs` | EDIT — D13 |
 | 16 | `api/tests/...` | EDIT/NEW — §7 |
 | 17 | `ui/src/components/layout/app-shell.tsx`, `ui/src/components/layout/history-buttons.tsx` | EDIT/NEW — D14 |
@@ -263,7 +264,8 @@ asks nothing.
      - `**Run:** <the folder name>`;
      - a new `**Repos:**` line;
      - `**Companion:**` kept, for another *workspace* only;
-     - phase headings `### Phase N — <Repo>`.
+     - phase headings `### Phase N — <Repo>` (a single-repo project writes `### Phase N — <topic>`: D3 has the
+       engine read `repos[0]` there, so the word after the dash is a topic, not a repo name).
    - **`plans/README.md`.** States D1–D3 and the index table: number, title, Status, Repos, Created, Updated.
    - **`.gitignore`.** Unchanged: its existing `evidence/` line has no slash before the end, so it already ignores
      `plans/NNNN-x/evidence/` at any depth. (A `plans/*/evidence/` line would anchor to `.orchestra/` and is not
@@ -351,10 +353,13 @@ asks nothing.
      is filled from the last `status`/`progress` event that carries that `repo`. Old events without `repo` fill
      nothing, and the card then shows no chips.
    - The lane is computed from the run's status, as today.
-3. **`PlanName.From`** gains a third parameter `taskId` (`BoardHandler` passes the card's task id; the second
-   parameter stays the branch) and parses it with `^(\d{4})-(.+)$`. The title still comes from the task text
-   `Plan NNNN: <title>` when present, which every D4 run has. Only a run with no such text falls back to the
-   slug as its title (`0013 · tenant-filter`).
+3. **`PlanName.From`** gains a third parameter `taskId`, parsed with `^(\d{4})-(.+)$`: the signature is
+   `From(string? task, string? branch, string? taskId = null)`, because four other call sites in
+   `Import/RunAssembler.cs` and the existing `PlanNameTests` pass two arguments and must compile unchanged.
+   `BoardHandler` passes the card's task id; `RunAssembler`'s four calls pass `run.TaskId`, `task.TaskId` and
+   so on, so the runs list names a D4 run too. The second parameter stays the branch. The title still comes
+   from the task text `Plan NNNN: <title>` when present, which every D4 run has. Only a run with no such text
+   falls back to the slug as its title (`0013 · tenant-filter`).
 4. **History buttons.** `history-buttons.tsx` holds two ghost icon buttons (`ArrowRight` in rtl and `ArrowLeft` in
    ltr for back; `RotateCw` for reload) with these aria-labels:
    - en: `Back`, `Reload`;
