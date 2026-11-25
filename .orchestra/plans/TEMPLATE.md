@@ -60,8 +60,8 @@ running app: where to go, what to do, what they should see; failure paths includ
 ## 8. Stop and ask
 ## 9. Phases
 
-<Per phase: steps · **Gate** (the build/test commands) · **Owner checks** (runtime, done by the owner) ·
-"Stop here — show the owner the diff.">
+<Per phase: steps · **Gate** (the build/test commands). Phases run back to back, with no stop between them
+(CONDUCTOR.md step 7). **Owner checks** (runtime, done by the owner) come once, after the last phase.>
 
 ## 10. Definition of done
 

@@ -1,4 +1,4 @@
-# Plan 0015 — Agent files stay out of git; setup, board, import and cost fixes found by adding Orchestra; no stop between phases
+# Plan 0015 — Agent files stay out of git; setup, board, import and cost fixes found by adding Orchestra
 
 **Status:** Draft
 **Created:** 2026-11-25 · **Updated:** 2026-11-25 · **Done:** —
@@ -56,10 +56,10 @@ working tree, and D7 renames the repo key its run uses.
   12. قالب پلن بعد از هر فاز می‌گوید «این‌جا بایست و diff را به مالک نشان بده». این با قاعده‌ی کانداکتر (همه‌ی فازها
       پشت‌سرهم، بدون پرسیدن) نمی‌خواند و اجرای 0010 را بین فازها منتظر نگه داشت. پلن مرور و read-back شده است؛
       فازها پشت‌سرهم اجرا می‌شوند و فقط روی چیزهایی که بخش «Stop and ask» پلن می‌گوید، یا BLOCKED و شکست gate، می‌ایستند.
-      بررسی‌های مالک یک بار در آخر انجام می‌شود. این پلن هم از همین حالا همین‌طور اجرا می‌شود.
+      بررسی‌های مالک یک بار در آخر انجام می‌شود. این پلن هم از همین حالا همین‌طور اجرا می‌شود. (روی main انجام شد، پیش از این پلن.)
   13. skill `orchestrate` می‌گوید «هر بار یک فاز، بعد verify». برای همین 0010 بعد از هر فاز verify شد، در حالی که
       قاعده‌ی کانداکتر یک verify در آخر است. skill هم همین را می‌گوید: همه‌ی فازها پشت‌سرهم، بعد یک verify.
-      (توقف بین فازها هم از همین جمله‌ی skill می‌آمد.)
+      (توقف بین فازها هم از همین جمله‌ی skill می‌آمد.) این هم روی main و در همه‌ی پروژه‌های ثبت‌شده انجام شد، پیش از این پلن.
 
 **کارهایی که این پلن انجام نمی‌دهد:**
 - صفحه‌ی Runs خودش را مثل board هر چند ثانیه تازه نمی‌کند؛ داده‌ی دیتابیس به‌روز می‌شود و صفحه با باز شدن دوباره آن را نشان می‌دهد.
@@ -74,7 +74,7 @@ working tree, and D7 renames the repo key its run uses.
 1. **فاز ۱، API.** بررسی پوشه، prompt راه‌اندازی، import بدون پوشه‌ی runs، نام ریپو و تشخیص فرمان‌های وریفای،
    import خودکار بعد از رویدادها، health نه روی board و نه در جدول Runs، هزینه‌ی نامعلوم «—»، شاخه‌ی «-» و زمان شروع run.
 2. **فاز ۲، UI.** فهرست بررسی با گروه «این‌ها هم پیدا شد» و متن «خود این پوشه ریپو است»؛ خلاصه‌ی Runs هزینه‌ی خالی را می‌پذیرد.
-3. **فاز ۳، قاعده و این ریپو.** ADR 0005، `AGENTS.md`، `.gitignore`، نام ریپو در `orchestrator.json`، و قالب پلن و skill `orchestrate` بدون توقف بین فازها و با یک verify در آخر.
+3. **فاز ۳، قاعده و این ریپو.** ADR 0005، `AGENTS.md`، `.gitignore`، نام ریپو در `orchestrator.json`.
 
 فازها پشت‌سرهم اجرا می‌شوند؛ بررسی‌های مالک بعد از فاز آخر است.
 
@@ -125,7 +125,7 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 - Writing any project's `.gitignore` from the app (the prompt asks the project's own agent).
 - Deleting any agent file, here or elsewhere; taking `.claude/skills/` out of git.
 - Creating `.orchestra/runs/` from setup (D6 makes it unnecessary).
-- The engine's code (D16 and D17 edit only its plan and skill templates, which are documents); Project A; Project B.
+- The engine's code; Project A; Project B.
 
 ## 3. Rules that apply
 
@@ -154,8 +154,8 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 | D13 | **An unknown cost stays unknown.** New `Orchestra.Api.Common.Money` (static) with `long? SumMicros(IEnumerable<long?> values)`: `null` when no value has one, otherwise the sum of those that do. Used in `CostSummaryHandler.GroupByRuns` and `ByModel`, and `ListProjectsHandler` (`Cost(runs.Sum(run => run.CostMicros))`), instead of LINQ `Sum`, which turns all-null into `0`. `RunsSummaryDto.CostUsd` becomes `decimal?`: `RunsSummaryHandler` drops `?? 0` from `costMicros`, and `SumAsync` stays (SQL `SUM` over all-null is already `NULL`). UI: `RunsSummary.costUsd` becomes `number \| null`; `MoneyText` already renders `null` |
 | D14 | **`branch -` is no branch.** `LedgerParser`: when the repo line's branch is `-`, `block.Branch` is `null`. So a closed ledger run without a branch merges with its archive (whose branch is empty) instead of making a second row |
 | D15 | **A run starts at the earliest time any source gives.** `RunAssembler.MergeLiveRuns` and `MergeArchives` (the `else` branch, where the target already exists): `target.CreatedAt` becomes the earlier of itself and the source's `CreatedAt` (when the source has one). `UpdatedAt` rules are unchanged, so the Cost page still dates a run as today |
-| D16 | **No stop between phases.** The plan is reviewed and read back before approval, so its phases run back to back (as `engine/docs/CONDUCTOR.md` step 7 already says); a run stops only on what the plan's §8 names, BLOCKED, a violation, a file outside the plan or a failed gate. In both `TEMPLATE.md` copies (`.orchestra/plans/` and `engine/templates/project/plans/`) the §9 placeholder `<Per phase: steps · **Gate** (the build/test commands) · **Owner checks** (runtime, done by the owner) · "Stop here — show the owner the diff.">` becomes `<Per phase: steps · **Gate** (the build/test commands). Phases run back to back, with no stop between them (CONDUCTOR.md step 7). **Owner checks** (runtime, done by the owner) come once, after the last phase.>` This plan follows it from now on (§9) |
-| D17 | **One verify, at the end.** The `orchestrate` skill's step 4 ("**One phase per go.** `implement <id> <phase>`, then `verify <id>`…") is what made 0010 verify after every phase and wait between phases; `engine/docs/CONDUCTOR.md` step 7 already says the opposite and stays the one place for it. In both copies (`.orchestra/skills/orchestrate/SKILL.md` and `engine/templates/project/skills/orchestrate/SKILL.md`) step 4 becomes: `4. **Every phase, then one verify.** \`implement <id> 1\`, 2, 3 … to the last phase with no stop between them, then **one** \`verify <id>\` (engine/docs/CONDUCTOR.md step 7). Show each phase's summary block, not the whole transcript. BLOCKED, a red gate, a \`Violation\` or a file outside the plan stops there: fix by hand, then \`implement <id> <phase> -Force\` and go on.` The engine is unchanged: it never ran verify by itself |
+| D16 | **No stop between phases.** Already done on `main` (2026-11-25, before this plan): both `TEMPLATE.md` copies say phases run back to back and owner checks come once, after the last phase. Nothing to do here; this plan follows it (§9) |
+| D17 | **One verify, at the end.** Already done on `main` (2026-11-25, before this plan): the `orchestrate` skill's step 4, in this repo, in `engine/templates/` and in every registered project, says every phase back to back, then one `verify`. Nothing to do here |
 
 ## 5. File manifest
 
@@ -176,8 +176,6 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 | 7 | `.ai/decisions/0005-ai-is-knowledge-orchestra-is-work.md`, `AGENTS.md`, `.gitignore`, `.orchestra/orchestrator.json` | EDIT — D4, D5, D7 | 3 |
 | 8 | `.ai/architecture/data-model.md` or `overview.md` — only if one of them lists the folder-check items or the single-repo key; grep first | EDIT | 3 |
 | 9 | `.ai/architecture/overview.md` lines 36–37 (the importer runs "on start and on demand") | EDIT — D11 | 3 |
-| 10 | `.orchestra/plans/TEMPLATE.md`, `engine/templates/project/plans/TEMPLATE.md` | EDIT — D16 | 3 |
-| 11 | `.orchestra/skills/orchestrate/SKILL.md`, `engine/templates/project/skills/orchestrate/SKILL.md` | EDIT — D17 | 3 |
 
 ## 6. Per-file specification
 
@@ -228,19 +226,11 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 ### 6.3 Phase 3 — rule and this repo
 
 1. D4 in ADR 0005 and `AGENTS.md`; D5 in `.gitignore`; D7's rename in `.orchestra/orchestrator.json` (keep its
-   indentation; it must still parse); D16 in both `TEMPLATE.md` copies (the same line, so the two still differ only
-   where they differ today).
+   indentation; it must still parse).
 2. **Rules about rules:** `grep -rn "CLAUDE.md\|\.cursor" .ai AGENTS.md .orchestra/workflow.md engine/docs engine/templates --include=*.md`,
    leaving out `.ai/context/` and `engine/docs/history/`. On `main` the only hits are `AGENTS.md:7` (D4 changes it)
    and the 0003 row of `.ai/vision/roadmap.md` (history of what plan 0003 built; leave it). Any other hit: STOP and
    ask.
-   For D16: `grep -rn "Stop here\|Stop after every phase\|between phases" .ai .orchestra engine/docs engine/templates --include=*.md`,
-   leaving out `.ai/context/`, `engine/docs/history/` and plans whose status is Done. On `main` the hits are the two
-   `TEMPLATE.md` lines (D16 changes them), `engine/docs/CONDUCTOR.md` step 7 (already says "without asking between
-   phases"; leave it), `.ai/api/testing.md:15` (test counts; leave it) and this plan. Any other hit: STOP and ask.
-   For D17: `grep -rn "One phase per go\|Verify runs after every phase" .orchestra engine/docs engine/templates --include=*.md`.
-   The hits are the two `SKILL.md` lines (D17 changes them) and `engine/docs/REVIEW-BRIEF.md:277` (a record of an
-   earlier fix; leave it). Any other hit: STOP and ask.
 3. After the `.gitignore` edit, `git status --short` shows no new untracked or deleted file from `.claude/skills/`,
    and `git check-ignore -v .claude/settings.local.json` names the new `.claude/*` line.
 
@@ -292,7 +282,7 @@ git by rule; setup and import work for a single-repo project shaped like Orchest
 |---|---|---|
 | 1 API | 1–5 (with 1a, 5a–5d) | api gates |
 | 2 UI | 6, 6a | ui gates |
-| 3 Rule and this repo | 7–11 | all gates; §6.3.2 and §6.3.3; `Get-Content .orchestra/orchestrator.json -Raw \| ConvertFrom-Json` succeeds |
+| 3 Rule and this repo | 7–9 | all gates; §6.3.2 and §6.3.3; `Get-Content .orchestra/orchestrator.json -Raw \| ConvertFrom-Json` succeeds |
 
 Phases run back to back with no stop between them (D16); a run stops only on what §8 names, BLOCKED, a violation, a
 file outside the plan or a failed gate.

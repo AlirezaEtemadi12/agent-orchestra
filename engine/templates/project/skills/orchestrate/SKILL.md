@@ -23,9 +23,10 @@ that changes a run** - never edit `runs/<id>/task.json`, never write a plan vers
 3. **The owner answers.** Either `approve <id>` (optionally with notes), or the owner says "implement" -
    which is its own approval: `implement <id> <phase>` records `approved.by = implement`. Never approve on
    the owner's behalf, and never run `implement` on a plan the owner has not just asked to implement.
-4. **One phase per go.** `implement <id> <phase>`, then `verify <id>`. Show the summary block, not the whole
-   transcript. A red gate or a `Violation` stops there: fix by hand, then `implement <id> <phase> -Force` or
-   `verify <id>`.
+4. **Every phase, then one verify.** `implement <id> 1`, 2, 3 … to the last phase with no stop between them,
+   then **one** `verify <id>` (engine/docs/CONDUCTOR.md step 7). Show each phase's summary block, not the whole
+   transcript. BLOCKED, a red gate, a `Violation` or a file outside the plan stops there: fix by hand, then
+   `implement <id> <phase> -Force` and go on.
 5. **Close by the owner's word only.** "Close the plan" is the yes to commit, merge and delete the branch;
    `skills/close-plan/SKILL.md` does it, and it pushes nothing.
 

@@ -60,8 +60,8 @@ app: where to go, what to do, what they should see; failure paths included.>
 ## 8. Stop and ask
 ## 9. Phases
 
-<Per phase: steps · **Gate** (the build/test commands) · **Owner checks** (runtime, done by the owner) ·
-"Stop here — show the owner the diff.">
+<Per phase: steps · **Gate** (the build/test commands). Phases run back to back, with no stop between them
+(CONDUCTOR.md step 7). **Owner checks** (runtime, done by the owner) come once, after the last phase.>
 
 Every phase line names its repo: `## Phase N — <repo>`, so a plan that spans repos runs them one after
 another and the owner can see which repo each phase touches.
