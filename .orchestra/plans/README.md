@@ -32,4 +32,4 @@ without deciding anything. The process is [`../workflow.md`](../workflow.md); th
 | [0010](0010-gridify-tables.md) | Every growing table (runs, import log, library, profile versions) is a server-side Gridify table | Draft | 2026-11-23 | 2026-11-23 |
 | [0011](0011-fewer-git-calls.md) | One git call per repo per snapshot instead of four; the before/after check stays | Done | 2026-11-23 | 2026-11-24 |
 | [0012](0012-local-app-and-project-setup.md) | A Windows desktop app (Photino.NET exe, no Docker) that sets a project up by itself: setup screen, templates, folder dialog | Done | 2026-11-24 | 2026-11-24 |
-| [0013](0013-workspace-plans/plan.md) | One plan per change, one folder per plan, one run across a workspace's repos; board by plan; close-plan and pick-plan skills; back and reload | Running | 2026-11-24 | 2026-11-25 |
+| [0013](0013-workspace-plans/plan.md) | One plan per change, one folder per plan, one run across a workspace's repos; board by plan; close-plan and pick-plan skills; back and reload | Done | 2026-11-24 | 2026-11-25 |

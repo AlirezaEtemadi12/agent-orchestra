@@ -1,14 +1,14 @@
 # Plan 0013 — One plan per change, one folder per plan, a board by plan
 
-**Status:** Running
-**Created:** 2026-11-24 · **Updated:** 2026-11-25 (phases 1–6 implemented on `alireza/workspace-plans`; uncommitted) · **Done:** —
+**Status:** Done
+**Created:** 2026-11-24 · **Updated:** 2026-11-25 · **Done:** 2026-11-25
 **Preview:** [`preview.html`](preview.html) — the two schematics the owner approved in the chat on 2026-11-24, kept as a page
 **Run:** —
 **Planned by:** Claude Opus 5.5, 2026-11-24. **Executor:** another agent, ideally a cheaper model.
 **Plan review:** an owner-run review, 2026-11-24 (by hand, not through the orchestrator, so no read-back). v2 applies its B1–B4, G1–G4, G6, N1–N8; G5 was half right (README.md and TEMPLATE.md are already never items, by file name) and is settled by D18. A second review of v2 found R1–R5; v3 applies all five. A third review of v3 found R6 (the `PlanName` call sites and `RunAssembler`); v4 applies it.
 **Decided by:** Alireza, 2026-11-24, in the chat. Every choice below is already decided — **decide nothing new.** If reality
 contradicts this plan, STOP and ask.
-**Branch:** `alireza/workspace-plans`
+**Branch:** `alireza/workspace-plans`. **Commit:** `abee4a4` on that branch. **Merge:** `d806659` into `main`, 2026-11-25 (not pushed)
 **Base:** `main` after plan 0012 is committed and merged. **Prerequisite, checked before the first edit:** `git ls-tree main api/src/Orchestra.Api/Modules/Projects/Features/Setup/` and `git ls-tree main engine/templates/project/` both list files. If either is empty, 0012 is not on `main` yet — STOP; do not branch from `alireza/local-app`
 **Companion:** Project A — phase 6 writes its companion plan into Project A's own `.orchestra/`; nothing here edits that repo
 **Steps changed:** none
@@ -485,7 +485,7 @@ phase 5:** item 6. Stop after every phase — show the owner the diff.
 
 ## 10. Definition of done
 
-- [ ] All gates green; test counts ≥ baseline plus the new tests.
-- [ ] The owner's checklist passed.
-- [ ] Verified by someone other than the author: <who, counts>.
-- [ ] `Status: Done`, the `Done:` date, the commit and the merge in the header; the plans README row; 0007 Done.
+- [x] All gates green; test counts ≥ baseline plus the new tests: engine 146/146 (146 at the baseline), api 307 tests with 0 warnings (300 at the baseline), ui 85 tests (84 at the baseline), 2026-11-25.
+- [ ] The owner's checklist passed — the six items are the owner's, in the app.
+- [ ] Verified by someone other than the author: <who, counts> — not yet; the author ran the gates above.
+- [x] `Status: Done`, the `Done:` date, the commit and the merge in the header; the plans README row; 0007 Done.
