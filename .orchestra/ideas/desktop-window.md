@@ -1,6 +1,6 @@
 # A window of its own
 
-**Status:** planned · **Added:** 2026-11-24 · **Plan:** [0012](../plans/0012-local-app-and-project-setup.md)
+**Status:** planned · **Added:** 2026-11-24 · **Plan:** 0012
 
 Orchestra as a desktop app. Plan 0012 builds the core: a Photino.NET window (WebView2) around the same
 API and static UI, the system's own folder dialog, and a self-contained `win-x64` build. Linux and macOS

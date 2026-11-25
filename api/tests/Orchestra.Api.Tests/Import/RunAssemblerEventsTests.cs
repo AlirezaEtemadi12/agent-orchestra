@@ -217,6 +217,68 @@ public sealed class RunAssemblerEventsTests : IDisposable
         database.RunEvents.Should().ContainSingle();
     }
 
+    [Fact]
+    public void The_plan_number_comes_from_the_task_not_the_model_family()
+    {
+        var runs = RunAssembler.Build(
+            "demo",
+            [],
+            [],
+            [],
+            [
+                Event(EventKinds.RunCreated, new()
+                {
+                    ["planFamily"] = "claude-opus",
+                    ["task"] = "Plan 0010: Gridify tables",
+                }),
+            ],
+            Clock);
+
+        var run = runs.Should().ContainSingle().Subject;
+        run.PlanNumber.Should().Be("0010");
+        run.PlanTitle.Should().Be("Gridify tables");
+    }
+
+    [Fact]
+    public void A_task_id_names_the_plan_when_no_plan_text_arrived()
+    {
+        var runs = RunAssembler.Build(
+            "demo",
+            [],
+            [],
+            [],
+            [
+                Event(
+                    EventKinds.RunCreated,
+                    new() { ["planFamily"] = "claude-opus" },
+                    taskId: "0010-gridify-tables",
+                    branch: null),
+            ],
+            Clock);
+
+        runs.Should().ContainSingle().Which.PlanNumber.Should().Be("0010");
+    }
+
+    [Fact]
+    public void An_old_task_id_names_no_plan()
+    {
+        var runs = RunAssembler.Build(
+            "demo",
+            [],
+            [],
+            [],
+            [
+                Event(
+                    EventKinds.RunCreated,
+                    new() { ["planFamily"] = "claude-opus" },
+                    taskId: "T-WEB-007",
+                    branch: null),
+            ],
+            Clock);
+
+        runs.Should().ContainSingle().Which.PlanNumber.Should().BeNull();
+    }
+
     private static RunEventEntity Event(
         string kind,
         Dictionary<string, object?> data,

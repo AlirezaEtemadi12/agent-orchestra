@@ -177,10 +177,11 @@ public sealed class BoardHandler(
         // D12: a run.closed counts only when it comes after the instance's own run.created. An event from
         // before that is the run's earlier history (the window cut its run.created), not this end.
         var created = events.FindIndex(item => item.Kind == EventKinds.RunCreated);
+        // Plan 0014 D1: keep the event that closed the run, not only the fact that one did.
         var closedByEvent = events
-            .Select((item, index) => (item, index))
-            .Any(row => row.item.Kind == EventKinds.RunClosed && (created < 0 || row.index > created));
-        var closed = closedByEvent || (run?.ClosedAt is not null && run.CreatedAt >= first.At);
+            .Where((item, index) => item.Kind == EventKinds.RunClosed && (created < 0 || index > created))
+            .LastOrDefault();
+        var closed = closedByEvent is not null || (run?.ClosedAt is not null && run.CreatedAt >= first.At);
 
         var status = run?.Status ?? string.Empty;
         string? historyVerdict = null;
@@ -246,6 +247,17 @@ public sealed class BoardHandler(
             }
         }
 
+        // Plan 0014 D1: a closed card shows how the run closed — the status of the run.closed event, else
+        // the run row's — so a lost status event cannot leave it saying "Waiting for your approval".
+        if (closedByEvent is not null)
+        {
+            status = EventData.Read(closedByEvent.DataJson).Text("status") ?? status;
+        }
+        else if (closed)
+        {
+            status = run?.Status ?? status;
+        }
+
         var startedAt = run is not null && run.CreatedAt != default ? run.CreatedAt : first.At;
         var elapsed = (long)Math.Max(0, (last.At - startedAt).TotalSeconds);
 
@@ -270,7 +282,7 @@ public sealed class BoardHandler(
             startedAt,
             elapsed,
             progress?.Text("lastLine"),
-            WaitingFor(status, historyVerdict, verifyVerdict, progress, poolKind),
+            WaitingFor(closed, status, historyVerdict, verifyVerdict, progress, poolKind),
             progress?.Text("pool") ?? pool?.Text("pool"),
             progress?.Text("heldBy") ?? pool?.Text("heldBy"),
             repos);
@@ -281,12 +293,19 @@ public sealed class BoardHandler(
     /// <summary>Why the owner is needed (plan §6.2). <c>pool</c> is a wait, not a question, so it never
     /// puts a card in <c>needsYou</c>.</summary>
     private static string? WaitingFor(
+        bool closed,
         string status,
         string? historyVerdict,
         string? verifyVerdict,
         EventData? progress,
         string? poolKind)
     {
+        // Plan 0014 D1: a closed run waits for nothing, whatever its last status said.
+        if (closed)
+        {
+            return null;
+        }
+
         if (status == "AwaitingApproval")
         {
             return "approval";

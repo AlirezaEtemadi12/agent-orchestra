@@ -31,9 +31,10 @@ Each project keeps:
 ├── workflow.md                ← the gates, one file for the whole workspace (plan 0007 D7)
 ├── roles/<Repo>/              ← that repo's role files and its README index (D2)
 ├── prompts/<Repo>/            ← that repo's stage prompts (D2)
-├── plans/<Repo>/              ← the repo's plans and plans/README.md; plans/TEMPLATE.md at the root
-├── previews/  ideas/  research/  evidence/
-├── CLOSE-PLAN.md              ← the project's close-plan checklist (its skill points at it)
+├── plans/NNNN-<topic>/        ← one folder per plan (plan.md, preview.html, evidence/); README.md and
+│                                TEMPLATE.md at the root
+├── ideas/  research/
+├── skills/<name>/SKILL.md     ← orchestrate, close-plan, pick-plan (pointers in .claude/skills/)
 └── runs/                      ← run state (git-ignored)
 ```
 

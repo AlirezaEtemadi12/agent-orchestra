@@ -41,9 +41,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AppSidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between gap-2 border-b px-3">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <div className="flex items-center gap-1">
             <AppSidebarTrigger />
+            <HistoryButtons />
             <span className="text-sm font-semibold md:hidden">{brand.name}</span>
             <span className="sr-only md:not-sr-only md:text-sm md:text-muted-foreground">
               {t('appName')}
@@ -51,7 +52,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-1">
-            <HistoryButtons />
             <ReimportButton />
             <LocaleSwitcher />
             <ThemeSwitcher />

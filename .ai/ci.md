@@ -48,6 +48,14 @@ that passed only on that rerun (timing under load). It prints a total and the wa
 | after plan 0004 phase D — the reporter in the engine (2026-11-21) | 124 per config, 248 across `number` and `slug`; ~18 min per config |
 | after plan 0005 phase A+B — engine move, both filing styles (2026-11-20) | 121 per config, 242 across `number` and `slug`; ~18 min per config |
 
+## Baseline after plan 0014 — one plan shape, two board fixes, a header that stays (2026-11-25)
+
+| Side | Tests |
+|---|---|
+| `api` | 313 |
+| `ui` | 85 |
+| `engine` (offline suite, Windows only — its own section above) | 146 (not touched) |
+
 ## Baseline after plan 0012 — the local app sets projects up (2026-11-24)
 
 | Side | Tests |

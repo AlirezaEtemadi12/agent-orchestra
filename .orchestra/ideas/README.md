@@ -27,3 +27,4 @@ File name: kebab-case of the title.
 | [Hosting on a server](hosting.md) | raw |
 | [A window of its own](desktop-window.md) | planned |
 | [Orchestra on Linux and macOS](engine-cross-platform.md) | ready |
+| [A page per plan, with its checklist](plan-page-and-checklist.md) | raw |

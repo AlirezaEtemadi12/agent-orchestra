@@ -43,7 +43,7 @@ should run where the engine and the projects already are.
 
 - The token is written by the server into the project's git-ignored `orchestrator.local.json`; no endpoint
   returns it, and the connect endpoint is deleted.
-- [Plan 0008](../../.orchestra/plans/0008-hosting.md) (hosting, sign-in, HTTPS) is `Dropped`. Hosting is an
+- Plan 0008 (hosting, sign-in, HTTPS) is `Dropped`. Hosting is an
   idea again ([`hosting.md`](../../.orchestra/ideas/hosting.md)) and needs a new ADR: this one assumes
   loopback, so a non-loopback `Urls` makes setup refuse every request.
 - The scaffold prompt shrinks to the knowledge part (`.ai/`, `AGENTS.md`); the config is written by the app.

@@ -61,7 +61,7 @@ function SidebarNav() {
 
 export function AppSidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:block">
+    <aside className="sticky top-0 hidden h-svh w-60 shrink-0 overflow-y-auto border-e border-sidebar-border bg-sidebar text-sidebar-foreground md:block">
       <SidebarNav />
     </aside>
   );
