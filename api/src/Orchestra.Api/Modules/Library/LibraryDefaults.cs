@@ -6,18 +6,31 @@ namespace Orchestra.Api.Modules.Library;
 /// in its configuration. Plan 0007 changes these and nothing else.</summary>
 public static class LibraryDefaults
 {
-    public static IReadOnlyList<string> Plans { get; } = [".orchestra/plans/*.md", ".orchestra/plans/*/*.md"];
+    // Plan 0013 D13: a plan is a folder with a plan.md; the flat glob stays for plans 0001-0012. The old
+    // `.orchestra/plans/*/*.md` glob is gone: it would list research.md and notes.md as plans.
+    // The done/ globs keep the older per-repo layout's closed plans indexed (rule 0.3); they do not bring
+    // back research.md or notes.md, which are the reason `plans/*/*.md` went away.
+    public static IReadOnlyList<string> Plans { get; } =
+        [".orchestra/plans/*.md", ".orchestra/plans/*/plan.md", ".orchestra/plans/done/*.md", ".orchestra/plans/*/done/*.md"];
 
     /// <summary>Plan 0007 D4b: a run's preview is written to `runs/_drafts` first and only moved to
     /// `previews/` when the plan is filed, so the in-flight one stays indexed.</summary>
     public static IReadOnlyList<string> Previews { get; } =
-        [".orchestra/previews/*/index.html", ".orchestra/previews/*.html", ".orchestra/runs/_drafts/*.html"];
+    [
+        ".orchestra/plans/*/preview.html",
+        ".orchestra/plans/*/preview/index.html",
+        ".orchestra/previews/*/index.html",
+        ".orchestra/previews/*.html",
+        ".orchestra/runs/_drafts/*.html",
+    ];
 
     public static IReadOnlyList<string> Ideas { get; } = [".orchestra/ideas/*.md"];
 
-    public static IReadOnlyList<string> Research { get; } = [".orchestra/research/**/*.md"];
+    public static IReadOnlyList<string> Research { get; } =
+        [".orchestra/plans/*/research.md", ".orchestra/research/**/*.md"];
 
-    public static IReadOnlyList<string> Evidence { get; } = [".orchestra/evidence/**/*"];
+    public static IReadOnlyList<string> Evidence { get; } =
+        [".orchestra/plans/*/evidence/**/*", ".orchestra/evidence/**/*"];
 
     public static IReadOnlyList<string> For(LibraryCategory category, LibraryOptions options)
     {

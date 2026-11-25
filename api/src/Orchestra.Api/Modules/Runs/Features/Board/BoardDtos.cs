@@ -10,8 +10,11 @@ public sealed record BoardLanesDto(
     IReadOnlyList<BoardCardDto> Done,
     IReadOnlyList<BoardCardDto> Failed);
 
+/// <summary>One repo of a plan's run: its name and what its last phase reported (plan 0013 D12).</summary>
+public sealed record BoardRepoDto(string Name, string? Status);
+
 /// <summary>One card. <see cref="RunKey"/> is null until the import has seen the run, so the UI links
-/// only what it can open. Status is the engine's own word (D15).</summary>
+/// only what it can open. Status is the engine's own word (D15). Plan 0013 D12 adds one chip per repo.</summary>
 public sealed record BoardCardDto(
     string ProjectId,
     string? RunKey,
@@ -26,4 +29,5 @@ public sealed record BoardCardDto(
     string? LastLine,
     string? WaitingFor,
     string? Pool,
-    string? HeldBy);
+    string? HeldBy,
+    IReadOnlyList<BoardRepoDto> Repos);

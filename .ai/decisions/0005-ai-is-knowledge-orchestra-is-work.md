@@ -2,6 +2,8 @@
 
 **Status:** Accepted
 **Amended:** 2026-11-24 — writing into a project is allowed through setup ([0009](0009-local-app-sets-projects-up.md))
+**Amended:** 2026-11-25 — a plan is a folder, so its preview and evidence sit inside it, and `.orchestra/skills/`
+is added ([0010](0010-plan-is-a-folder.md))
 **Date:** 2026-11-19
 **Decided by:** Alireza (the split, the folder name, the agent-written scaffold), in the plan 0001 preview
 
@@ -21,8 +23,10 @@ The dashboard may run in Docker or on a server, where project folders are mounte
 - Every project has **`.ai/`** — the agent-neutral knowledge tree: an index, architecture,
   decisions, per-area conventions, session logs.
 - Every project has **`.orchestra/`** — the orchestrator's folder: `workflow.md`, `ideas/`,
-  `research/`, `previews/`, `plans/`, `prompts/`, and from phase 2 `project.json` (overrides of the
-  shared profile), `roles/` and `runs/`. `evidence/` and `runs/` are git-ignored.
+  `research/`, `plans/`, `prompts/`, `skills/`, and from phase 2 `project.json` (overrides of the
+  shared profile), `roles/` and `runs/`. A plan is a folder, `plans/NNNN-<topic>/`, so its `preview.html`
+  and its git-ignored `evidence/` live inside it; the root `previews/` and `evidence/` folders hold only
+  what plans written before [0010](0010-plan-is-a-folder.md) left there. `runs/` is git-ignored.
 - **Files are the source of truth.** The dashboard's database only indexes them (and keeps its own
   logs); it can be dropped and rebuilt. A file the owner deletes disappears from the dashboard.
 - **The dashboard never writes into a project folder**, except through setup

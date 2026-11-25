@@ -1,5 +1,10 @@
 export type BoardWaitingFor = 'approval' | 'manual' | 'needInput' | 'verifyFail' | 'pool';
 
+export type BoardRepo = {
+  name: string;
+  status: string | null;
+};
+
 export type BoardCard = {
   projectId: string;
   runKey: string | null;
@@ -15,6 +20,7 @@ export type BoardCard = {
   waitingFor: BoardWaitingFor | null;
   pool: string | null;
   heldBy: string | null;
+  repos: BoardRepo[];
 };
 
 export type BoardLanes = {

@@ -41,10 +41,26 @@ public sealed class SetupPlanner(
                 null));
         }
 
-        // 2. Every template file, plus one plans folder per repo in the multi-repo shape.
+        // 2. Every template file, plus one plans folder per repo in the multi-repo shape. Plan 0013 D15: a
+        // project that points the engine at its own prompts or roles folder keeps them, so the template rows
+        // for that folder are not planned.
+        var custom = CustomPaths(Path.Combine(root, ".orchestra", "orchestrator.json"));
+
         foreach (var file in templates.Files)
         {
-            items.Add(FileItem(root, Path.Combine(".orchestra", file).Replace('\\', '/'), file, false));
+            if ((custom.Prompts && file.StartsWith("prompts/", StringComparison.Ordinal))
+                || (custom.Roles && file.StartsWith("roles/", StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            // Plan 0013 §6.2.5: the Claude Code pointers live in `.claude/skills/<name>/SKILL.md`, not under
+            // `.orchestra/`; only the target path changes, the row's Id stays the template path.
+            var target = file.StartsWith("claude-skills/", StringComparison.Ordinal)
+                ? ".claude/skills/" + file["claude-skills/".Length..]
+                : Path.Combine(".orchestra", file).Replace('\\', '/');
+
+            items.Add(FileItem(root, target, file, false));
         }
 
         if (!single)
@@ -139,6 +155,37 @@ public sealed class SetupPlanner(
         {
             return false;
         }
+    }
+
+    /// <summary>Plan 0013 D15: whether the project's existing config points the engine at a prompts or roles
+    /// folder of its own, in which case the template rows for the standard folders are not planned.</summary>
+    private static (bool Prompts, bool Roles) CustomPaths(string configPath)
+    {
+        if (!File.Exists(configPath))
+        {
+            return (false, false);
+        }
+
+        try
+        {
+            var node = JsonNode.Parse(File.ReadAllText(configPath)) as JsonObject;
+            var workflow = node?["workflow"] as JsonObject;
+
+            return (
+                IsCustom(workflow?["promptsPath"], ".orchestra/prompts"),
+                IsCustom(workflow?["rolesPath"], ".orchestra/roles"));
+        }
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return (false, false);
+        }
+    }
+
+    private static bool IsCustom(JsonNode? node, string standard)
+    {
+        var text = AsString(node)?.Replace('\\', '/').Trim().TrimEnd('/');
+
+        return !string.IsNullOrEmpty(text) && !string.Equals(text, standard, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool HasReportBlock(string path)

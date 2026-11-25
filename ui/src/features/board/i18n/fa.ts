@@ -14,6 +14,17 @@ export const boardFa = {
     "verifyFail": "verify ناموفق شد",
     "pool": "منتظر {pool}، در اختیار {heldBy}"
   },
+  "status": {
+    "Planning": "پیش‌نویس",
+    "Reviewing": "در بازبینی",
+    "AwaitingApproval": "بازبینی‌شده · منتظر شما",
+    "Approved": "تأییدشده",
+    "Implemented": "پیاده‌شده",
+    "Verified": "وریفای‌شده",
+    "VerifyFailed": "ناموفق",
+    "Violation": "ناموفق",
+    "interrupted": "متوقف‌شده"
+  },
   "elapsed": "زمان سپری‌شده",
   "lastLine": "آخرین خط",
   "empty": "در ۲۴ ساعت گذشته هیچ runی رویدادی نداشته است."

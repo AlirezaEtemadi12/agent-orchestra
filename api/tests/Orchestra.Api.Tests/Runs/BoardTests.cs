@@ -92,6 +92,54 @@ public sealed class BoardTests : IDisposable
     }
 
     [Fact]
+    public async Task A_run_that_planned_without_a_branch_shows_as_one_card_on_its_branch()
+    {
+        _fixture.AddProject();
+        _fixture.AddRun("T-LIVE-001", "alireza/violation-photos-ui", "AwaitingApproval", "T-LIVE-001.1", _fixture.Now.AddHours(-3));
+
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Planning")), _fixture.Now.AddHours(-3), branch: null);
+        _fixture.AddEvent(EventKinds.Status, Data(("from", "Planning"), ("to", "AwaitingApproval")), _fixture.Now.AddHours(-2), branch: null, seq: 2);
+        _fixture.AddEvent(EventKinds.Progress, Data(("phase", "review")), _fixture.Now.AddMinutes(-1), branch: "alireza/violation-photos-ui", seq: 3);
+
+        var board = await BoardAsync();
+
+        board.Lanes.NeedsYou.Should().ContainSingle().Which.Status.Should().Be("AwaitingApproval");
+        board.Lanes.Running.Should().BeEmpty();
+        board.Lanes.Done.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task A_closed_run_and_a_new_run_with_the_same_id_are_two_cards()
+    {
+        _fixture.AddProject();
+        var closed = _fixture.AddRun("T-LIVE-001", "alireza/old", "Verified", "T-LIVE-001.1", _fixture.Now.AddHours(-6));
+        closed.ClosedAt = _fixture.Now.AddHours(-5);
+        _fixture.Database.SaveChanges();
+        _fixture.AddRun("T-LIVE-001", "alireza/old", "Reviewing", "T-LIVE-001.2", _fixture.Now.AddHours(-1));
+
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Approved")), _fixture.Now.AddHours(-6), branch: null, seq: 1);
+        _fixture.AddEvent(EventKinds.RunClosed, Data(("status", "Verified")), _fixture.Now.AddHours(-5), branch: null, seq: 2);
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Reviewing")), _fixture.Now.AddHours(-1), branch: null, seq: 3);
+
+        var board = await BoardAsync();
+
+        board.Lanes.Done.Should().ContainSingle().Which.RunKey.Should().Be("T-LIVE-001.1");
+        board.Lanes.Running.Should().ContainSingle().Which.RunKey.Should().Be("T-LIVE-001.2");
+    }
+
+    [Fact]
+    public async Task A_close_from_before_the_instances_run_created_does_not_close_it()
+    {
+        _fixture.AddEvent(EventKinds.RunClosed, Data(("status", "Verified")), _fixture.Now.AddHours(-3), branch: null);
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Implemented")), _fixture.Now.AddHours(-1), branch: null, seq: 2);
+
+        var board = await BoardAsync();
+
+        board.Lanes.Done.Should().BeEmpty();
+        board.Lanes.Running.Should().ContainSingle().Which.Status.Should().Be("Implemented");
+    }
+
+    [Fact]
     public async Task The_card_takes_its_plan_and_key_from_the_imported_run()
     {
         _fixture.AddProject();
@@ -113,6 +161,20 @@ public sealed class BoardTests : IDisposable
         card.Stage.Should().Be("review");
         card.Model.Should().Be("opencode:glm-5.3");
         card.LastLine.Should().Be("reading src");
+    }
+
+    [Fact]
+    public async Task A_review_in_flight_reads_in_review_while_the_run_still_plans()
+    {
+        _fixture.AddEvent(EventKinds.RunCreated, Data(("status", "Planning")), _fixture.Now.AddHours(-1));
+        _fixture.AddEvent(
+            EventKinds.Progress,
+            Data(("role", "plan-reviewer"), ("state", "running")),
+            _fixture.Now.AddMinutes(-2),
+            seq: 2);
+
+        var card = (await BoardAsync()).Lanes.Running.Should().ContainSingle().Subject;
+        card.Status.Should().Be("Reviewing");
     }
 
     [Fact]

@@ -10,7 +10,8 @@ export const commonEn = {
   "actions": {
     "reimport": "Re-import",
     "retry": "Try again",
-    "back": "Back"
+    "back": "Back",
+    "reload": "Reload"
   },
   "theme": {
     "label": "Theme",

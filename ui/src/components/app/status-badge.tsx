@@ -10,10 +10,12 @@ const TONES: Record<string, string> = {
   AwaitingApproval: 'bg-warning/15 text-warning',
 };
 
-export function StatusBadge({ status }: { status: string }) {
+/// Plan 0013 D6: `label` is the owner's word for the state ("In review", «در بازبینی»); the raw engine
+/// word stays the fallback, so a status the catalogue does not know still shows something.
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   return (
     <Badge variant="secondary" className={TONES[status] ?? 'bg-muted text-muted-foreground'}>
-      <span data-ltr>{status}</span>
+      <span data-ltr>{label ?? status}</span>
     </Badge>
   );
 }

@@ -24,11 +24,11 @@
    the owner's message. Name every sentence that could mean two things and the reading chosen, and
    what the owner may have meant that this work will **not** do. The owner corrects it; repeat until
    it is right.
-2. **Preview.** An HTML page in [`previews/NNNN-<topic>/`](previews/): the decisions as a schematic,
-   the flow of work, and mock-ups of any screen — whichever the work has. The plan number is reserved
-   here (the next free one in [`plans/`](plans/)). Open questions are asked here, one at a time.
+2. **Preview.** An HTML page at `plans/NNNN-<topic>/preview.html`: the decisions as a schematic,
+   the flow of work, and mock-ups of any screen - whichever the work has. The number is reserved by
+   creating that folder (the next free one in [`plans/`](plans/)). Open questions are asked here, one at a time.
 3. **Plan.** Only after the owner approves the preview: copy [`plans/TEMPLATE.md`](plans/TEMPLATE.md)
-   to `plans/NNNN-<topic>.md`. Its «فهم من از درخواست» is the confirmed text from step 1.
+   to `plans/NNNN-<topic>/plan.md`. Plans 0001-0012 keep their flat file name (plan 0013 D16).
 
 A plan decides everything; an implementer decides nothing. The header names its author on a
 **`Planned by:`** line (the orchestrator reads the author's model family from it).
@@ -61,10 +61,11 @@ another is being implemented. Leave it untouched and never copy it from the work
 The deliverable is a **dirty working tree on the branch**, gates green (plan 0001 writes
 [`../.ai/ci.md`](../.ai/ci.md); until then: `dotnet build` + `dotnet test` with zero warnings in
 `api/`, `npm run typecheck` + `lint` + `test` + `build` in `ui/`). Screenshots and reports from an
-agent's own checks go to `.orchestra/evidence/NNNN-<topic>/phase-<X>/` (git-ignored). No `commit`, `push`,
-`merge`, `rebase` or `branch -d` unless the owner asks for that action in that message. When a commit
-is authorized, stage the exact paths — never `git add -A` / `git add .`. The close is three separate
-questions: commit? merge? delete the branch?
+agent's own checks go to `.orchestra/plans/NNNN-<topic>/evidence/phase-<X>/` (git-ignored). No `commit`,
+`push`, `merge`, `rebase` or `branch -d` unless the owner asks for that action in that message. When a
+commit is authorized, stage the exact paths — never `git add -A` / `git add .`. Saying «close the plan»
+is the yes to all three - commit, merge and delete the branch - and the close-plan skill
+(`.orchestra/skills/close-plan/SKILL.md`) does it, asking nothing.
 
 ## Rules about rules
 

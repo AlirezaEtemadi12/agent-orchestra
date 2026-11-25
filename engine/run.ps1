@@ -28,6 +28,7 @@ $OrchDir = $PSScriptRoot
 . (Join-Path $OrchDir 'lib\pool.ps1')
 . (Join-Path $OrchDir 'lib\bus.ps1')
 . (Join-Path $OrchDir 'lib\gates.ps1')
+. (Join-Path $OrchDir 'lib\plans.ps1')
 . (Join-Path $OrchDir 'lib\report.ps1')
 
 function Show-Usage {
@@ -85,7 +86,10 @@ USAGE
                                               new version, and so a new key)
   run.ps1 approve <taskId> ["notes"] [-Branch x] [-Force]
                                               gate 2: freeze plan.approved.md (+ your notes), pick the branch
+  run.ps1 new -PlanFile <folder>/plan.md       plan 0013: the plan's own header gives the id, the repos and
+                                              the task text; the plan folder name is the run id
   run.ps1 implement <taskId> [phase] [-Force] gate 3: orchestrator creates the branch, agent edits, checks run
+                                              (saying "implement" on an awaiting plan is its approval)
   run.ps1 verify <taskId>                     gate 4: run verifyCommands, verifier reads diff -> PASS/FAIL
   Every command except help/agents/health/close ends with a short "=== SUMMARY ===" block.
   -NoReadBack skips the automatic read-back after a PASS review.
@@ -435,7 +439,7 @@ function Invoke-ReviewStep {
         $body = Get-RevisionBody -Ctx $Ctx -State $State -Round $round -Notes $Notes -Kind 'review' -FromRound ([int]$State.review.round)
         if ($body) { $continue = @{ Adapter = $State.review.adapter; Model = $State.review.model; SessionId = $prevSession; Prompt = (New-FollowUpPrompt -Role 'plan-reviewer' -Body $body) } }
     }
-    $review = Invoke-Role -Ctx $Ctx -Role 'plan-reviewer' -Prompt $prompt -Cwd (Get-AgentCwd $Ctx $State.repo) -TimeoutSec (Get-Timeout $Ctx) -ExcludeFamilies @($State.plan.family) -Repo $State.repo -ProgressFile (Get-TaskProgressFile $Ctx $State.id) -TaskId $State.id -ManualKey "plan-reviewer.v$round" -Continue $continue -Retry:$Retry
+    $review = Invoke-Role -Ctx $Ctx -Role 'plan-reviewer' -ReadOnly -Prompt $prompt -Cwd (Get-AgentCwd $Ctx $State.repo) -TimeoutSec (Get-Timeout $Ctx) -ExcludeFamilies @($State.plan.family) -Repo $State.repo -ProgressFile (Get-TaskProgressFile $Ctx $State.id) -TaskId $State.id -ManualKey "plan-reviewer.v$round" -Continue $continue -Retry:$Retry
     $text = $review.Result.Stdout
     $file = Save-Artifact -Ctx $Ctx -TaskId $State.id -Name "plan.findings.v$round" -Content $text
     Save-Outbox -Ctx $Ctx -TaskId $State.id -Role 'plan-reviewer' -Name 'review' -Content $text | Out-Null
@@ -865,7 +869,9 @@ function Write-LedgerEntry {
         $branch = if ($State.PSObject.Properties['branch'] -and $State.branch) { $State.branch } else { '-' }
         [void]$sb.AppendLine("## $((Get-Date).ToString('yyyy-MM-dd HH:mm')) - $($State.id) - $Event")
         [void]$sb.AppendLine()
-        [void]$sb.AppendLine("repo $($State.repo) | status $($State.status) | plan v$([int]$State.round) | branch $branch")
+        $repoLabel = $State.repo
+        if ($State.PSObject.Properties['repoState'] -and $State.repoState -and @($State.repoState.PSObject.Properties.Name).Count) { $repoLabel = (@($State.repoState.PSObject.Properties.Name) -join '+') }
+        [void]$sb.AppendLine("repo $repoLabel | status $($State.status) | plan v$([int]$State.round) | branch $branch")
         [void]$sb.AppendLine()
         if ($State.PSObject.Properties['review'] -and $State.review) { [void]$sb.AppendLine("- review: $(Format-VerdictHead $State.review) by $($State.review.adapter):$($State.review.model) (round $($State.review.round))") }
         if ($State.PSObject.Properties['readback'] -and $State.readback) { [void]$sb.AppendLine("- read-back: $(Format-VerdictHead $State.readback) by $($State.readback.adapter):$($State.readback.model) (round $($State.readback.round))") }
@@ -1126,7 +1132,38 @@ function Resolve-PlanFamily {
 
 function Cmd-New {
     param($Ctx, [string]$TaskId, [string]$Repo, [string]$TaskText, [string]$PlanFile, [string]$PlanFamily, [switch]$AutoRevise, [switch]$NoReadBack, [switch]$DryRun)
-    if (-not $TaskId -or -not $Repo -or -not $TaskText) { throw 'usage: run.ps1 new <taskId> <repo> "<task>" [-PlanFile plan.md]' }
+    # D4 (plan 0013): with -PlanFile and no <taskId>, the plan's own header supplies the id, the repos and
+    # the task text. The positional form is unchanged for an old plan.
+    $header = $null
+    if ($PlanFile) {
+        if (-not (Test-Path -LiteralPath $PlanFile)) { throw "plan file not found: $PlanFile" }
+        $header = Read-PlanHeader $PlanFile
+        if (-not $TaskId) {
+            $full = (Resolve-Path -LiteralPath $PlanFile).Path
+            $folder = Split-Path -Leaf (Split-Path -Parent $full)
+            $file = Split-Path -Leaf $full
+            $TaskId = if ($folder -match '^\d{4}-') { $folder } else { $file -replace '(?i)\.md$', '' }
+        }
+        # A plan that names its repos decides; a plan that does not keeps the old positional <repo>, or the
+        # one repo of a single-repo project.
+        if (-not $Repo) {
+            if (-not @($header.Repos).Count) {
+                $known = @($Ctx.Config.repos.PSObject.Properties.Name)
+                if ($known.Count -ne 1) { throw "the plan names no **Repos:** line and this project has $($known.Count) repos (have: $($known -join ', ')); add that line to the plan header." }
+                $header.Repos = @($known[0])
+            }
+            $Repo = @($header.Repos)[0]
+        }
+        foreach ($r in @($header.Repos)) {
+            if (-not (Test-RepoKnown $Ctx $r)) { throw "unknown repo '$r' in the plan's **Repos:** line (have: $($Ctx.Config.repos.PSObject.Properties.Name -join ', '))" }
+        }
+        if (-not $TaskText) {
+            if ($header.Number -and $header.Title) { $TaskText = "Plan $($header.Number): $($header.Title)" }
+            elseif ($header.Title) { $TaskText = [string]$header.Title }
+            else { throw "the plan has no '# Plan NNNN - <title>' line, so its task text cannot be read; pass the task text as the third argument." }
+        }
+    }
+    if (-not $TaskId -or -not $Repo -or -not $TaskText) { throw 'usage: run.ps1 new <taskId> <repo> "<task>" [-PlanFile plan.md]   |   run.ps1 new -PlanFile <folder>/plan.md' }
     if (-not (Test-RepoKnown $Ctx $Repo)) { throw "unknown repo '$Repo' (have: $($Ctx.Config.repos.PSObject.Properties.Name -join ', '))" }
     if (Test-Path -LiteralPath (Join-Path (Get-TaskDir $Ctx $TaskId) 'task.json')) { throw "run '$TaskId' already exists; use revise/status, or pick a new id" }
     if ($PlanFile -and -not (Test-Path -LiteralPath $PlanFile)) { throw "plan file not found: $PlanFile" }
@@ -1155,6 +1192,17 @@ function Cmd-New {
         $family = Resolve-PlanFamily -PlanText $text -Given $PlanFamily -GivenExplicit $script:PlanFamilyGiven -Previous ''
     }
     $state = New-TaskRun -Ctx $Ctx -TaskId $TaskId -Repo $Repo -Task $TaskText
+    # D4/D8: the run remembers the plan file it was made from and every repo the plan touches.
+    if ($header) {
+        $planPath = (Resolve-Path -LiteralPath $PlanFile).Path
+        # @() around the if: an if-expression unwraps a one-element array to a string, and indexing a
+        # string yields its first character ('Ui' -> 'U').
+        $repos = @(if (@($header.Repos).Count) { $header.Repos } else { $Repo })
+        $firstRepo = [string](@($repos) | Select-Object -First 1)
+        Set-Prop $state 'planFile' $planPath
+        Set-Prop $state 'repos' @($repos)
+        Set-Prop $state 'repo' $firstRepo
+    }
     # Plan 0004 §6.1: the run exists on disk, so the dashboard hears about it before the first hop.
     Send-OrchestraEvent -Ctx $Ctx -State $state -Kind 'run.created' -Data ([ordered]@{
             repo = [string]$state.repo; task = [string]$state.task; status = [string]$state.status; planFamily = [string]$PlanFamily
@@ -1234,11 +1282,13 @@ function Cmd-ReadBack {
     if (-not $TaskId) { throw 'usage: run.ps1 readback <taskId>' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
     Write-ProfileVersionLine $Ctx $TaskId
-    if ($state.status -ne 'AwaitingApproval') { throw "run '$TaskId' is '$($state.status)'; read-back runs before approval" }
+    if (@('AwaitingApproval') -notcontains $state.status) { throw "run '$TaskId' is '$($state.status)'; read-back runs before approval" }
     $lock = Enter-TaskLock $Ctx $TaskId
     try {
         Write-DirtyTreeWarning -Ctx $Ctx -Repo $state.repo
         [void](Invoke-ReadBack -Ctx $Ctx -State $state -Retry:$Retry)
+        Set-Prop $state 'status' 'AwaitingApproval'
+        Save-TaskState -Ctx $Ctx -TaskId $TaskId -State $state
         Write-RunSummary $Ctx $state
     }
     finally { Exit-TaskLock $lock }
@@ -1502,9 +1552,10 @@ function Cmd-Status {
     Write-RunSummary $Ctx $state
 }
 
-function Cmd-Approve {
-    param($Ctx, [string]$TaskId, [string]$Notes, [string]$Branch, [switch]$Force)
-    if (-not $TaskId) { throw 'usage: run.ps1 approve <taskId> ["notes"] [-Branch name] [-Force]' }
+function Invoke-Approve {
+    # D7 (plan 0013): the body of `approve`, kept in one place so `implement` borrows exactly its checks.
+    # -By records who said yes: the owner's own command ('owner') or the owner's `implement` ('implement').
+    param($Ctx, [string]$TaskId, [string]$Notes, [string]$Branch, [switch]$Force, [string]$By = 'owner')
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
     Write-ProfileVersionLine $Ctx $TaskId
     if ($state.status -ne 'AwaitingApproval') { throw "run '$TaskId' is '$($state.status)', not AwaitingApproval" }
@@ -1536,13 +1587,21 @@ function Cmd-Approve {
     $approvedFile = Save-Artifact -Ctx $Ctx -TaskId $TaskId -Name 'plan.approved' -Content $approved
     $sha = (Get-FileHash -LiteralPath $approvedFile -Algorithm SHA256).Hash
 
-    Set-Prop $state 'approved' ([pscustomobject]@{ artifact = $approvedFile; sha256 = $sha; at = (Get-Date).ToString('s'); version = $cur; notes = $allNotes; openFindings = ($problems -join ', '); forced = [bool]$Force })
+    Set-Prop $state 'approved' ([pscustomobject]@{ artifact = $approvedFile; sha256 = $sha; at = (Get-Date).ToString('s'); version = $cur; notes = $allNotes; openFindings = ($problems -join ', '); forced = [bool]$Force; by = $By })
+    # D8: the plan file itself says Approved from now on.
+    if ($state.PSObject.Properties['planFile'] -and $state.planFile) { [void](Set-PlanStatus $state.planFile 'Approved') }
     Set-Prop $state 'branch' $Branch
     Set-Prop $state 'status' 'Approved'
     Add-History -Ctx $Ctx -State $state -Event 'approve' -Data @{ version = $cur; branch = $Branch; notes = [bool]$allNotes; forced = [bool]$Force }
     Save-TaskState -Ctx $Ctx -TaskId $TaskId -State $state
     Write-Host "run '$TaskId' approved (gate 2). frozen plan: $approvedFile" -ForegroundColor Green
     Write-RunSummary $Ctx $state
+}
+
+function Cmd-Approve {
+    param($Ctx, [string]$TaskId, [string]$Notes, [string]$Branch, [switch]$Force)
+    if (-not $TaskId) { throw 'usage: run.ps1 approve <taskId> ["notes"] [-Branch name] [-Force]' }
+    Invoke-Approve -Ctx $Ctx -TaskId $TaskId -Notes $Notes -Branch $Branch -Force:$Force -By 'owner'
 }
 
 function Get-ApprovedPlan {
@@ -1562,6 +1621,17 @@ function Test-PlanDone {
         if ($line -match '^\s*\*{0,2}Status:?\*{0,2}\s*\*{0,2}Done') { return $true }
     }
     return $false
+}
+
+function Test-PlanFileDone {
+    # D8 (plan 0013): a run made from a plan file knows exactly where its plan is, so that file's own Status
+    # line is the "filed and Done" check. Throws what close throws when it is not Done.
+    param([string]$PlanFile)
+    $header = Read-PlanHeader $PlanFile
+    if ($header.Status -ne 'Done') {
+        throw "plan $PlanFile is '$($header.Status)', not Done. Close the plan first (the close-plan skill), or close -Force to delete the run anyway."
+    }
+    Write-Host "plan $($header.Number) is Done: $PlanFile" -ForegroundColor DarkGray
 }
 
 function Cmd-Close {
@@ -1584,12 +1654,21 @@ function Cmd-Close {
         $planFiling = 'number'
         $pf = $Ctx.Config.PSObject.Properties['planFiling']
         if ($pf -and $pf.Value) { $planFiling = [string]$pf.Value }
+        # D8 (plan 0013): a run made from a plan file checks that file itself; the plansDir search below
+        # never runs for it.
+        # A plan file that is not Done yet never decides this: the plansDir / done-folder search below
+        # still runs, so an older project closes exactly as it did.
+        $ownPlan = if ($state.PSObject.Properties['planFile']) { [string]$state.planFile } else { '' }
+        if ($ownPlan -and (Test-Path -LiteralPath $ownPlan) -and (Test-PlanDone $ownPlan)) { $planFiling = 'file' }
         # Plan 0007 D3: a project that sets a top-level `plansDir` keeps every plan of a repo in one folder
         # for its whole life, and `**Status:** Done` is what files it - there is no done/ folder. Without
         # `plansDir` the switch below is today's code, unchanged.
         $planDir = $null
         $plansDirProp = $Ctx.Config.PSObject.Properties['plansDir']
-        if ($plansDirProp -and $plansDirProp.Value) {
+        if ($planFiling -eq 'file') {
+            # Checked above, from the plan file itself.
+        }
+        elseif ($plansDirProp -and $plansDirProp.Value) {
             if (-not $state.repo) { throw "run '$TaskId' has no repo in task.json, so its plan folder is unknown. close -Force to delete it anyway." }
             $planDir = Resolve-WorkflowPath $Ctx ([string]$plansDirProp.Value) $state.repo
         }
@@ -1625,6 +1704,7 @@ function Cmd-Close {
         }
         else {
         switch ($planFiling) {
+            'file' { }
             'slug' {
         # Project A plans are filed by slug (`done/<slug>.md`), never by number. Find the filed copy by the
         # branch's topic, then by a `-<slug>` suffix, and finally by a done file that names this branch.
@@ -1673,38 +1753,74 @@ function Cmd-Close {
 }
 
 function Cmd-Implement {
-    param($Ctx, [string]$TaskId, [string]$Phase, [switch]$Force, [switch]$Retry)
+    param($Ctx, [string]$TaskId, [string]$Phase, [switch]$Force, [switch]$Retry, [switch]$AllowImplicitApproval)
     if (-not $TaskId) { throw 'usage: run.ps1 implement <taskId> [phase]' }
     if (-not $Phase) { $Phase = '1' }
     $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
     Write-ProfileVersionLine $Ctx $TaskId
     $okStates = @('Approved', 'Implemented', 'Verified', 'VerifyFailed')
     if ($Force) { $okStates += 'Violation' }
+    # D7: only `run.ps1 implement` on the command line passes this switch, so the owner's own word is the
+    # only thing that can turn an awaiting plan into an approved one.
+    if ($AllowImplicitApproval) { $okStates += 'AwaitingApproval' }
     if ($okStates -notcontains $state.status) { throw "run '$TaskId' is '$($state.status)'; implement needs one of: $($okStates -join ', ')" }
-    $repoPath = Get-RepoPath $Ctx $state.repo
-    if (-not (Test-IsGitRepo $repoPath)) { throw "repo '$($state.repo)' at $repoPath is not a git repo" }
+    if ($state.status -eq 'AwaitingApproval') {
+        try { Invoke-Approve -Ctx $Ctx -TaskId $TaskId -By 'implement' }
+        catch { throw ("implement could not approve: " + $_.Exception.Message) }
+        $state = Get-TaskState -Ctx $Ctx -TaskId $TaskId
+        Write-Host "gate 2.5: 'implement' is the owner's approval - recorded as approved.by = implement" -ForegroundColor DarkYellow
+    }
+
     $planText = Get-ApprovedPlan $state
+    $repos = @(Get-RunRepos $state)
+    $repo = Get-PhaseRepo -PlanText $planText -Repos $repos -Phase $Phase
+    if (-not $repo) { $repo = $state.repo }
+    $repoPath = Get-RepoPath $Ctx $repo
+    if (-not (Test-IsGitRepo $repoPath)) { throw "repo '$repo' at $repoPath is not a git repo" }
 
     $lock = Enter-TaskLock $Ctx $TaskId
     try {
         $current = Get-GitBranch $repoPath
-        if (-not $state.baseSha) {
+        $repoRec = Get-RepoRunState -State $state -Repo $repo
+        if (-not $repoRec -and $state.baseSha -and $repo -eq @(Get-RunRepos $state)[0]) { $repoRec = [pscustomobject]@{ baseSha = $state.baseSha; baseBranch = $state.baseBranch } }
+        if ($repoRec) {
+            # D5: this repo already has its branch; the first-touch gate below must not run twice.
+            if ($current -ne $state.branch) { throw "gate 3: $repo is on '$current' but this run works on '$($state.branch)'. Switch back first (git -C `"$repoPath`" switch $($state.branch))." }
+        }
+        elseif (-not $state.baseSha -or $repo -ne $state.repo) {
             # Gate 3 in code: clean tree, then the orchestrator itself branches before any agent edit.
             # D11: records under cleanTree.ignore (plans, session logs) never block; they are remembered
             # so the post-checks and the verifier do not mistake them for this run's work.
             $ignore = @()
             if ($Ctx.Config.PSObject.Properties['cleanTree'] -and $Ctx.Config.cleanTree.PSObject.Properties['ignore']) { $ignore = @($Ctx.Config.cleanTree.ignore) }
+            # D8: the engine writes the plan's own Status line, so that one file never blocks gate 3 and is
+            # never counted as the implementer's change.
+            if ($state.PSObject.Properties['planFile'] -and $state.planFile) {
+                try {
+                    $planFull = [System.IO.Path]::GetFullPath([string]$state.planFile)
+                    $rootFull = [System.IO.Path]::GetFullPath($repoPath).TrimEnd('\') + '\'
+                    if ($planFull.StartsWith($rootFull, [System.StringComparison]::OrdinalIgnoreCase)) {
+                        $ignore = @($ignore) + @(($planFull.Substring($rootFull.Length)) -replace '\\', '/')
+                    }
+                }
+                catch { }
+            }
             $dp = Get-DirtyPaths -RepoPath $repoPath -Ignore $ignore
-            if (@($dp.Blocking).Count) { throw "gate 3: $($state.repo) has uncommitted changes; the first phase needs a clean tree:`n$(@($dp.Blocking) -join "`n")" }
+            if (@($dp.Blocking).Count) { throw "gate 3: $repo has uncommitted changes; the first phase needs a clean tree:`n$(@($dp.Blocking) -join "`n")" }
             Set-Prop $state 'preexistingDirty' @($dp.Ignored)
             if (@($dp.Ignored).Count) { Write-Host "gate 3: ignoring pre-existing uncommitted records: $(@($dp.Ignored) -join ', ')" -ForegroundColor DarkGray }
             if (Test-GitBranchExists $repoPath $state.branch) { throw "gate 3: branch '$($state.branch)' already exists. approve again with -Branch <new name>." }
             $base = Get-GitHead $repoPath
             $sw = Invoke-Git $repoPath @('switch', '-c', $state.branch)
             if (-not $sw.Ok) { throw "git switch -c $($state.branch) failed: $($sw.Stderr)" }
-            Set-Prop $state 'baseSha' $base
-            Set-Prop $state 'baseBranch' $current
-            Write-Host "gate 3: created branch '$($state.branch)' from $current @ $($base.Substring(0,7))" -ForegroundColor DarkYellow
+            if (-not $state.baseSha) { Set-Prop $state 'baseSha' $base }
+            if (-not $state.baseBranch) { Set-Prop $state 'baseBranch' $current }
+            Write-Host "gate 3: created branch '$($state.branch)' in $repo from $current @ $($base.Substring(0,7))" -ForegroundColor DarkYellow
+            # D5: remembered per repo, so verify diffs each repo against its own base and a second phase in
+            # this repo does not gate it again.
+            $map = if ($state.PSObject.Properties['repoState'] -and $state.repoState) { $state.repoState } else { [pscustomobject]@{} }
+            Set-Prop $map $repo ([pscustomobject]@{ baseSha = $base; baseBranch = $current })
+            Set-Prop $state 'repoState' $map
         }
         elseif ($current -ne $state.branch) {
             throw "gate 3: repo is on '$current' but this run works on '$($state.branch)'. Switch back first (git -C `"$repoPath`" switch $($state.branch))."
@@ -1714,7 +1830,7 @@ function Cmd-Implement {
         $before = Get-WorkspaceFingerprint $Ctx
         $phaseLines = "Phase to execute: $Phase`nBranch (already created and checked out by the orchestrator): $($state.branch)`nRepo root: $repoPath`nYour cwd is the workspace root. Run all git commands against the repo root above, e.g. git -C `"$repoPath`" <args>."
         $extra = "Approved plan (frozen; follow it, including the APPROVED AMENDMENTS):`n`n$planText`n`n$phaseLines"
-        $prompt = New-RolePrompt -Ctx $Ctx -Role 'implementer' -Repo $state.repo -Task $state.task -Extra $extra -Branch $state.branch
+        $prompt = New-RolePrompt -Ctx $Ctx -Role 'implementer' -Repo $repo -Task $state.task -Extra $extra -Branch $state.branch
         Write-Host "gate 3: implementing phase $Phase..." -ForegroundColor Cyan
         # D7: continue this run's implement session, else the read-back or review session that ran on the
         # implementer's own model (it saw the approved version or an earlier one). From the read-back a short
@@ -1750,7 +1866,7 @@ function Cmd-Implement {
             $body += $phaseLines
             $continue = @{ Adapter = $rec.adapter; Model = $rec.model; SessionId = $contId; Prompt = (New-FollowUpPrompt -Role 'implementer' -Body $body -Branch $state.branch) }
         }
-        $impl = Invoke-Role -Ctx $Ctx -Role 'implementer' -Prompt $prompt -Cwd (Get-AgentCwd $Ctx $state.repo) -TimeoutSec (Get-Timeout $Ctx) -Repo $state.repo -ProgressFile (Get-TaskProgressFile $Ctx $TaskId) -TaskId $TaskId -Phase $Phase -ManualKey "implementer.phase-$Phase" -Continue $continue -Retry:$Retry
+        $impl = Invoke-Role -Ctx $Ctx -Role 'implementer' -Prompt $prompt -Cwd (Get-AgentCwd $Ctx $repo) -TimeoutSec (Get-Timeout $Ctx) -Repo $repo -ProgressFile (Get-TaskProgressFile $Ctx $TaskId) -TaskId $TaskId -Phase $Phase -ManualKey "implementer.phase-$Phase" -Continue $continue -Retry:$Retry
         # D8: a human answered this phase, so the tree was meant to change. The baseline for the sibling
         # check is the workspace snapshot taken when the prompt was written, not the one captured above
         # (which already includes the human's edits).
@@ -1772,10 +1888,10 @@ function Cmd-Implement {
             $v = [string]$before[$k]
             if (-not $v -or $v -eq '(missing)' -or $v.StartsWith('v2:')) { continue }
             if ($after.ContainsKey($k)) { $before[$k] = $after[$k] }
-            if ($k -eq $state.repo) { Write-Host '  note: fingerprint from an older engine, not compared' -ForegroundColor Yellow }
+            if ($k -eq $repo) { Write-Host '  note: fingerprint from an older engine, not compared' -ForegroundColor Yellow }
         }
         $violations = @()
-        $siblings = @(Compare-WorkspaceFingerprint $before $after | Where-Object { $_ -ne $state.repo })
+        $siblings = @(Compare-WorkspaceFingerprint $before $after | Where-Object { $_ -ne $repo })
         if ($siblings.Count) {
             # Deliberately a note, never a violation: a sibling checkout is another run's work (the two
             # repos are meant to run in parallel) or the owner's own commit between phases. This worker's
@@ -1793,7 +1909,7 @@ function Cmd-Implement {
         $pre = @()
         if ($state.PSObject.Properties['preexistingDirty']) { $pre = @($state.preexistingDirty | Where-Object { $_ }) }
         if ($pre.Count) { $changed = @($changed | Where-Object { $pre -notcontains $_ }) }
-        $outside = @(Get-FilesOutsidePlan -Changed $changed -Mentions (Get-PlanPathMentions $planText $state.repo))
+        $outside = @(Get-FilesOutsidePlan -Changed $changed -Mentions (Get-PlanPathMentions $planText $repo))
         if ($pre.Count) { $outside = @($outside | Where-Object { $pre -notcontains $_ }) }
         $iv = Get-Verdict $impl.Result.Stdout
         $ik = if ($iv) { $iv.Kind } else { 'NONE' }
@@ -1806,6 +1922,8 @@ function Cmd-Implement {
         Add-History -Ctx $Ctx -State $state -Event 'implement' -Data @{ phase = $Phase; verdict = $ik; violations = $violations.Count }
         $status = if ($violations.Count) { 'Violation' } else { 'Implemented' }
         Set-Prop $state 'status' $status
+        # D8: the plan file says Running from the first implement on.
+        if ($state.PSObject.Properties['planFile'] -and $state.planFile) { [void](Set-PlanStatus $state.planFile 'Running') }
         Save-TaskState -Ctx $Ctx -TaskId $TaskId -State $state
 
         Write-Host ""
@@ -1836,18 +1954,36 @@ function Cmd-Verify {
     $lock = Enter-TaskLock $Ctx $TaskId
     try {
         $gateOut = New-Object System.Text.StringBuilder
+        # D5 (plan 0013): verify runs the commands of every repo this run has touched so far, each in its
+        # own repo, and the verifier reads one diff per repo against that repo's own base.
+        $runStates = @()
+        foreach ($r in @(Get-RunRepos $state)) {
+            $rec = Get-RepoRunState -State $state -Repo $r
+            if (-not $rec -and $r -eq $state.repo -and $state.baseSha) { $rec = [pscustomobject]@{ baseSha = $state.baseSha; baseBranch = $state.baseBranch } }
+            if ($rec) { $runStates += [pscustomobject]@{ Repo = $r; Path = (Get-RepoPath $Ctx $r); Base = [string]$rec.baseSha } }
+        }
+        if (-not $runStates.Count) { $runStates = @([pscustomobject]@{ Repo = $state.repo; Path = $repoPath; Base = [string]$state.baseSha }) }
+        $verifyRepo = $runStates[$runStates.Count - 1].Repo
+        $repoPath = $runStates[$runStates.Count - 1].Path
+        $repoRoots = (@($runStates | ForEach-Object { "$($_.Repo): $($_.Path)" }) -join "`n")
         $cmds = @()
-        if ($Ctx.Config.PSObject.Properties['verifyCommands'] -and $Ctx.Config.verifyCommands.PSObject.Properties[$state.repo]) { $cmds = @($Ctx.Config.verifyCommands.($state.repo)) }
         $gatesFailed = @()
-        foreach ($c in $cmds) {
-            Write-Host "gate: $c" -ForegroundColor DarkGray
-            $r = Invoke-External -Exe 'powershell' -ArgList @('-NoProfile', '-Command', $c) -Cwd $repoPath -TimeoutSec (Get-Timeout $Ctx)
-            if ($r.ExitCode -ne 0 -or $r.TimedOut) { $gatesFailed += $c }
-            [void]$gateOut.AppendLine("### $c  (exit $($r.ExitCode), timedOut=$($r.TimedOut))")
-            [void]$gateOut.AppendLine((Get-Tail ($r.Stdout + "`n" + $r.Stderr) 6000))
+        foreach ($rs in $runStates) {
+            $one = @()
+            if ($Ctx.Config.PSObject.Properties['verifyCommands'] -and $Ctx.Config.verifyCommands.PSObject.Properties[$rs.Repo]) { $one = @($Ctx.Config.verifyCommands.($rs.Repo)) }
+            $cmds += $one
+            foreach ($c in $one) {
+                Write-Host "gate [$($rs.Repo)]: $c" -ForegroundColor DarkGray
+                $r = Invoke-External -Exe 'powershell' -ArgList @('-NoProfile', '-Command', $c) -Cwd $rs.Path -TimeoutSec (Get-Timeout $Ctx)
+                if ($r.ExitCode -ne 0 -or $r.TimedOut) { $gatesFailed += "$($rs.Repo): $c" }
+                [void]$gateOut.AppendLine("### [$($rs.Repo)] $c  (exit $($r.ExitCode), timedOut=$($r.TimedOut))")
+                [void]$gateOut.AppendLine((Get-Tail ($r.Stdout + "`n" + $r.Stderr) 6000))
+            }
         }
         $gateText = if ($cmds.Count) { $gateOut.ToString() } else { "No verifyCommands configured for this repo; nothing was executed. Verify by reading the diff and the repo gate doc only." }
-        $diff = Get-GitDiff $repoPath $state.baseSha ([int](Get-CfgValue $Ctx 'defaults' 'maxDiffChars' 60000))
+        $maxDiff = [int](Get-CfgValue $Ctx 'defaults' 'maxDiffChars' 60000)
+        $perRepo = [Math]::Max(2000, [int]($maxDiff / [Math]::Max(1, $runStates.Count)))
+        $diff = (@($runStates | ForEach-Object { "## repo $($_.Repo) (diff against $($_.Base))`n" + (Get-GitDiff $_.Path $_.Base $perRepo) }) -join "`n`n")
         $last = $state.implement
         $checks = "Orchestrator checks: changed files = $(@($last.changed) -join ', '); not mentioned in plan = $(@($last.outsidePlan) -join ', '); violations = $(@($last.violations) -join '; ')"
         # A plan is implemented one phase per user go, and verify runs after each one: without its scope the
@@ -1859,9 +1995,9 @@ function Cmd-Verify {
         if ($state.PSObject.Properties['preexistingDirty'] -and @($state.preexistingDirty | Where-Object { $_ }).Count) {
             $preLine = "Pre-existing uncommitted paths (not this run's work; ignore them in the diff): $(@($state.preexistingDirty) -join ', ')`n`n"
         }
-        $tail = "$scope`n`n$checks`n`nGate command results (run by the orchestrator, not by you):`n`n$gateText`n`n" + $preLine + "Diff against the base commit $($state.baseSha):`n`n$diff"
+        $tail = "$scope`n`n$checks`n`nRepos of this run (plan order):`n$repoRoots`n`nGate command results (run by the orchestrator, not by you):`n`n$gateText`n`n" + $preLine + "Diff per repo against its own base commit:`n`n$diff"
         $extra = "Plan (approved, frozen):`n`n$planText`n`n$tail"
-        $prompt = New-RolePrompt -Ctx $Ctx -Role 'verifier' -Repo $state.repo -Task $state.task -Extra $extra
+        $prompt = New-RolePrompt -Ctx $Ctx -Role 'verifier' -Repo $verifyRepo -Task $state.task -Extra $extra
         Write-Host "gate 4: verifier..." -ForegroundColor Cyan
         # D7: continue this run's verify session, else the review session (it reviewed the approved version
         # or an earlier one, AND its family differs from the last implementer's, so gate-2 independence
@@ -1902,7 +2038,8 @@ function Cmd-Verify {
         # The key is what the answer is valid for: the gate results and the diff the verifier is given.
         $sha = [System.Security.Cryptography.SHA256]::Create()
         $vHash = [BitConverter]::ToString($sha.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($gateText + $diff))).Replace('-', '').ToLower()
-        $v = Invoke-Role -Ctx $Ctx -Role 'verifier' -Prompt $prompt -Cwd (Get-AgentCwd $Ctx $state.repo) -TimeoutSec (Get-Timeout $Ctx) -Repo $state.repo -ProgressFile (Get-TaskProgressFile $Ctx $TaskId) -TaskId $TaskId -ManualKey ("verifier." + $vHash.Substring(0, 12)) -Continue $continue -Retry:$Retry
+        $verifyCwd = if ($runStates.Count -gt 1) { $Ctx.Root } else { Get-AgentCwd $Ctx $verifyRepo }
+        $v = Invoke-Role -Ctx $Ctx -Role 'verifier' -Prompt $prompt -Cwd $verifyCwd -TimeoutSec (Get-Timeout $Ctx) -Repo $verifyRepo -ProgressFile (Get-TaskProgressFile $Ctx $TaskId) -TaskId $TaskId -ManualKey ("verifier." + $vHash.Substring(0, 12)) -Continue $continue -Retry:$Retry
         Save-Outbox -Ctx $Ctx -TaskId $TaskId -Role 'verifier' -Name 'verify' -Content $v.Result.Stdout | Out-Null
         Save-Transcript -Ctx $Ctx -TaskId $TaskId -Name "verifier" -Data $v | Out-Null
 
@@ -1960,7 +2097,7 @@ try {
         'close'     { Cmd-Close -Ctx $ctx -TaskId $Arg1 -Force:$Force }
         'watch'     { Cmd-Watch -Ctx $ctx -TaskId $Arg1 -Every $Every -PollSec $PollSec -Once:$Once -ThenResume:$ThenResume -NoReadBack:$NoReadBack }
         'approve'   { Cmd-Approve -Ctx $ctx -TaskId $Arg1 -Notes $Arg2 -Branch $Branch -Force:$Force }
-        'implement' { Cmd-Implement -Ctx $ctx -TaskId $Arg1 -Phase $Arg2 -Force:$Force -Retry:$Retry }
+        'implement' { Cmd-Implement -Ctx $ctx -TaskId $Arg1 -Phase $Arg2 -Force:$Force -Retry:$Retry -AllowImplicitApproval }
         'verify'    { Cmd-Verify -Ctx $ctx -TaskId $Arg1 -Retry:$Retry }
         default     { Show-Usage -Ctx $ctx; exit 2 }
     }

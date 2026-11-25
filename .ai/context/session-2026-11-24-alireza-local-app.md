@@ -101,7 +101,7 @@
 - The owner wants the workspace first: one plan per change across repos, one folder per plan, a board by
   plan (`NNNN · title`), clearer stages, implicit approval by their own "implement", a close that asks
   nothing, a pick-plan skill, and back/reload buttons in the desktop app. Written as
-  [plan 0013](../../.orchestra/plans/0013-workspace-plans.md) with a preview; not reviewed yet.
+  [plan 0013](../../.orchestra/plans/0013-workspace-plans/plan.md) with a preview; not reviewed yet.
 - Board bugs seen on Project A and planned in 0013 D12: events are grouped by branch, so a run's pre-branch
   events form a second card; an old closed run with a reused id pulls a new run into Done.
 - Project A: its 166 done plans were removed with `git rm` in its `.orchestra/` repo (staged, not committed);

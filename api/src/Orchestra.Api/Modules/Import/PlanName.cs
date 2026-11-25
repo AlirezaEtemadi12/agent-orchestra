@@ -4,8 +4,10 @@ namespace Orchestra.Api.Modules.Import;
 
 public static partial class PlanName
 {
-    /// <summary>From the task text, else from the branch, else nothing.</summary>
-    public static (string? Number, string? Title) From(string? task, string? branch)
+    /// <summary>From the task text, else from the branch, else from the task id (plan 0013 D4/D12:
+    /// a run is named after its plan folder, `0013-tenant-filter`, and the slug is its fallback title).
+    /// The task id is optional so every older call site keeps compiling.</summary>
+    public static (string? Number, string? Title) From(string? task, string? branch, string? taskId = null)
     {
         if (task is not null)
         {
@@ -27,6 +29,16 @@ public static partial class PlanName
             }
         }
 
+        if (taskId is not null)
+        {
+            var match = PlanInId().Match(taskId);
+
+            if (match.Success)
+            {
+                return (match.Groups[1].Value, match.Groups[2].Value);
+            }
+        }
+
         return (null, null);
     }
 
@@ -35,4 +47,7 @@ public static partial class PlanName
 
     [GeneratedRegex(@"^plan-(\d{4})-", RegexOptions.CultureInvariant)]
     private static partial Regex PlanInBranch();
+
+    [GeneratedRegex(@"^(\d{4})-(.+)$", RegexOptions.CultureInvariant)]
+    private static partial Regex PlanInId();
 }

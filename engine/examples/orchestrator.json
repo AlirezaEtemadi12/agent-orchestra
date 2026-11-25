@@ -6,7 +6,7 @@
         "repos": "  - Repos: <RepoA>, <RepoB> - separate git repos under one workspace root. The root is not a git repo."
     },
     "planFiling": "number",
-    "plansDir": ".orchestra/plans/{repo}",
+    "plansDir": ".orchestra/plans",
     "root": "..",
     "workflow": {
         "gatesPath": ".orchestra/workflow.md",

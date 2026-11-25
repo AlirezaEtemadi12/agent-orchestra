@@ -14,6 +14,17 @@ export const boardEn = {
     "verifyFail": "Verify failed",
     "pool": "Waiting for {pool}, held by {heldBy}"
   },
+  "status": {
+    "Planning": "Draft",
+    "Reviewing": "In review",
+    "AwaitingApproval": "Reviewed · needs you",
+    "Approved": "Approved",
+    "Implemented": "Implemented",
+    "Verified": "Verified",
+    "VerifyFailed": "Failed",
+    "Violation": "Failed",
+    "interrupted": "Interrupted"
+  },
   "elapsed": "Elapsed",
   "lastLine": "Latest line",
   "empty": "No run had an event in the last 24 hours."

@@ -33,6 +33,14 @@ internal sealed class SetupTestBed : IDisposable
         File.WriteAllText(Path.Combine(TemplatesFolder, "run.ps1"), "# shim\n");
         File.WriteAllText(Path.Combine(TemplatesFolder, ".gitignore"), "runs/\n");
         File.WriteAllText(Path.Combine(TemplatesFolder, "plans", "README.md"), "# Plans\n");
+        Directory.CreateDirectory(Path.Combine(TemplatesFolder, "prompts"));
+        Directory.CreateDirectory(Path.Combine(TemplatesFolder, "roles"));
+        File.WriteAllText(Path.Combine(TemplatesFolder, "prompts", "plan.md"), "# Plan prompt\n");
+        Directory.CreateDirectory(Path.Combine(TemplatesFolder, "skills", "close-plan"));
+        Directory.CreateDirectory(Path.Combine(TemplatesFolder, "claude-skills", "close-plan"));
+        File.WriteAllText(Path.Combine(TemplatesFolder, "skills", "close-plan", "SKILL.md"), "# Close a plan\n");
+        File.WriteAllText(Path.Combine(TemplatesFolder, "claude-skills", "close-plan", "SKILL.md"), "# pointer\n");
+        File.WriteAllText(Path.Combine(TemplatesFolder, "roles", "README.md"), "# Roles\n");
         File.WriteAllText(Path.Combine(TemplatesFolder, "knowledge", "AGENTS.md"), "# <Name> — Agent Entry Point\n");
         File.WriteAllText(Path.Combine(TemplatesFolder, "knowledge", ".ai", "README.md"), "# Knowledge index\n");
 
@@ -233,6 +241,52 @@ public sealed class SetupPlannerTests : IDisposable
         row.Action.Should().Be(SetupActions.Update);
         row.Detail.Should().Contain("enginePath").And.Contain("profilesPath").And.Contain("reportToken");
         row.Detail.Should().NotContain("abc123");
+    }
+
+    [Fact]
+    public void A_claude_skill_pointer_lands_in_dot_claude_while_its_id_stays_the_template_path()
+    {
+        var root = _bed.Repo("shop");
+
+        var plan = _bed.Planner.Plan(_bed.Request(root), root);
+
+        plan.Items.Should().Contain(item =>
+            item.Id == "claude-skills/close-plan/SKILL.md"
+            && item.Path == ".claude/skills/close-plan/SKILL.md");
+        plan.Items.Should().Contain(item =>
+            item.Id == "skills/close-plan/SKILL.md"
+            && item.Path == ".orchestra/skills/close-plan/SKILL.md");
+    }
+
+    [Fact]
+    public void A_config_with_its_own_prompt_and_role_folders_plans_no_prompt_or_role_rows()
+    {
+        var root = _bed.Repo("shop");
+        Directory.CreateDirectory(Path.Combine(root, ".orchestra"));
+        File.WriteAllText(
+            Path.Combine(root, ".orchestra", "orchestrator.json"),
+            "{\"workflow\":{\"promptsPath\":\".orchestra/prompts/{repo}\",\"rolesPath\":\".orchestra/roles/{repo}\"}}");
+
+        var plan = _bed.Planner.Plan(_bed.Request(root), root);
+
+        plan.Items.Should().NotContain(item => item.Id.StartsWith("prompts/", StringComparison.Ordinal));
+        plan.Items.Should().NotContain(item => item.Id.StartsWith("roles/", StringComparison.Ordinal));
+        plan.Items.Should().Contain(item => item.Id == "workflow.md");
+    }
+
+    [Fact]
+    public void A_config_with_the_standard_folders_still_plans_the_prompt_and_role_rows()
+    {
+        var root = _bed.Repo("shop");
+        Directory.CreateDirectory(Path.Combine(root, ".orchestra"));
+        File.WriteAllText(
+            Path.Combine(root, ".orchestra", "orchestrator.json"),
+            "{\"workflow\":{\"promptsPath\":\".orchestra/prompts/\",\"rolesPath\":\".orchestra/roles\"}}");
+
+        var plan = _bed.Planner.Plan(_bed.Request(root), root);
+
+        plan.Items.Should().Contain(item => item.Id == "prompts/plan.md" && item.Path == ".orchestra/prompts/plan.md");
+        plan.Items.Should().Contain(item => item.Id == "roles/README.md" && item.Path == ".orchestra/roles/README.md");
     }
 
     public void Dispose()
