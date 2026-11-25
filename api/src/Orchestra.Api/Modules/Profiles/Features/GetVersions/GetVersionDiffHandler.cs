@@ -8,14 +8,15 @@ public sealed record ProfileVersionSummaryDto(int Version, string Reason, DateTi
 
 public sealed record ConfigChangeDto(string Path, string? From, string? To);
 
-public sealed record ProfileVersionsDto(
-    IReadOnlyList<ProfileVersionSummaryDto> Versions,
-    IReadOnlyList<ConfigChangeDto>? Diff);
+public sealed record ProfileDiffDto(IReadOnlyList<ConfigChangeDto> Diff);
 
-/// <summary>§6.2: the history's list, and with <c>?diff=a,b</c> the JSON-path changes between them.</summary>
-public sealed class GetVersionsHandler(OrchestraDbContext database)
+/// <summary>Plan 0010 D5/D13: the <c>?diff=a,b</c> half of the history; the list moved to
+/// <c>/versions/table</c>. A missing or malformed pair is 400 with the same detail.</summary>
+public sealed class GetVersionDiffHandler(OrchestraDbContext database)
 {
-    public async Task<(ProfileVersionsDto? Versions, Error? Error, string? Detail)> HandleAsync(
+    private const string DiffDetail = "diff must be two version numbers: ?diff=1,2";
+
+    public async Task<(ProfileDiffDto? Diff, Error? Error, string? Detail)> HandleAsync(
         string id,
         string? diff,
         CancellationToken cancellationToken)
@@ -29,23 +30,16 @@ public sealed class GetVersionsHandler(OrchestraDbContext database)
             return (null, Error.ProfileNotFound, null);
         }
 
-        var versions = await database.ProfileVersions
-            .AsNoTracking()
-            .Where(version => version.ProfileId == id)
-            .OrderByDescending(version => version.Version)
-            .Select(version => new ProfileVersionSummaryDto(version.Version, version.Reason, version.CreatedAt))
-            .ToListAsync(cancellationToken);
-
         if (string.IsNullOrWhiteSpace(diff))
         {
-            return (new ProfileVersionsDto(versions, null), null, null);
+            return (null, Error.ProfileInvalid, DiffDetail);
         }
 
         var parts = diff.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         if (parts.Length != 2 || !int.TryParse(parts[0], out var left) || !int.TryParse(parts[1], out var right))
         {
-            return (null, Error.ProfileInvalid, "diff must be two version numbers: ?diff=1,2");
+            return (null, Error.ProfileInvalid, DiffDetail);
         }
 
         var pair = await database.ProfileVersions
@@ -65,6 +59,6 @@ public sealed class GetVersionsHandler(OrchestraDbContext database)
             .Select(change => new ConfigChangeDto(change.Path, change.From, change.To))
             .ToList();
 
-        return (new ProfileVersionsDto(versions, changes), null, null);
+        return (new ProfileDiffDto(changes), null, null);
     }
 }

@@ -5,7 +5,7 @@ using Orchestra.Api.Modules.Events;
 using Orchestra.Api.Modules.Library;
 using Orchestra.Api.Modules.Library.Indexing;
 using Orchestra.Api.Modules.Runs.Entities;
-using Orchestra.Api.Modules.Runs.Features.ListRuns;
+using Orchestra.Api.Modules.Runs.Features;
 
 namespace Orchestra.Api.Modules.Runs.Features.GetRun;
 
@@ -50,7 +50,7 @@ public sealed class GetRunHandler(OrchestraDbContext database, TimeProvider cloc
                 session.Output,
                 session.Reasoning,
                 session.CacheRead,
-                ListRunsHandler.ToUsd(session.CostMicros)))
+                RunDtos.ToUsd(session.CostMicros)))
             .ToList();
 
         var stageUsage = run.StageUsage
@@ -67,7 +67,7 @@ public sealed class GetRunHandler(OrchestraDbContext database, TimeProvider cloc
                 usage.Reasoning,
                 usage.CacheRead,
                 usage.Seconds,
-                ListRunsHandler.ToUsd(usage.CostMicros)))
+                RunDtos.ToUsd(usage.CostMicros)))
             .ToList();
 
         var texts = run.Texts
@@ -91,7 +91,7 @@ public sealed class GetRunHandler(OrchestraDbContext database, TimeProvider cloc
             run.Sessions.Count,
             run.Sessions.Sum(session => (long?)session.Calls) ?? 0,
             run.Sessions.Sum(session => (long?)session.Requests) ?? 0,
-            ListRunsHandler.ToUsd(run.CostMicros),
+            RunDtos.ToUsd(run.CostMicros),
             run.Rounds,
             stages.Where(stage => stage.Model is not null).Select(stage => stage.Model!).Distinct(StringComparer.Ordinal).ToList(),
             run.CreatedAt,
@@ -103,7 +103,7 @@ public sealed class GetRunHandler(OrchestraDbContext database, TimeProvider cloc
             sessions,
             stageUsage,
             texts,
-            ListRunsHandler.ToUsd(run.CostMicros),
+            RunDtos.ToUsd(run.CostMicros),
             await PlanOfAsync(run, cancellationToken),
             await LiveOfAsync(run, cancellationToken),
             run.EffectiveConfigJson);

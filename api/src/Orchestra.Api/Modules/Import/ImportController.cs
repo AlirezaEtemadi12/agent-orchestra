@@ -1,3 +1,4 @@
+using Gridify;
 using Microsoft.AspNetCore.Mvc;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
@@ -30,13 +31,22 @@ public sealed class ImportController : ControllerBase
         }
     }
 
-    [HttpGet("logs")]
-    public async Task<IActionResult> Logs(
-        [FromServices] ImportLogsHandler handler,
+    [HttpGet("logs/table")]
+    public async Task<IActionResult> LogsTable(
+        [FromServices] ImportLogsTableHandler handler,
         [FromQuery] string? project,
-        [FromQuery] int take = 20,
-        CancellationToken cancellationToken = default)
+        [FromQuery] GridifyQuery query,
+        CancellationToken cancellationToken)
     {
-        return Ok(await handler.HandleAsync(project, take, cancellationToken));
+        var (page, error) = await handler.HandleAsync(project, query, cancellationToken);
+
+        return error is null ? Ok(page) : Failure(error);
+    }
+
+    private IActionResult Failure(Error error)
+    {
+        var problem = ProblemResults.From(error, HttpContext);
+
+        return new ObjectResult(problem) { StatusCode = problem.Status };
     }
 }

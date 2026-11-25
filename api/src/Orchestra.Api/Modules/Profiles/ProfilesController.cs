@@ -1,3 +1,4 @@
+using Gridify;
 using Microsoft.AspNetCore.Mvc;
 using Orchestra.Api.Common;
 using Orchestra.Api.Common.Errors;
@@ -59,14 +60,26 @@ public sealed class ProfilesController : ControllerBase
 
     [HttpGet("{id}/versions")]
     public async Task<IActionResult> Versions(
-        [FromServices] GetVersionsHandler handler,
+        [FromServices] GetVersionDiffHandler handler,
         string id,
         [FromQuery] string? diff,
         CancellationToken cancellationToken)
     {
-        var (versions, error, detail) = await handler.HandleAsync(id, diff, cancellationToken);
+        var (changes, error, detail) = await handler.HandleAsync(id, diff, cancellationToken);
 
-        return error is null ? Ok(versions) : Failure(error, detail);
+        return error is null ? Ok(changes) : Failure(error, detail);
+    }
+
+    [HttpGet("{id}/versions/table")]
+    public async Task<IActionResult> VersionsTable(
+        [FromServices] ProfileVersionsTableHandler handler,
+        string id,
+        [FromQuery] GridifyQuery query,
+        CancellationToken cancellationToken)
+    {
+        var (page, error) = await handler.HandleAsync(id, query, cancellationToken);
+
+        return error is null ? Ok(page) : Failure(error);
     }
 
     private IActionResult Failure(Error error, string? detail = null)

@@ -1,3 +1,5 @@
+import type { Paging } from 'gridify-client';
+
 export type ImportErrorDto = {
   file: string;
   location: string | null;
@@ -18,4 +20,13 @@ export type ImportResultDto = {
 export type ImportLogDto = ImportResultDto & {
   id: string;
   errors: ImportErrorDto[];
+};
+
+export type ImportLogPage = Paging<ImportLogDto>;
+
+export type ImportLogQuery = {
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  search: string;
 };

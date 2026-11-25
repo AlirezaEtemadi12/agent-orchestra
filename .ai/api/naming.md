@@ -5,12 +5,11 @@
 | Thing | Shape | Example |
 |---|---|---|
 | Module folder | `Modules/<Module>/` | `Modules/Import/` |
-| Feature | `Modules/<Module>/Features/<Action>/` | `Features/ListRuns/` |
-| Query | `<Action>Query.cs` | `ListRunsQuery.cs` |
-| Handler | `<Action>Handler.cs` | `ListRunsHandler.cs` |
+| Feature | `Modules/<Module>/Features/<Action>/` | `Features/RunsTable/` |
+| Handler | `<Action>Handler.cs` | `RunsTableHandler.cs` |
 | Entity | `<Name>Entity.cs` | `RunEntity.cs` |
 | EF configuration | `Data/Configurations/<Name>Configuration.cs` | `RunConfiguration.cs` |
-| DTO | `<Name>Dto.cs`, beside the feature | `RunListItemDto.cs` |
+| DTO | `<Name>Dto.cs`, beside the feature | `RunDtos.cs` (the runs feature) |
 | Installer | `<Module>ModuleInstaller.cs` | `ImportModuleInstaller.cs` |
 | Dependency field | `_` + the type name | `_importService` |
 | Error code | `<Module>.<Thing>.<Reason>` | `Runs.Run.NotFound` |

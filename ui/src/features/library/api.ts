@@ -1,32 +1,33 @@
+import type { Paging } from 'gridify-client';
 import type { Locale } from '@/lib/i18n/config';
 import { apiClient } from '@/lib/api/client';
+import type { TableQuery } from '@/lib/gridify/build-query';
 import { env } from '@/lib/env';
-import type { LibraryFilter, LibraryItem, LibraryItemDetail } from './types';
+import type { LibraryItem, LibraryItemDetail, LibraryTableQuery } from './types';
 
 function encode(value: string): string {
   return encodeURIComponent(value);
 }
 
-function filterQuery(filter: LibraryFilter): string {
+function tablePath(filter: LibraryTableQuery, built: TableQuery): string {
   const params = new URLSearchParams({ category: filter.category });
 
   if (filter.project) {
     params.set('project', filter.project);
   }
 
-  if (filter.status) {
-    params.set('status', filter.status);
+  params.set('page', String(built.page));
+  params.set('pageSize', String(built.pageSize));
+
+  if (built.orderBy) {
+    params.set('orderBy', built.orderBy);
   }
 
-  if (filter.sort) {
-    params.set('sort', filter.sort);
+  if (built.filter) {
+    params.set('filter', built.filter);
   }
 
-  if (filter.dir) {
-    params.set('dir', filter.dir);
-  }
-
-  return `library?${params.toString()}`;
+  return `library/table?${params.toString()}`;
 }
 
 function itemPath(project: string, category: string, relPath: string): string {
@@ -34,7 +35,8 @@ function itemPath(project: string, category: string, relPath: string): string {
 }
 
 export const libraryApi = {
-  list: (locale: Locale, filter: LibraryFilter) => apiClient.get<LibraryItem[]>(filterQuery(filter), locale),
+  table: (locale: Locale, filter: LibraryTableQuery, built: TableQuery) =>
+    apiClient.get<Paging<LibraryItem>>(tablePath(filter, built), locale),
   item: (locale: Locale, project: string, category: string, relPath: string) =>
     apiClient.get<LibraryItemDetail>(itemPath(project, category, relPath), locale),
   prompt: (locale: Locale, project: string, relPath: string) =>

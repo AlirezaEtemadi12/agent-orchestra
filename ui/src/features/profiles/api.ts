@@ -1,6 +1,13 @@
+import type { Paging } from 'gridify-client';
 import type { Locale } from '@/lib/i18n/config';
 import { apiClient } from '@/lib/api/client';
-import type { ProfileSummary, ProfileVersion, ProfileVersions } from './types';
+import type { TableQuery } from '@/lib/gridify/build-query';
+import type {
+  ProfileDiff,
+  ProfileSummary,
+  ProfileVersion,
+  ProfileVersionSummary,
+} from './types';
 
 function encode(value: string): string {
   return encodeURIComponent(value);
@@ -23,9 +30,28 @@ export const profilesApi = {
     apiClient.post<{ id: string; version: number }>(`profiles/${encode(id)}/revert`, locale, {
       version,
     }),
-  versions: (locale: Locale, id: string, diff?: string) =>
-    apiClient.get<ProfileVersions>(
-      `profiles/${encode(id)}/versions${diff ? `?diff=${encodeURIComponent(diff)}` : ''}`,
+  diff: (locale: Locale, id: string, diff: string) =>
+    apiClient.get<ProfileDiff>(
+      `profiles/${encode(id)}/versions?diff=${encodeURIComponent(diff)}`,
       locale,
     ),
+  versionsTable: (locale: Locale, id: string, query: TableQuery) => {
+    const params = new URLSearchParams();
+
+    params.set('page', String(query.page));
+    params.set('pageSize', String(query.pageSize));
+
+    if (query.orderBy) {
+      params.set('orderBy', query.orderBy);
+    }
+
+    if (query.filter) {
+      params.set('filter', query.filter);
+    }
+
+    return apiClient.get<Paging<ProfileVersionSummary>>(
+      `profiles/${encode(id)}/versions/table?${params.toString()}`,
+      locale,
+    );
+  },
 };

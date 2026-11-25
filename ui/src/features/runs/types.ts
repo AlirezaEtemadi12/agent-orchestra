@@ -1,3 +1,5 @@
+import type { Paging } from 'gridify-client';
+
 export type RunListItem = {
   projectId: string;
   projectName: string;
@@ -105,3 +107,26 @@ export type RunDetail = RunListItem & {
   totalCostUsd: number | null;
   effectiveConfig: string | null;
 };
+
+/** Plan 0010 D7: the KPI cards and the two dropdowns, over the whole filtered set. */
+export type RunsSummary = {
+  runs: number;
+  sessions: number;
+  calls: number;
+  costUsd: number;
+  statuses: string[];
+  repos: string[];
+};
+
+/** What the Runs page asks from the table and the summary. */
+export type RunsQuery = {
+  project: string | null;
+  status: string | null;
+  repo: string | null;
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  search: string;
+};
+
+export type RunPage = Paging<RunListItem>;

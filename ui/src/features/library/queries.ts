@@ -2,24 +2,31 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useLocale } from 'next-intl';
+import { buildGridifyQuery } from '@/lib/gridify/build-query';
 import type { Locale } from '@/lib/i18n/config';
 import { libraryApi } from './api';
-import type { LibraryFilter } from './types';
+import type { LibraryTableQuery } from './types';
 
-export function useLibrary(filter: LibraryFilter) {
+const SEARCHABLE_FIELDS = ['title', 'slug', 'number'] as const;
+
+function gridify(query: LibraryTableQuery) {
+  return buildGridifyQuery({
+    page: query.page,
+    pageSize: query.pageSize,
+    orderBy: query.orderBy,
+    search: query.search,
+    searchableFields: SEARCHABLE_FIELDS,
+    filters: query.status ? [{ field: 'status', value: query.status }] : [],
+  });
+}
+
+export function useLibraryTable(query: LibraryTableQuery) {
   const locale = useLocale() as Locale;
+  const built = gridify(query);
 
   return useQuery({
-    queryKey: [
-      'library',
-      locale,
-      filter.project ?? null,
-      filter.category,
-      filter.status ?? null,
-      filter.sort ?? null,
-      filter.dir ?? null,
-    ],
-    queryFn: () => libraryApi.list(locale, filter),
+    queryKey: ['library', 'table', locale, query.project, query.category, built],
+    queryFn: () => libraryApi.table(locale, query, built),
   });
 }
 

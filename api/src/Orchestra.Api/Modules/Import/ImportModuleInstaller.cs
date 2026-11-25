@@ -9,7 +9,7 @@ public sealed class ImportModuleInstaller : IModuleInstaller
     public void Install(IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<ImportService>();
-        services.AddScoped<ImportLogsHandler>();
+        services.AddScoped<ImportLogsTableHandler>();
         services.AddHostedService<ImportHostedService>();
     }
 }

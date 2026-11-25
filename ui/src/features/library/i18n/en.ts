@@ -19,9 +19,6 @@ export const libraryEn = {
     "run": "Run",
     "linkedPlan": "Plan"
   },
-  "sort": {
-    "label": "Sort by"
-  },
   "status": {
     "Draft": "Draft",
     "Approved": "Approved",

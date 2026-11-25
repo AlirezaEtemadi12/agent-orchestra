@@ -23,7 +23,8 @@ public sealed class ProfilesModuleInstaller : IModuleInstaller
         services.AddScoped<GetProfileHandler>();
         services.AddScoped<SaveProfileHandler>();
         services.AddScoped<RevertProfileHandler>();
-        services.AddScoped<GetVersionsHandler>();
+        services.AddScoped<GetVersionDiffHandler>();
+        services.AddScoped<ProfileVersionsTableHandler>();
         services.AddScoped<EffectiveConfigHandler>();
     }
 }

@@ -8,6 +8,7 @@ export const importsFa = {
   "libraryItems": "موارد کتابخانه",
   "errors": "خطاها",
   "columns": {
+    "finishedAt": "پایان",
     "file": "فایل",
     "location": "کجا",
     "message": "مشکل"
